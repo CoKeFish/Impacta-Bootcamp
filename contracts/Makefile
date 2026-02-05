@@ -1,11 +1,11 @@
 # ============================================================================
-# CoTravel Escrow Contract - Makefile
+# CoTravel Escrow Contract - Makefile (Multi-Trip)
 # ============================================================================
 # Uso: make <comando>
 # Ejecutar dentro del contenedor: docker exec -it impacta-soroban-dev bash
 # ============================================================================
 
-# Configuración de red (usando RPC público de testnet)
+# Configuracion de red (usando RPC publico de testnet)
 NETWORK := testnet
 RPC_URL := https://soroban-testnet.stellar.org
 FRIENDBOT_URL := https://friendbot.stellar.org
@@ -15,8 +15,9 @@ NETWORK_PASSPHRASE := Test SDF Network ; September 2015
 WASM := target/wasm32v1-none/release/cotravel_escrow.wasm
 CONTRACT_FILE := .contract_id
 TOKEN_FILE := .token_id
+TRIP_FILE := .trip_id
 
-# Identidades (se crean automáticamente)
+# Identidades (se crean automaticamente)
 ADMIN := admin
 ORGANIZER := organizer
 PARTICIPANT1 := participant1
@@ -37,7 +38,7 @@ test: ## Ejecutar tests
 .PHONY: clean
 clean: ## Limpiar artifacts
 	cargo clean
-	rm -f $(CONTRACT_FILE) $(TOKEN_FILE)
+	rm -f $(CONTRACT_FILE) $(TOKEN_FILE) $(TRIP_FILE)
 
 # ============================================================================
 # SETUP - Configurar identidades y red
@@ -45,7 +46,7 @@ clean: ## Limpiar artifacts
 
 .PHONY: setup
 setup: setup-network setup-identities setup-token ## Setup completo (red + identidades + token)
-	@echo "✅ Setup completo"
+	@echo "Setup completo"
 
 .PHONY: setup-network
 setup-network: ## Configurar red local
@@ -67,14 +68,14 @@ setup-identities: ## Crear identidades de prueba
 	@curl -s "$(FRIENDBOT_URL)?addr=$$(soroban keys address $(ORGANIZER))" > /dev/null
 	@curl -s "$(FRIENDBOT_URL)?addr=$$(soroban keys address $(PARTICIPANT1))" > /dev/null
 	@curl -s "$(FRIENDBOT_URL)?addr=$$(soroban keys address $(PARTICIPANT2))" > /dev/null
-	@echo "✅ Identidades creadas y fondeadas"
+	@echo "Identidades creadas y fondeadas"
 
 .PHONY: setup-token
 setup-token: ## Obtener token nativo (XLM wrapper)
 	@echo "Obteniendo ID del token nativo..."
 	@soroban contract id asset --asset native --network $(NETWORK) > $(TOKEN_FILE)
 	@echo "Token ID: $$(cat $(TOKEN_FILE))"
-	@echo "✅ Token configurado (los participantes ya tienen XLM de friendbot)"
+	@echo "Token configurado (los participantes ya tienen XLM de friendbot)"
 
 # ============================================================================
 # DEPLOY
@@ -88,33 +89,37 @@ deploy: build ## Desplegar contrato
 		--source $(ADMIN) \
 		--network $(NETWORK) \
 		--instruction-leeway 10000000 > $(CONTRACT_FILE)
-	@echo "✅ Contrato desplegado: $$(cat $(CONTRACT_FILE))"
+	@echo "Contrato desplegado: $$(cat $(CONTRACT_FILE))"
 
 # ============================================================================
-# INITIALIZE
+# TRIP MANAGEMENT
 # ============================================================================
 
-# Variables por defecto para inicialización
+# Variables por defecto para crear viaje
 TARGET_AMOUNT ?= 10000000000
 MIN_PARTICIPANTS ?= 2
 DEADLINE ?= 9999999999
 PENALTY_PERCENT ?= 10
 
-.PHONY: init
-init: ## Inicializar escrow (TARGET_AMOUNT, MIN_PARTICIPANTS, DEADLINE, PENALTY_PERCENT)
-	@echo "Inicializando escrow..."
+.PHONY: create-trip
+create-trip: ## Crear nuevo viaje (TARGET_AMOUNT, MIN_PARTICIPANTS, DEADLINE, PENALTY_PERCENT)
+	@echo "Creando viaje..."
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(ORGANIZER) \
 		--network $(NETWORK) \
-		-- initialize \
+		-- create_trip \
 		--organizer $$(soroban keys address $(ORGANIZER)) \
 		--token $$(cat $(TOKEN_FILE)) \
 		--target_amount $(TARGET_AMOUNT) \
 		--min_participants $(MIN_PARTICIPANTS) \
 		--deadline $(DEADLINE) \
-		--penalty_percent $(PENALTY_PERCENT)
-	@echo "✅ Escrow inicializado"
+		--penalty_percent $(PENALTY_PERCENT) | tee $(TRIP_FILE)
+	@echo ""
+	@echo "Viaje creado con ID: $$(cat $(TRIP_FILE))"
+
+# Variable para trip_id (lee de archivo o usa el proporcionado)
+TRIP_ID ?= $(shell cat $(TRIP_FILE) 2>/dev/null || echo 0)
 
 # ============================================================================
 # OPERACIONES
@@ -125,117 +130,161 @@ AMOUNT ?= 5000000000
 PARTICIPANT ?= $(PARTICIPANT1)
 
 .PHONY: contribute
-contribute: ## Contribuir fondos (PARTICIPANT, AMOUNT)
-	@echo "Contribuyendo $(AMOUNT) desde $(PARTICIPANT)..."
+contribute: ## Contribuir fondos (TRIP_ID, PARTICIPANT, AMOUNT)
+	@echo "Contribuyendo $(AMOUNT) desde $(PARTICIPANT) al viaje $(TRIP_ID)..."
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(PARTICIPANT) \
 		--network $(NETWORK) \
 		-- contribute \
+		--trip_id $(TRIP_ID) \
 		--participant $$(soroban keys address $(PARTICIPANT)) \
 		--amount $(AMOUNT)
-	@echo "✅ Contribución realizada"
+	@echo "Contribucion realizada"
 
 .PHONY: contribute-p1
-contribute-p1: ## Participante 1 contribuye (AMOUNT)
-	@$(MAKE) contribute PARTICIPANT=$(PARTICIPANT1) AMOUNT=$(AMOUNT)
+contribute-p1: ## Participante 1 contribuye (TRIP_ID, AMOUNT)
+	@$(MAKE) contribute PARTICIPANT=$(PARTICIPANT1) AMOUNT=$(AMOUNT) TRIP_ID=$(TRIP_ID)
 
 .PHONY: contribute-p2
-contribute-p2: ## Participante 2 contribuye (AMOUNT)
-	@$(MAKE) contribute PARTICIPANT=$(PARTICIPANT2) AMOUNT=$(AMOUNT)
+contribute-p2: ## Participante 2 contribuye (TRIP_ID, AMOUNT)
+	@$(MAKE) contribute PARTICIPANT=$(PARTICIPANT2) AMOUNT=$(AMOUNT) TRIP_ID=$(TRIP_ID)
 
 .PHONY: withdraw
-withdraw: ## Retirarse del escrow (PARTICIPANT)
-	@echo "Retirando $(PARTICIPANT)..."
+withdraw: ## Retirarse del viaje (TRIP_ID, PARTICIPANT)
+	@echo "Retirando $(PARTICIPANT) del viaje $(TRIP_ID)..."
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(PARTICIPANT) \
 		--network $(NETWORK) \
 		-- withdraw \
+		--trip_id $(TRIP_ID) \
 		--participant $$(soroban keys address $(PARTICIPANT))
-	@echo "✅ Retiro completado"
+	@echo "Retiro completado"
 
 .PHONY: release
-release: ## Liberar fondos al organizador
-	@echo "Liberando fondos..."
+release: ## Liberar fondos al organizador (TRIP_ID)
+	@echo "Liberando fondos del viaje $(TRIP_ID)..."
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(ORGANIZER) \
 		--network $(NETWORK) \
-		-- release
-	@echo "✅ Fondos liberados"
+		-- release \
+		--trip_id $(TRIP_ID)
+	@echo "Fondos liberados"
 
 .PHONY: cancel
-cancel: ## Cancelar y reembolsar a todos
-	@echo "Cancelando escrow..."
+cancel: ## Cancelar y reembolsar a todos (TRIP_ID)
+	@echo "Cancelando viaje $(TRIP_ID)..."
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(ORGANIZER) \
 		--network $(NETWORK) \
-		-- cancel
-	@echo "✅ Escrow cancelado, fondos reembolsados"
+		-- cancel \
+		--trip_id $(TRIP_ID)
+	@echo "Viaje cancelado, fondos reembolsados"
 
 # ============================================================================
-# CONSULTAS
+# CONSULTAS - CONTRATO
 # ============================================================================
+
+.PHONY: trip-count
+trip-count: ## Ver numero total de viajes creados
+	@echo "Total de viajes:"
+	@soroban contract invoke \
+		--id $$(cat $(CONTRACT_FILE)) \
+		--source $(ADMIN) \
+		--network $(NETWORK) \
+		--send=no \
+		-- get_trip_count
+
+.PHONY: trips
+trips: ## Ver lista de IDs de viajes
+	@echo "Lista de viajes:"
+	@soroban contract invoke \
+		--id $$(cat $(CONTRACT_FILE)) \
+		--source $(ADMIN) \
+		--network $(NETWORK) \
+		--send=no \
+		-- get_trips
+
+# ============================================================================
+# CONSULTAS - VIAJE ESPECIFICO
+# ============================================================================
+
+.PHONY: trip
+trip: ## Ver info completa del viaje (TRIP_ID)
+	@echo "Info del viaje $(TRIP_ID):"
+	@soroban contract invoke \
+		--id $$(cat $(CONTRACT_FILE)) \
+		--source $(ADMIN) \
+		--network $(NETWORK) \
+		--send=no \
+		-- get_trip \
+		--trip_id $(TRIP_ID)
 
 .PHONY: state
-state: ## Ver estado del escrow
-	@echo "Estado del escrow:"
+state: ## Ver estado del viaje (TRIP_ID)
+	@echo "Estado del viaje $(TRIP_ID):"
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(ADMIN) \
 		--network $(NETWORK) \
 		--send=no \
-		-- get_state
+		-- get_state \
+		--trip_id $(TRIP_ID)
 
 .PHONY: config
-config: ## Ver configuración del escrow
-	@echo "Configuración:"
+config: ## Ver configuracion del viaje (TRIP_ID)
+	@echo "Configuracion del viaje $(TRIP_ID):"
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(ADMIN) \
 		--network $(NETWORK) \
 		--send=no \
-		-- get_config
+		-- get_config \
+		--trip_id $(TRIP_ID)
 
 .PHONY: participants
-participants: ## Ver lista de participantes
-	@echo "Participantes:"
+participants: ## Ver lista de participantes (TRIP_ID)
+	@echo "Participantes del viaje $(TRIP_ID):"
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(ADMIN) \
 		--network $(NETWORK) \
 		--send=no \
-		-- get_participants
+		-- get_participants \
+		--trip_id $(TRIP_ID)
 
 .PHONY: balance
-balance: ## Ver balance de un participante (PARTICIPANT)
-	@echo "Balance de $(PARTICIPANT):"
+balance: ## Ver balance de un participante (TRIP_ID, PARTICIPANT)
+	@echo "Balance de $(PARTICIPANT) en viaje $(TRIP_ID):"
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(ADMIN) \
 		--network $(NETWORK) \
 		--send=no \
 		-- get_balance \
+		--trip_id $(TRIP_ID) \
 		--participant $$(soroban keys address $(PARTICIPANT))
 
 .PHONY: balance-p1
-balance-p1: ## Ver balance de participante 1
-	@$(MAKE) balance PARTICIPANT=$(PARTICIPANT1)
+balance-p1: ## Ver balance de participante 1 (TRIP_ID)
+	@$(MAKE) balance PARTICIPANT=$(PARTICIPANT1) TRIP_ID=$(TRIP_ID)
 
 .PHONY: balance-p2
-balance-p2: ## Ver balance de participante 2
-	@$(MAKE) balance PARTICIPANT=$(PARTICIPANT2)
+balance-p2: ## Ver balance de participante 2 (TRIP_ID)
+	@$(MAKE) balance PARTICIPANT=$(PARTICIPANT2) TRIP_ID=$(TRIP_ID)
 
 # ============================================================================
 # INFO
 # ============================================================================
 
 .PHONY: ids
-ids: ## Mostrar IDs del contrato y token
+ids: ## Mostrar IDs del contrato, token y viaje actual
 	@echo "Contract ID: $$(cat $(CONTRACT_FILE) 2>/dev/null || echo 'No desplegado')"
-	@echo "Token ID:    $$(cat $(TOKEN_FILE) 2>/dev/null || echo 'No desplegado')"
+	@echo "Token ID:    $$(cat $(TOKEN_FILE) 2>/dev/null || echo 'No configurado')"
+	@echo "Trip ID:     $$(cat $(TRIP_FILE) 2>/dev/null || echo 'No creado')"
 
 .PHONY: addresses
 addresses: ## Mostrar direcciones de las identidades
@@ -249,10 +298,11 @@ addresses: ## Mostrar direcciones de las identidades
 # ============================================================================
 
 .PHONY: demo
-demo: setup deploy init ## Demo: setup + deploy + init
+demo: setup deploy create-trip ## Demo: setup + deploy + crear viaje
 	@echo ""
 	@echo "======================================"
-	@echo "Demo listo. Próximos pasos:"
+	@echo "Demo listo. Viaje ID: $$(cat $(TRIP_FILE))"
+	@echo "Proximos pasos:"
 	@echo "  make contribute-p1 AMOUNT=5000000000"
 	@echo "  make contribute-p2 AMOUNT=6000000000"
 	@echo "  make state"
@@ -271,21 +321,35 @@ demo-full: demo ## Demo completo con contribuciones y release
 	@$(MAKE) release
 	@$(MAKE) state
 
+.PHONY: demo-multi
+demo-multi: setup deploy ## Demo con multiples viajes
+	@echo ""
+	@echo "Creando viaje 1 (meta: 10 XLM)..."
+	@$(MAKE) create-trip TARGET_AMOUNT=10000000000 MIN_PARTICIPANTS=2
+	@echo ""
+	@echo "Creando viaje 2 (meta: 20 XLM)..."
+	@$(MAKE) create-trip TARGET_AMOUNT=20000000000 MIN_PARTICIPANTS=1
+	@echo ""
+	@echo "Viajes creados:"
+	@$(MAKE) trips
+	@$(MAKE) trip-count
+
 # ============================================================================
 # HELP
 # ============================================================================
 
 .PHONY: help
 help: ## Mostrar esta ayuda
-	@echo "CoTravel Escrow - Comandos disponibles:"
+	@echo "CoTravel Escrow (Multi-Trip) - Comandos disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Variables:"
+	@echo "  TRIP_ID=<n>           ID del viaje (default: lee de .trip_id)"
 	@echo "  AMOUNT=<stroops>      Monto en stroops (default: 5000000000)"
 	@echo "  PARTICIPANT=<name>    Identidad (default: participant1)"
-	@echo "  TARGET_AMOUNT=<n>     Meta del escrow (default: 10000000000)"
-	@echo "  MIN_PARTICIPANTS=<n>  Mínimo participantes (default: 2)"
-	@echo "  PENALTY_PERCENT=<n>   % penalización (default: 10)"
+	@echo "  TARGET_AMOUNT=<n>     Meta del viaje (default: 10000000000)"
+	@echo "  MIN_PARTICIPANTS=<n>  Minimo participantes (default: 2)"
+	@echo "  PENALTY_PERCENT=<n>   % penalizacion (default: 10)"
 
 .DEFAULT_GOAL := help

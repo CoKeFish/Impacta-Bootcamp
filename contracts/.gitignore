@@ -4,3 +4,8 @@ target
 # Local settings
 .soroban
 .stellar
+
+# Deployment IDs (local/dev specific)
+.contract_id
+.token_id
+.trip_id

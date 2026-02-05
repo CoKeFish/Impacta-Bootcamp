@@ -11,133 +11,178 @@ contracts/
 ├── .gitignore
 ├── .contract_id            # ID del contrato desplegado (generado)
 ├── .token_id               # ID del token nativo (generado)
+├── .trip_id                # ID del ultimo viaje creado (generado)
 ├── README.md
 ├── cotravel-escrow/        # Contrato de escrow
 │   ├── Cargo.toml
 │   └── src/
-│       ├── lib.rs          # Código del contrato
+│       ├── lib.rs          # Codigo del contrato
 │       └── test.rs         # Tests unitarios
 └── target/                 # Build artifacts (generado)
 ```
 
 ---
 
-## Qué hace
+## Que hace
 
-Contrato de escrow en Soroban que maneja la lógica financiera verificable on-chain para CoTravel:
+Contrato **multi-escrow** en Soroban que maneja multiples viajes en un solo contrato desplegado:
 
-- **Custodia de fondos**: Los fondos del grupo viven en el contrato, no en el backend
-- **Contribuciones**: Recibir y registrar aportes de participantes
-- **Penalizaciones**: Cálculo automático por abandono y redistribución al grupo
-- **Liberación**: Transferir fondos al organizador cuando se cumple la meta
-- **Reembolsos**: Devolución automática si el viaje se cancela
+- **Multiples viajes**: Un solo contrato gestiona N viajes independientes via `trip_id`
+- **Custodia de fondos**: Los fondos de cada viaje viven en el contrato, no en el backend
+- **Contribuciones**: Recibir y registrar aportes de participantes por viaje
+- **Penalizaciones**: Calculo automatico por abandono y redistribucion al grupo
+- **Liberacion**: Transferir fondos al organizador cuando se cumple la meta
+- **Reembolsos**: Devolucion automatica si el viaje se cancela
 
 ---
 
-## Qué va ON-CHAIN (y por qué)
+## Arquitectura Multi-Trip
 
-> **Principio**: Solo va on-chain lo que requiere **confianza sin intermediarios** o **verificación pública**.
+### Por que un contrato, multiples viajes?
+
+| Aspecto       | Factory (1 contrato/viaje)  | Multi-Escrow (1 contrato, N viajes) |
+|---------------|-----------------------------|-------------------------------------|
+| Deploy        | Despliega WASM cada vez     | Un solo deploy                      |
+| Costo         | ~100k stroops/viaje         | Solo costo de storage               |
+| Complejidad   | Requiere factory + tracking | Logica simple con trip_id           |
+| Aislamiento   | Total (contratos separados) | Por storage key (TripKey enum)      |
+| Escalabilidad | Ilimitada pero cara         | Eficiente hasta miles de viajes     |
+
+**Decision**: Multi-escrow es mas simple y economico para el caso de uso de CoTravel.
 
 ### Storage del contrato
 
-| Dato                 | Tipo Storage | Justificación                                                      |
-|----------------------|--------------|--------------------------------------------------------------------|
-| `organizer`          | Instance     | Inmutable, quien recibe fondos al final                            |
-| `target_amount`      | Instance     | Meta financiera, verificable públicamente                          |
-| `min_participants`   | Instance     | Regla de negocio, no puede cambiar                                 |
-| `deadline`           | Instance     | Límite temporal, ejecutable automáticamente                        |
-| `penalty_percent`    | Instance     | Regla de penalización, transparente para todos                     |
-| `status`             | Persistent   | Estado actual del escrow (Creado/Financiando/Completado/Cancelado) |
-| `total_collected`    | Persistent   | Suma total de contribuciones                                       |
-| `balances` (Map)     | Persistent   | Balance por participante (wallet → amount)                         |
-| `participants` (Vec) | Persistent   | Lista de wallets que han contribuido                               |
+| Dato                             | Tipo Storage | Scope     | Descripcion                         |
+|----------------------------------|--------------|-----------|-------------------------------------|
+| `NEXT_TRIP_ID`                   | Instance     | Global    | Contador auto-incremental de viajes |
+| `TRIPS`                          | Instance     | Global    | Lista de todos los trip_id creados  |
+| `TripKey::Config(trip_id)`       | Persistent   | Por viaje | Configuracion inmutable             |
+| `TripKey::State(trip_id)`        | Persistent   | Por viaje | Estado mutable (status, totales)    |
+| `TripKey::Balances(trip_id)`     | Persistent   | Por viaje | Map de wallet → balance             |
+| `TripKey::Participants(trip_id)` | Persistent   | Por viaje | Vec de wallets participantes        |
 
-### Funciones del contrato
+---
+
+## API del Contrato
+
+### Gestion de viajes
 
 ```rust
-// Inicialización (deploy)
-fn initialize(
-    organizer: Address,
-    target_amount: i128,
-    min_participants: u32,
-    deadline: u64,
-    penalty_percent: u32
-)
+/// Crear un nuevo viaje, retorna trip_id
+fn create_trip(
+    organizer: Address,      // Quien puede liberar fondos
+    token: Address,          // Token de pago (ej: XLM nativo)
+    target_amount: i128,     // Meta en stroops
+    min_participants: u32,   // Minimo para completar
+    deadline: u64,           // Timestamp limite
+    penalty_percent: u32     // % penalizacion por abandono (0-100)
+) -> u64
+```
 
-// Contribuir fondos
-fn contribute(participant: Address, amount: i128)
+### Operaciones (requieren trip_id)
+
+```rust
+/// Contribuir fondos a un viaje
+fn contribute(trip_id: u64, participant: Address, amount: i128)
 // - Requiere auth del participante
 // - Actualiza balance y total
-// - Emite evento: Contribution { participant, amount, new_balance }
+// - Auto-completa si alcanza meta + min_participants
 
-// Abandonar viaje
-fn withdraw(participant: Address)
-// - Calcula penalización
-// - Redistribuye al resto del grupo
-// - Reembolsa (monto - penalización)
-// - Emite evento: Withdrawal { participant, refund, penalty, redistributed }
+/// Retirarse de un viaje (con penalizacion)
+fn withdraw(trip_id: u64, participant: Address)
+// - Calcula penalizacion segun penalty_percent
+// - Redistribuye penalizacion a participantes restantes
+// - Reembolsa (monto - penalizacion)
 
-// Liberar fondos (organizador)
-fn release()
-// - Verifica: status == Completado, caller == organizer
+/// Liberar fondos al organizador (solo si Completed)
+fn release(trip_id: u64)
+// - Solo el organizador puede llamar
 // - Transfiere total al organizador
-// - Emite evento: Released { organizer, amount }
+// - Estado -> Released
 
-// Cancelar y reembolsar todo
-fn cancel()
-// - Solo si no se alcanzó meta antes del deadline
-// - Reembolso total a cada participante
-// - Emite evento: Cancelled { refunds: Map<Address, i128> }
-
-// Consultas (view)
-fn get_balance(participant: Address) -> i128
-fn get_total() -> i128
-fn get_status() -> Status
-fn get_participants() -> Vec<Address>
+/// Cancelar viaje y reembolsar todo (sin penalizacion)
+fn cancel(trip_id: u64)
+// - Solo el organizador puede llamar
+// - Reembolso completo a todos los participantes
+// - Estado -> Cancelled
 ```
 
-### Eventos (para indexación)
+### Consultas globales
 
 ```rust
-// El backend escucha estos eventos para sincronizar estado off-chain
-enum Event {
-    Contribution { participant: Address, amount: i128, total: i128 },
-    Withdrawal { participant: Address, refund: i128, penalty: i128 },
-    Released { organizer: Address, amount: i128 },
-    Cancelled { timestamp: u64 },
-    StatusChanged { old: Status, new: Status }
-}
+/// Total de viajes creados
+fn get_trip_count() -> u64
+
+/// Lista de todos los trip_id
+fn get_trips() -> Vec<u64>
+```
+
+### Consultas por viaje
+
+```rust
+/// Info resumida del viaje
+fn get_trip(trip_id: u64) -> TripInfo
+
+/// Configuracion del viaje
+fn get_config(trip_id: u64) -> Config
+
+/// Estado actual del viaje
+fn get_state(trip_id: u64) -> State
+
+/// Balance de un participante en un viaje
+fn get_balance(trip_id: u64, participant: Address) -> i128
+
+/// Lista de participantes de un viaje
+fn get_participants(trip_id: u64) -> Vec<Address>
+```
+
+### Eventos
+
+```rust
+// Emitidos para indexacion off-chain
+TripCreatedEvent { trip_id, organizer, target_amount }
+ContributionEvent { trip_id, participant, amount, new_balance, total }
+WithdrawalEvent { trip_id, participant, refund, penalty }
+ReleasedEvent { trip_id, organizer, amount }
+CancelledEvent { trip_id, timestamp }
 ```
 
 ---
 
-## Ciclo de vida del escrow
+## Ciclo de vida de un viaje
 
 ```
-[Creado]
-    │ initialize()
-    ▼
-[Financiando] ◄──── contribute()
-    │                    │
-    │ (deadline sin meta)│ (meta alcanzada)
-    ▼                    ▼
-[Cancelado]        [Completado]
-    │                    │
-    │ cancel()           │ release()
-    ▼                    ▼
-[Reembolsado]      [Liberado]
+create_trip()
+      │
+      ▼
+[Funding] ◄──── contribute()
+      │              │
+      │              │ (meta + min_participants)
+      │              ▼
+      │        [Completed]
+      │              │
+      │ cancel()     │ release()
+      ▼              ▼
+[Cancelled]    [Released]
 ```
+
+**Transiciones de estado:**
+
+- `Funding` → `Completed`: Cuando `total >= target` Y `participants >= min`
+- `Completed` → `Funding`: Si un withdraw reduce por debajo del umbral
+- `Funding/Completed` → `Cancelled`: Organizador cancela
+- `Completed` → `Released`: Organizador libera fondos
 
 ---
 
-## Cómo lo hace
+## Desarrollo
 
 ### Stack
 
 - **Lenguaje**: Rust
 - **Plataforma**: Soroban (Stellar)
-- **Compilación**: WASM (target: wasm32v1-none)
-- **Red**: Testnet pública de Stellar
+- **Compilacion**: WASM (target: wasm32v1-none)
+- **Red**: Testnet publica de Stellar
 
 ### Desarrollo con Docker
 
@@ -145,7 +190,7 @@ enum Event {
 # Acceder al contenedor de desarrollo
 docker exec -it impacta-soroban-dev bash
 
-# Ver todos los comandos disponibles (ya estás en /workspace)
+# Ver todos los comandos disponibles (ya estas en /workspace)
 make help
 ```
 
@@ -164,26 +209,40 @@ make test
 # Desplegar contrato
 make deploy
 
-# Inicializar escrow
-make init
+# Crear un viaje
+make create-trip
+make create-trip TARGET_AMOUNT=20000000000 MIN_PARTICIPANTS=3
 
-# Operaciones
-make contribute-p1 AMOUNT=5000000000  # Participante 1 contribuye
-make contribute-p2 AMOUNT=6000000000  # Participante 2 contribuye
-make withdraw PARTICIPANT=participant1  # Retiro con penalización
-make release                            # Liberar fondos al organizador
-make cancel                             # Cancelar y reembolsar
+# Operaciones (usan TRIP_ID del archivo .trip_id por defecto)
+make contribute-p1 AMOUNT=5000000000
+make contribute-p2 AMOUNT=6000000000
+make withdraw PARTICIPANT=participant1
+make release
+make cancel
 
-# Consultas
-make state         # Ver estado del escrow
-make config        # Ver configuración
-make participants  # Ver lista de participantes
-make balance-p1    # Ver balance de participante 1
-make ids           # Ver IDs de contrato y token
-make addresses     # Ver direcciones de identidades
+# Consultas globales
+make trip-count    # Total de viajes
+make trips         # Lista de IDs
 
-# Demo completo
-make demo-full     # Setup + deploy + init + contribuciones + release
+# Consultas por viaje
+make trip          # Info completa
+make state         # Estado
+make config        # Configuracion
+make participants  # Lista de participantes
+make balance-p1    # Balance de participante 1
+
+# Trabajar con viaje especifico
+make state TRIP_ID=0
+make contribute-p1 TRIP_ID=1 AMOUNT=1000000000
+
+# Demos
+make demo          # Setup + deploy + crear viaje
+make demo-full     # Demo + contribuciones + release
+make demo-multi    # Demo con multiples viajes
+
+# Info
+make ids           # Contract ID, Token ID, Trip ID
+make addresses     # Direcciones de identidades
 ```
 
 ### URLs del entorno
@@ -198,52 +257,45 @@ make demo-full     # Setup + deploy + init + contribuciones + release
 
 ### Se PIERDE al reiniciar el contenedor
 
-| Dato                 | Ubicación                         | Consecuencia                     |
+| Dato                 | Ubicacion                         | Consecuencia                     |
 |----------------------|-----------------------------------|----------------------------------|
-| Configuración de red | `/root/.config/stellar/network/`  | Ejecutar `make setup-network`    |
+| Configuracion de red | `/root/.config/stellar/network/`  | Ejecutar `make setup-network`    |
 | Identidades (keys)   | `/root/.config/stellar/identity/` | Ejecutar `make setup-identities` |
 
 ### Se MANTIENE (volumen montado o testnet)
 
-| Dato                    | Ubicación                      | Notas                    |
+| Dato                    | Ubicacion                      | Notas                    |
 |-------------------------|--------------------------------|--------------------------|
-| Código fuente           | `/workspace/` → `./contracts/` | Volumen montado          |
+| Codigo fuente           | `/workspace/` → `./contracts/` | Volumen montado          |
 | WASM compilado          | `/workspace/target/`           | Volumen montado          |
 | Contract ID             | `/workspace/.contract_id`      | Volumen montado          |
 | Token ID                | `/workspace/.token_id`         | Volumen montado          |
+| Trip ID                 | `/workspace/.trip_id`          | Volumen montado          |
 | Cargo cache             | Volumen Docker `cargo_cache`   | Acelera compilaciones    |
 | **Contrato desplegado** | Testnet                        | Permanente en blockchain |
 | **Transacciones**       | Testnet                        | Permanente en blockchain |
 
-### Después de reiniciar el contenedor
+### Despues de reiniciar el contenedor
 
 ```bash
 # 1. Reconfigurar red e identidades
 make setup-network
 make setup-identities
 
-# 2. El contrato ya está desplegado en testnet
-#    Los archivos .contract_id y .token_id se conservan
-make state  # Verificar que funciona
+# 2. El contrato ya esta desplegado en testnet
+#    Los archivos .contract_id, .token_id y .trip_id se conservan
+make trip-count  # Verificar que funciona
 
 # 3. Si necesitas redesplegar (nuevo contrato)
-make clean   # Limpia .contract_id y .token_id
+make clean   # Limpia .contract_id, .token_id, .trip_id
 make setup   # Setup completo
 make deploy  # Nuevo despliegue
-make init    # Inicializar
+make create-trip  # Crear primer viaje
 ```
-
-### Notas importantes
-
-- **Las identidades son nuevas** cada vez que se reinicia el contenedor
-- **El contrato en testnet persiste** pero las nuevas identidades no tienen acceso como organizer/participants
-- **Para continuar con el mismo contrato**: Necesitarías exportar/importar las claves privadas (no recomendado para
-  desarrollo)
-- **Mejor práctica**: Redesplegar el contrato con `make demo` después de reiniciar
 
 ---
 
-## Interacción con otros componentes
+## Interaccion con otros componentes
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -254,42 +306,44 @@ make init    # Inicializar
                          ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   SOROBAN RPC                           │
-│  Ejecuta transacción, actualiza estado del contrato     │
+│  Ejecuta transaccion, actualiza estado del contrato     │
 └────────────────────────┬────────────────────────────────┘
                          │
           ┌──────────────┴──────────────┐
           ▼                             ▼
 ┌──────────────────┐          ┌──────────────────┐
 │    CONTRATO      │          │     BACKEND      │
-│  - Balances      │  eventos │  - Indexa eventos│
-│  - Total         │ ───────► │  - Actualiza DB  │
-│  - Status        │          │  - Notifica      │
+│  - trip_id 0     │  eventos │  - Indexa eventos│
+│  - trip_id 1     │ ───────► │  - Actualiza DB  │
+│  - trip_id N     │          │  - Notifica      │
 └──────────────────┘          └──────────────────┘
 ```
 
 ---
 
-## Consideraciones técnicas
+## Consideraciones tecnicas
 
-### Diseño
+### Diseno
 
-- **Auth explícita**: `require_auth()` en contribute, withdraw, release
+- **Multi-trip via TripKey enum**: Cada viaje tiene storage aislado por trip_id
+- **Auth explicita**: `require_auth()` en contribute, withdraw, release, cancel
 - **Eventos estables**: Schema fijo para que el backend pueda indexar
 - **Validaciones primero**: Verificar antes de ejecutar operaciones costosas
 
 ### Storage y costos
 
-- **Instance**: Config inmutable (organizer, target, rules)
-- **Persistent**: Estado mutable crítico (balances, total, status)
-- **Evitar Temporary**: No hay datos efímeros en este caso de uso
+- **Instance**: Datos globales (NEXT_TRIP_ID, lista de TRIPS)
+- **Persistent**: Datos por viaje (Config, State, Balances, Participants)
+- **Evitar Temporary**: No hay datos efimeros en este caso de uso
 - **Minimizar escrituras**: Actualizar solo lo necesario
 
 ### Seguridad
 
-- Solo el organizador puede llamar `release()`
+- Solo el organizador puede llamar `release()` y `cancel()`
 - Solo participantes con balance > 0 pueden llamar `withdraw()`
 - Validar montos positivos en `contribute()`
-- Verificar deadline antes de cambios de estado
+- Verificar deadline antes de contribuciones
+- Validar penalty_percent <= 100
 
 ### Testing
 
@@ -297,12 +351,13 @@ make init    # Inicializar
 # Ejecutar tests unitarios
 make test
 
-# Tests incluidos:
-# - test_initialize: Configuración inicial del escrow
-# - test_contribute: Contribuciones de participantes
-# - test_withdraw_with_penalty: Retiro con cálculo de penalización
-# - test_release: Liberación de fondos al organizador
-# - test_cancel: Cancelación y reembolso
+# Tests incluidos (6 total):
+# - test_create_trip: Crear multiples viajes, verificar IDs
+# - test_contribute: Contribuciones y auto-complete
+# - test_withdraw_with_penalty: Retiro con calculo de penalizacion
+# - test_release: Liberacion de fondos al organizador
+# - test_cancel: Cancelacion y reembolso
+# - test_multiple_trips_isolation: Verificar aislamiento entre viajes
 ```
 
 ---
@@ -310,10 +365,9 @@ make test
 ## Despliegue actual (Testnet)
 
 ```
-Contract ID: CBLKXA5V23S5WCZMEXZXBZG444XSPVX4WLLHJ75Y344HFRBZ4E2MGCAH
+Contract ID: (ejecutar make ids para ver)
 Token (XLM): CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
 Network:     Test SDF Network ; September 2015
 ```
 
-Ver en
-explorer: https://stellar.expert/explorer/testnet/contract/CBLKXA5V23S5WCZMEXZXBZG444XSPVX4WLLHJ75Y344HFRBZ4E2MGCAH
+Ver en explorer: https://stellar.expert/explorer/testnet/contract/{CONTRACT_ID}

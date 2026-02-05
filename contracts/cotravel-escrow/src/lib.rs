@@ -6,23 +6,30 @@ use soroban_sdk::{
 };
 
 // Storage keys
-const CONFIG: Symbol = symbol_short!("CONFIG");
-const STATE: Symbol = symbol_short!("STATE");
-const BALANCES: Symbol = symbol_short!("BALANCES");
-const PARTICIPANTS: Symbol = symbol_short!("PARTICIP");
+const NEXT_TRIP_ID: Symbol = symbol_short!("NEXT_ID");
+const TRIPS: Symbol = symbol_short!("TRIPS");
+
+// Trip-specific storage key helpers
+#[contracttype]
+#[derive(Clone)]
+pub enum TripKey {
+    Config(u64),
+    State(u64),
+    Balances(u64),
+    Participants(u64),
+}
 
 // Status enum
 #[contracttype]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Status {
-    Created,
     Funding,
     Completed,
     Cancelled,
     Released,
 }
 
-// Configuration (immutable after init)
+// Configuration (immutable after creation)
 #[contracttype]
 #[derive(Clone)]
 pub struct Config {
@@ -43,10 +50,31 @@ pub struct State {
     pub participant_count: u32,
 }
 
+// Trip info (for listing)
+#[contracttype]
+#[derive(Clone)]
+pub struct TripInfo {
+    pub trip_id: u64,
+    pub organizer: Address,
+    pub target_amount: i128,
+    pub status: Status,
+    pub total_collected: i128,
+    pub participant_count: u32,
+}
+
 // Events
 #[contracttype]
 #[derive(Clone)]
+pub struct TripCreatedEvent {
+    pub trip_id: u64,
+    pub organizer: Address,
+    pub target_amount: i128,
+}
+
+#[contracttype]
+#[derive(Clone)]
 pub struct ContributionEvent {
+    pub trip_id: u64,
     pub participant: Address,
     pub amount: i128,
     pub new_balance: i128,
@@ -56,6 +84,7 @@ pub struct ContributionEvent {
 #[contracttype]
 #[derive(Clone)]
 pub struct WithdrawalEvent {
+    pub trip_id: u64,
     pub participant: Address,
     pub refund: i128,
     pub penalty: i128,
@@ -64,8 +93,16 @@ pub struct WithdrawalEvent {
 #[contracttype]
 #[derive(Clone)]
 pub struct ReleasedEvent {
+    pub trip_id: u64,
     pub organizer: Address,
     pub amount: i128,
+}
+
+#[contracttype]
+#[derive(Clone)]
+pub struct CancelledEvent {
+    pub trip_id: u64,
+    pub timestamp: u64,
 }
 
 #[contract]
@@ -73,8 +110,10 @@ pub struct CotravelEscrow;
 
 #[contractimpl]
 impl CotravelEscrow {
-    /// Initialize the escrow contract
-    pub fn initialize(
+    // ===== Trip Management =====
+
+    /// Create a new trip escrow, returns the trip_id
+    pub fn create_trip(
         env: Env,
         organizer: Address,
         token: Address,
@@ -82,11 +121,8 @@ impl CotravelEscrow {
         min_participants: u32,
         deadline: u64,
         penalty_percent: u32,
-    ) {
-        // Ensure not already initialized
-        if env.storage().instance().has(&CONFIG) {
-            panic!("Already initialized");
-        }
+    ) -> u64 {
+        organizer.require_auth();
 
         // Validate inputs
         if target_amount <= 0 {
@@ -99,16 +135,20 @@ impl CotravelEscrow {
             panic!("Penalty percent cannot exceed 100");
         }
 
-        // Store config (immutable)
+        // Get and increment trip ID
+        let trip_id: u64 = env.storage().instance().get(&NEXT_TRIP_ID).unwrap_or(0);
+        env.storage().instance().set(&NEXT_TRIP_ID, &(trip_id + 1));
+
+        // Store config
         let config = Config {
-            organizer,
+            organizer: organizer.clone(),
             token,
             target_amount,
             min_participants,
             deadline,
             penalty_percent,
         };
-        env.storage().instance().set(&CONFIG, &config);
+        env.storage().persistent().set(&TripKey::Config(trip_id), &config);
 
         // Initialize state
         let state = State {
@@ -116,21 +156,40 @@ impl CotravelEscrow {
             total_collected: 0,
             participant_count: 0,
         };
-        env.storage().persistent().set(&STATE, &state);
+        env.storage().persistent().set(&TripKey::State(trip_id), &state);
 
         // Initialize empty balances and participants
         let balances: Map<Address, i128> = Map::new(&env);
         let participants: Vec<Address> = Vec::new(&env);
-        env.storage().persistent().set(&BALANCES, &balances);
-        env.storage().persistent().set(&PARTICIPANTS, &participants);
+        env.storage().persistent().set(&TripKey::Balances(trip_id), &balances);
+        env.storage().persistent().set(&TripKey::Participants(trip_id), &participants);
+
+        // Track trip in list
+        let mut trips: Vec<u64> = env.storage().instance().get(&TRIPS).unwrap_or(Vec::new(&env));
+        trips.push_back(trip_id);
+        env.storage().instance().set(&TRIPS, &trips);
+
+        // Emit event
+        env.events().publish(
+            (symbol_short!("trip_new"),),
+            TripCreatedEvent {
+                trip_id,
+                organizer,
+                target_amount,
+            },
+        );
+
+        trip_id
     }
 
-    /// Contribute funds to the escrow
-    pub fn contribute(env: Env, participant: Address, amount: i128) {
+    // ===== Operations =====
+
+    /// Contribute funds to a trip escrow
+    pub fn contribute(env: Env, trip_id: u64, participant: Address, amount: i128) {
         participant.require_auth();
 
-        let config: Config = env.storage().instance().get(&CONFIG).unwrap();
-        let mut state: State = env.storage().persistent().get(&STATE).unwrap();
+        let config: Config = Self::get_config_internal(&env, trip_id);
+        let mut state: State = Self::get_state_internal(&env, trip_id);
 
         // Validate
         if state.status != Status::Funding {
@@ -148,17 +207,23 @@ impl CotravelEscrow {
         token_client.transfer(&participant, &env.current_contract_address(), &amount);
 
         // Update balances
-        let mut balances: Map<Address, i128> = env.storage().persistent().get(&BALANCES).unwrap();
+        let mut balances: Map<Address, i128> = env.storage()
+            .persistent()
+            .get(&TripKey::Balances(trip_id))
+            .unwrap();
         let current_balance = balances.get(participant.clone()).unwrap_or(0);
         let new_balance = current_balance + amount;
         balances.set(participant.clone(), new_balance);
-        env.storage().persistent().set(&BALANCES, &balances);
+        env.storage().persistent().set(&TripKey::Balances(trip_id), &balances);
 
         // Add to participants if new
         if current_balance == 0 {
-            let mut participants: Vec<Address> = env.storage().persistent().get(&PARTICIPANTS).unwrap();
+            let mut participants: Vec<Address> = env.storage()
+                .persistent()
+                .get(&TripKey::Participants(trip_id))
+                .unwrap();
             participants.push_back(participant.clone());
-            env.storage().persistent().set(&PARTICIPANTS, &participants);
+            env.storage().persistent().set(&TripKey::Participants(trip_id), &participants);
             state.participant_count += 1;
         }
 
@@ -167,16 +232,18 @@ impl CotravelEscrow {
 
         // Check if target reached
         if state.total_collected >= config.target_amount
-            && state.participant_count >= config.min_participants {
+            && state.participant_count >= config.min_participants
+        {
             state.status = Status::Completed;
         }
 
-        env.storage().persistent().set(&STATE, &state);
+        env.storage().persistent().set(&TripKey::State(trip_id), &state);
 
         // Emit event
         env.events().publish(
             (symbol_short!("contrib"),),
             ContributionEvent {
+                trip_id,
                 participant,
                 amount,
                 new_balance,
@@ -186,17 +253,20 @@ impl CotravelEscrow {
     }
 
     /// Withdraw from escrow (with penalty)
-    pub fn withdraw(env: Env, participant: Address) {
+    pub fn withdraw(env: Env, trip_id: u64, participant: Address) {
         participant.require_auth();
 
-        let config: Config = env.storage().instance().get(&CONFIG).unwrap();
-        let mut state: State = env.storage().persistent().get(&STATE).unwrap();
+        let config: Config = Self::get_config_internal(&env, trip_id);
+        let mut state: State = Self::get_state_internal(&env, trip_id);
 
         if state.status != Status::Funding && state.status != Status::Completed {
             panic!("Cannot withdraw in current status");
         }
 
-        let mut balances: Map<Address, i128> = env.storage().persistent().get(&BALANCES).unwrap();
+        let mut balances: Map<Address, i128> = env.storage()
+            .persistent()
+            .get(&TripKey::Balances(trip_id))
+            .unwrap();
         let balance = balances.get(participant.clone()).unwrap_or(0);
 
         if balance <= 0 {
@@ -215,7 +285,10 @@ impl CotravelEscrow {
 
         // Redistribute penalty to remaining participants
         if penalty > 0 {
-            let participants: Vec<Address> = env.storage().persistent().get(&PARTICIPANTS).unwrap();
+            let participants: Vec<Address> = env.storage()
+                .persistent()
+                .get(&TripKey::Participants(trip_id))
+                .unwrap();
             let remaining_count = state.participant_count - 1;
 
             if remaining_count > 0 {
@@ -233,7 +306,7 @@ impl CotravelEscrow {
 
         // Update participant balance and state
         balances.set(participant.clone(), 0);
-        env.storage().persistent().set(&BALANCES, &balances);
+        env.storage().persistent().set(&TripKey::Balances(trip_id), &balances);
 
         state.total_collected -= balance;
         state.participant_count -= 1;
@@ -241,17 +314,19 @@ impl CotravelEscrow {
         // Revert to Funding if no longer meets target
         if state.status == Status::Completed {
             if state.total_collected < config.target_amount
-                || state.participant_count < config.min_participants {
+                || state.participant_count < config.min_participants
+            {
                 state.status = Status::Funding;
             }
         }
 
-        env.storage().persistent().set(&STATE, &state);
+        env.storage().persistent().set(&TripKey::State(trip_id), &state);
 
         // Emit event
         env.events().publish(
             (symbol_short!("withdraw"),),
             WithdrawalEvent {
+                trip_id,
                 participant,
                 refund,
                 penalty,
@@ -260,11 +335,11 @@ impl CotravelEscrow {
     }
 
     /// Release funds to organizer (only when Completed)
-    pub fn release(env: Env) {
-        let config: Config = env.storage().instance().get(&CONFIG).unwrap();
+    pub fn release(env: Env, trip_id: u64) {
+        let config: Config = Self::get_config_internal(&env, trip_id);
         config.organizer.require_auth();
 
-        let mut state: State = env.storage().persistent().get(&STATE).unwrap();
+        let mut state: State = Self::get_state_internal(&env, trip_id);
 
         if state.status != Status::Completed {
             panic!("Cannot release: escrow not completed");
@@ -277,16 +352,17 @@ impl CotravelEscrow {
 
         state.status = Status::Released;
         state.total_collected = 0;
-        env.storage().persistent().set(&STATE, &state);
+        env.storage().persistent().set(&TripKey::State(trip_id), &state);
 
         // Clear balances
         let balances: Map<Address, i128> = Map::new(&env);
-        env.storage().persistent().set(&BALANCES, &balances);
+        env.storage().persistent().set(&TripKey::Balances(trip_id), &balances);
 
         // Emit event
         env.events().publish(
             (symbol_short!("released"),),
             ReleasedEvent {
+                trip_id,
                 organizer: config.organizer,
                 amount,
             },
@@ -294,11 +370,11 @@ impl CotravelEscrow {
     }
 
     /// Cancel escrow and refund all participants (no penalty)
-    pub fn cancel(env: Env) {
-        let config: Config = env.storage().instance().get(&CONFIG).unwrap();
+    pub fn cancel(env: Env, trip_id: u64) {
+        let config: Config = Self::get_config_internal(&env, trip_id);
         config.organizer.require_auth();
 
-        let mut state: State = env.storage().persistent().get(&STATE).unwrap();
+        let mut state: State = Self::get_state_internal(&env, trip_id);
 
         if state.status == Status::Released || state.status == Status::Cancelled {
             panic!("Cannot cancel: already finalized");
@@ -306,8 +382,14 @@ impl CotravelEscrow {
 
         // Refund all participants
         let token_client = token::Client::new(&env, &config.token);
-        let balances: Map<Address, i128> = env.storage().persistent().get(&BALANCES).unwrap();
-        let participants: Vec<Address> = env.storage().persistent().get(&PARTICIPANTS).unwrap();
+        let balances: Map<Address, i128> = env.storage()
+            .persistent()
+            .get(&TripKey::Balances(trip_id))
+            .unwrap();
+        let participants: Vec<Address> = env.storage()
+            .persistent()
+            .get(&TripKey::Participants(trip_id))
+            .unwrap();
 
         for participant in participants.iter() {
             let balance = balances.get(participant.clone()).unwrap_or(0);
@@ -319,36 +401,90 @@ impl CotravelEscrow {
         // Update state
         state.status = Status::Cancelled;
         state.total_collected = 0;
-        env.storage().persistent().set(&STATE, &state);
+        env.storage().persistent().set(&TripKey::State(trip_id), &state);
 
         // Clear balances
         let empty_balances: Map<Address, i128> = Map::new(&env);
-        env.storage().persistent().set(&BALANCES, &empty_balances);
+        env.storage().persistent().set(&TripKey::Balances(trip_id), &empty_balances);
 
         // Emit event
         env.events().publish(
             (symbol_short!("cancel"),),
-            env.ledger().timestamp(),
+            CancelledEvent {
+                trip_id,
+                timestamp: env.ledger().timestamp(),
+            },
         );
     }
 
     // ===== View functions =====
 
-    pub fn get_config(env: Env) -> Config {
-        env.storage().instance().get(&CONFIG).unwrap()
+    /// Get total number of trips created
+    pub fn get_trip_count(env: Env) -> u64 {
+        env.storage().instance().get(&NEXT_TRIP_ID).unwrap_or(0)
     }
 
-    pub fn get_state(env: Env) -> State {
-        env.storage().persistent().get(&STATE).unwrap()
+    /// Get list of all trip IDs
+    pub fn get_trips(env: Env) -> Vec<u64> {
+        env.storage().instance().get(&TRIPS).unwrap_or(Vec::new(&env))
     }
 
-    pub fn get_balance(env: Env, participant: Address) -> i128 {
-        let balances: Map<Address, i128> = env.storage().persistent().get(&BALANCES).unwrap();
+    /// Get trip info (config + state summary)
+    pub fn get_trip(env: Env, trip_id: u64) -> TripInfo {
+        let config = Self::get_config_internal(&env, trip_id);
+        let state = Self::get_state_internal(&env, trip_id);
+
+        TripInfo {
+            trip_id,
+            organizer: config.organizer,
+            target_amount: config.target_amount,
+            status: state.status,
+            total_collected: state.total_collected,
+            participant_count: state.participant_count,
+        }
+    }
+
+    /// Get trip configuration
+    pub fn get_config(env: Env, trip_id: u64) -> Config {
+        Self::get_config_internal(&env, trip_id)
+    }
+
+    /// Get trip state
+    pub fn get_state(env: Env, trip_id: u64) -> State {
+        Self::get_state_internal(&env, trip_id)
+    }
+
+    /// Get participant balance for a trip
+    pub fn get_balance(env: Env, trip_id: u64, participant: Address) -> i128 {
+        let balances: Map<Address, i128> = env.storage()
+            .persistent()
+            .get(&TripKey::Balances(trip_id))
+            .unwrap_or(Map::new(&env));
         balances.get(participant).unwrap_or(0)
     }
 
-    pub fn get_participants(env: Env) -> Vec<Address> {
-        env.storage().persistent().get(&PARTICIPANTS).unwrap()
+    /// Get all participants for a trip
+    pub fn get_participants(env: Env, trip_id: u64) -> Vec<Address> {
+        env.storage()
+            .persistent()
+            .get(&TripKey::Participants(trip_id))
+            .unwrap_or(Vec::new(&env))
+    }
+
+    // ===== Internal helpers =====
+
+    fn get_config_internal(env: &Env, trip_id: u64) -> Config {
+        env.storage()
+            .persistent()
+            .get(&TripKey::Config(trip_id))
+            .unwrap_or_else(|| panic!("Trip not found"))
+    }
+
+    fn get_state_internal(env: &Env, trip_id: u64) -> State {
+        env.storage()
+            .persistent()
+            .get(&TripKey::State(trip_id))
+            .unwrap_or_else(|| panic!("Trip not found"))
     }
 }
 
