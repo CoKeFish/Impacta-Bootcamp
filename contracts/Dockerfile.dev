@@ -1,0 +1,25 @@
+FROM debian:bookworm-slim
+
+WORKDIR /workspace
+
+RUN apt update && apt install -y \
+    curl \
+    git \
+    bash \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    libdbus-1-dev \
+    libudev-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# Instalar Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+    | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN rustup target add wasm32-unknown-unknown wasm32v1-none
+
+RUN cargo install --locked soroban-cli
+
+CMD ["tail", "-f", "/dev/null"]
