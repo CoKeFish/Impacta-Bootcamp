@@ -1,5 +1,27 @@
 # Contracts - Smart Contracts Soroban
 
+## Estructura del proyecto
+
+```
+contracts/
+├── Dockerfile.dev          # Imagen Docker para desarrollo
+├── Makefile                # Comandos para build, test, deploy
+├── Cargo.toml              # Workspace configuration
+├── Cargo.lock              # Dependencias bloqueadas
+├── .gitignore
+├── .contract_id            # ID del contrato desplegado (generado)
+├── .token_id               # ID del token nativo (generado)
+├── README.md
+├── cotravel-escrow/        # Contrato de escrow
+│   ├── Cargo.toml
+│   └── src/
+│       ├── lib.rs          # Código del contrato
+│       └── test.rs         # Tests unitarios
+└── target/                 # Build artifacts (generado)
+```
+
+---
+
 ## Qué hace
 
 Contrato de escrow en Soroban que maneja la lógica financiera verificable on-chain para CoTravel:
@@ -89,20 +111,6 @@ enum Event {
 
 ---
 
-## Qué NO va on-chain
-
-| Dato                | Razón                                     | Dónde va   |
-|---------------------|-------------------------------------------|------------|
-| Nombre del viaje    | Solo UX, no afecta lógica financiera      | PostgreSQL |
-| Descripción         | Contenido, no verificable                 | PostgreSQL |
-| Imágenes            | Pesado, no pertenece en blockchain        | MinIO      |
-| Usernames/avatares  | Preferencias de usuario                   | PostgreSQL |
-| Ofertas de partners | Datos de terceros, cambian frecuentemente | PostgreSQL |
-| Notificaciones      | Lógica de aplicación                      | Backend    |
-| Analytics           | Métricas de producto                      | PostgreSQL |
-
----
-
 ## Ciclo de vida del escrow
 
 ```
@@ -136,9 +144,8 @@ enum Event {
 ```bash
 # Acceder al contenedor de desarrollo
 docker exec -it impacta-soroban-dev bash
-cd /workspace/escrow
 
-# Ver todos los comandos disponibles
+# Ver todos los comandos disponibles (ya estás en /workspace)
 make help
 ```
 
@@ -198,15 +205,15 @@ make demo-full     # Setup + deploy + init + contribuciones + release
 
 ### Se MANTIENE (volumen montado o testnet)
 
-| Dato                    | Ubicación                        | Notas                    |
-|-------------------------|----------------------------------|--------------------------|
-| Código fuente           | `/workspace/` → `./contracts/`   | Volumen montado          |
-| WASM compilado          | `/workspace/escrow/target/`      | Volumen montado          |
-| Contract ID             | `/workspace/escrow/.contract_id` | Volumen montado          |
-| Token ID                | `/workspace/escrow/.token_id`    | Volumen montado          |
-| Cargo cache             | Volumen Docker `cargo_cache`     | Acelera compilaciones    |
-| **Contrato desplegado** | Testnet                          | Permanente en blockchain |
-| **Transacciones**       | Testnet                          | Permanente en blockchain |
+| Dato                    | Ubicación                      | Notas                    |
+|-------------------------|--------------------------------|--------------------------|
+| Código fuente           | `/workspace/` → `./contracts/` | Volumen montado          |
+| WASM compilado          | `/workspace/target/`           | Volumen montado          |
+| Contract ID             | `/workspace/.contract_id`      | Volumen montado          |
+| Token ID                | `/workspace/.token_id`         | Volumen montado          |
+| Cargo cache             | Volumen Docker `cargo_cache`   | Acelera compilaciones    |
+| **Contrato desplegado** | Testnet                        | Permanente en blockchain |
+| **Transacciones**       | Testnet                        | Permanente en blockchain |
 
 ### Después de reiniciar el contenedor
 
