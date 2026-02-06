@@ -112,7 +112,7 @@ backend/
 │   │   └── errorHandler.js  ← Manejo centralizado de errores
 │   ├── routes/
 │   │   ├── auth.js          ← /api/auth (challenge, login, me)
-│   │   ├── health.js        ← /health (status DB)
+│   │   ├── health.js        ← /health (status DB + storage)
 │   │   ├── images.js        ← /images (upload, get, list)
 │   │   ├── trips.js         ← /api/trips (CRUD + contract ops)
 │   │   └── users.js         ← /api/users (create, get)
@@ -160,7 +160,7 @@ sequenceDiagram
 | Método | Ruta                           | Auth            | Descripción                          |
 |--------|--------------------------------|-----------------|--------------------------------------|
 | `GET`  | `/`                            | -               | Health check (API running)           |
-| `GET`  | `/health`                      | -               | Health check (DB connected)          |
+| `GET`  | `/health`                      | -               | Health check (DB + storage)          |
 | `GET`  | `/api/auth/challenge`          | -               | Obtener challenge para wallet        |
 | `POST` | `/api/auth/login`              | -               | Login con firma → JWT                |
 | `GET`  | `/api/auth/me`                 | JWT             | Usuario autenticado                  |
@@ -228,8 +228,8 @@ Stellar SDK (firma) ✓
 
 | Suite                  | Tests | Cobertura                                                     |
 |------------------------|-------|---------------------------------------------------------------|
-| `health.test.js`       | 2     | Smoke test: API + DB                                          |
-| `auth.test.js`         | 10    | Challenge, login, firma, JWT, /me                             |
+| `health.test.js`       | 2     | Smoke test: API + DB + storage                                |
+| `auth.test.js`         | 11    | Challenge, login, firma, JWT, /me                             |
 | `users.test.js`        | 5     | CRUD usuarios                                                 |
 | `trips.test.js`        | 15    | CRUD viajes + link-contract + release/cancel + auth organizer |
 | `participants.test.js` | 10    | Join, contribute, withdraw + auto-join                        |
@@ -567,7 +567,7 @@ flowchart LR
 - [x] Documentación del contrato (README.md)
 - [x] Base de datos PostgreSQL (schema completo, 7 tablas, verificada)
 - [x] Documentación de base de datos (README.md + Supabase)
-- [x] Variables de entorno (.env.example)
+- [x] Variables de entorno documentadas en README
 - [x] Backend API REST completa (Express + 5 rutas, 5 controllers, 5 models)
 - [x] Autenticación challenge-response con Stellar wallet + JWT
 - [x] Integración con Soroban (submitTx, read-only queries)

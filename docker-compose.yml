@@ -66,6 +66,22 @@ services:
       minio:
         condition: service_healthy
 
+  # Frontend React + Vite
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: impacta-frontend
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
   # Soroban Network (Testnet)
   soroban:
     image: stellar/quickstart:testing
