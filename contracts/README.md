@@ -77,6 +77,7 @@ fn create_trip(
     deadline: u64,           // Timestamp limite
     penalty_percent: u32     // % penalizacion por abandono (0-100)
 ) -> u64
+// - Requiere auth del organizador
 ```
 
 ### Operaciones (requieren trip_id)
@@ -90,6 +91,7 @@ fn contribute(trip_id: u64, participant: Address, amount: i128)
 
 /// Retirarse de un viaje (con penalizacion)
 fn withdraw(trip_id: u64, participant: Address)
+// - Requiere auth del participante
 // - Calcula penalizacion segun penalty_percent
 // - Redistribuye penalizacion a participantes restantes
 // - Reembolsa (monto - penalizacion)
@@ -235,6 +237,9 @@ make balance-p1    # Balance de participante 1
 make state TRIP_ID=0
 make contribute-p1 TRIP_ID=1 AMOUNT=1000000000
 
+# Tests de integracion en testnet (automatizado)
+make test-integration  # Setup + deploy + 4 flujos con 30 assertions
+
 # Demos
 make demo          # Setup + deploy + crear viaje
 make demo-full     # Demo + contribuciones + release
@@ -348,7 +353,7 @@ make create-trip  # Crear primer viaje
 ### Testing
 
 ```bash
-# Ejecutar tests unitarios
+# Tests unitarios (cargo test, rapido, sin red)
 make test
 
 # Tests incluidos (6 total):
@@ -358,6 +363,17 @@ make test
 # - test_release: Liberacion de fondos al organizador
 # - test_cancel: Cancelacion y reembolso
 # - test_multiple_trips_isolation: Verificar aislamiento entre viajes
+
+# Tests de integracion en testnet (setup + deploy + flujos reales)
+make test-integration
+
+# Flujos cubiertos (30 assertions):
+# 1. Happy path:   create → contribute x2 → auto-complete → release
+# 2. Withdraw:     penalizacion 10%, redistribucion al grupo
+# 3. Cancel:       reembolso completo sin penalizacion
+# 4. Aislamiento:  multiples viajes independientes, queries globales
+#
+# Sale con exit code 0 si todo pasa, o N (num de fallos).
 ```
 
 ---
@@ -371,3 +387,26 @@ Network:     Test SDF Network ; September 2015
 ```
 
 Ver en explorer: https://stellar.expert/explorer/testnet/contract/{CONTRACT_ID}
+
+---
+
+## TODO
+
+- [ ] **Migrar eventos a `#[contractevent]`**: Las 5 llamadas a `env.events().publish()` estan deprecadas en SDK v25.
+  Migrar a la macro `#[contractevent]` en los structs `TripCreatedEvent`, `ContributionEvent`, `WithdrawalEvent`,
+  `ReleasedEvent`, `CancelledEvent`.
+- [ ] **Instalar herramienta de auditoria en el contenedor**: Agregar al `Dockerfile.dev` una herramienta para auditar
+  contratos Soroban (ej: `cargo-audit` para dependencias, `clippy` con lints de seguridad, o herramientas especificas de
+  auditoria WASM).
+- [ ] **Agregar tests de flujos negativos**: Tests unitarios y de integracion que verifiquen que el contrato rechaza
+  operaciones invalidas:
+  - Contribuir a un viaje que no esta en Funding (Released, Cancelled)
+  - Contribuir monto <= 0
+  - Contribuir despues del deadline
+  - Withdraw sin balance (participante que no contribuyo)
+  - Withdraw en estado Released o Cancelled
+  - Release cuando el viaje no esta Completed (Funding, Cancelled)
+  - Release por alguien que no es el organizador
+  - Cancel por alguien que no es el organizador
+  - Cancel de un viaje ya Released o ya Cancelled
+  - Crear viaje con target_amount <= 0, min_participants = 0, penalty_percent > 100

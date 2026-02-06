@@ -35,6 +35,10 @@ build: ## Compilar el contrato
 test: ## Ejecutar tests
 	cargo test
 
+.PHONY: test-integration
+test-integration: ## Ejecutar tests de integracion en testnet (setup + deploy + flujos)
+	@bash test-integration.sh
+
 .PHONY: clean
 clean: ## Limpiar artifacts
 	cargo clean
