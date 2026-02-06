@@ -102,16 +102,16 @@ ON COLUMN trip_participants.contributed_amount IS 'Cache del balance on-chain en
 
 CREATE TABLE transactions
 (
-    id              SERIAL PRIMARY KEY,
-    trip_id         INTEGER REFERENCES trips (id) ON DELETE CASCADE,
-    user_id         INTEGER REFERENCES users (id),
-    tx_hash         VARCHAR(64) UNIQUE NOT NULL, -- Hash de la transacción Stellar
-    type            VARCHAR(50)        NOT NULL, -- contribution/withdrawal/release/cancel
-    amount          DECIMAL(20, 7)     NOT NULL, -- En XLM
+    id         SERIAL PRIMARY KEY,
+    trip_id    INTEGER REFERENCES trips (id) ON DELETE CASCADE,
+    user_id    INTEGER REFERENCES users (id),
+    tx_hash    VARCHAR(64) UNIQUE NOT NULL, -- Hash de la transacción Stellar
+    type       VARCHAR(50)        NOT NULL, -- contribution/withdrawal/release/cancel
+    amount     DECIMAL(20, 7)     NOT NULL, -- En XLM
 
     -- Datos del evento indexado
     ledger_sequence INTEGER,
-    event_data      JSONB,                       -- Payload completo del evento Soroban
+    event_data JSONB,                       -- Payload completo del evento Soroban
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
