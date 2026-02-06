@@ -32,7 +32,7 @@ module.exports = {
         return rows[0] || null;
     },
 
-    async linkContract(id, contractTripId, txHash) {
+    async linkContract(id, contractTripId) {
         const {rows} = await pool.query(
             `UPDATE trips SET contract_trip_id = $2, status = 'funding', updated_at = NOW()
              WHERE id = $1

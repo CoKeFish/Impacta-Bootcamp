@@ -80,7 +80,7 @@ module.exports = {
             const result = await sorobanService.submitTx(signed_xdr);
             const contractTripId = result.returnValue;
 
-            const updated = await tripModel.linkContract(trip.id, contractTripId, result.hash);
+            const updated = await tripModel.linkContract(trip.id, contractTripId);
 
             await transactionModel.create(
                 trip.id, req.user.id, result.hash,

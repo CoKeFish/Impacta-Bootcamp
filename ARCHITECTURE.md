@@ -12,10 +12,8 @@ presupuesto compartido y aplicar reglas justas mediante smart contracts en Stell
 ```mermaid
 flowchart TB
     subgraph Platform["COTRAVEL PLATFORM"]
-        FE[Frontend<br/>React + Vite]
         BE[Backend<br/>Node.js + Express]
         SC[Soroban Contract<br/>Rust]
-        FE <--> BE
         BE <--> SC
 
         subgraph Storage["Almacenamiento"]
@@ -34,7 +32,6 @@ flowchart TB
 
 | Componente     | Tecnología                 | Propósito                                             |
 |----------------|----------------------------|-------------------------------------------------------|
-| Frontend       | React + Vite + Stellar SDK | Interfaz de usuario, conexión con wallets             |
 | Backend        | Node.js + Express          | API REST, lógica de negocio, integración con partners |
 | Base de datos  | PostgreSQL                 | Usuarios, grupos, viajes, transacciones               |
 | Almacenamiento | MinIO (S3 compatible)      | Imágenes de perfil, fotos de viajes                   |
@@ -48,12 +45,6 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph Root["CoTravel"]
-        subgraph FE["frontend"]
-            C["components"]
-            H[hooks]
-            SV[services]
-        end
-
         subgraph BK["backend"]
             R[routes]
             CT2[controllers]
@@ -81,14 +72,12 @@ flowchart LR
 ```mermaid
 flowchart LR
     subgraph Docker["Docker Compose"]
-        F[Frontend<br/>:5173]
         B[Backend<br/>:3000]
         P[(PostgreSQL<br/>:5432)]
         M[(MinIO<br/>:9000-9001)]
         S[Soroban<br/>:8000-8080]
     end
 
-    F --> B
     B --> P
     B --> M
     B --> S
@@ -96,7 +85,6 @@ flowchart LR
 
 | Servicio   | Puerto      | Descripción               |
 |------------|-------------|---------------------------|
-| Frontend   | 5173        | Aplicación React          |
 | Backend    | 3000        | API REST                  |
 | PostgreSQL | 5432        | Base de datos relacional  |
 | MinIO      | 9000 / 9001 | Almacenamiento de objetos |
@@ -154,18 +142,17 @@ Challenge-response con firma de wallet Stellar + JWT:
 ```mermaid
 sequenceDiagram
     actor U as Usuario
-    participant FE as Frontend
+    participant Client as Client
     participant BE as Backend
     participant W as Wallet
-
-    U ->> FE: Conectar wallet
-    FE ->> BE: GET /api/auth/challenge?wallet=GABCD...
-    BE -->> FE: challenge (string aleatorio)
-    FE ->> W: Firmar challenge
-    W -->> FE: signature (base64)
-    FE ->> BE: POST /api/auth/login {wallet, signature}
+    U ->> Client: Conectar wallet
+    Client ->> BE: GET /api/auth/challenge?wallet=GABCD...
+    BE -->> Client: challenge (string aleatorio)
+    Client ->> W: Firmar challenge
+    W -->> Client: signature (base64)
+    Client ->> BE: POST /api/auth/login {wallet, signature}
     Note over BE: Verificar firma con Stellar SDK<br/>Crear usuario si no existe<br/>Generar JWT (24h)
-    BE -->> FE: {token, user}
+    BE -->> Client: {token, user}
 ```
 
 ### Endpoints
@@ -195,15 +182,15 @@ sequenceDiagram
 
 ### Arquitectura Híbrida (Off-chain + On-chain)
 
-El backend actúa como **intermediario** entre el frontend y la blockchain:
+El backend actúa como **intermediario** entre el cliente y la blockchain:
 
 ```mermaid
 flowchart LR
-    FE[Frontend] -->|signed XDR| BE[Backend]
+    Client[Client] -->|signed XDR| BE[Backend]
     BE -->|submitTx| SR[Soroban RPC]
     SR -->|result| BE
     BE -->|cache state| DB[(PostgreSQL)]
-    BE -->|response| FE
+    BE -->|response| Client
 ```
 
 - **Off-chain (PostgreSQL)**: Usuarios, metadata de viajes, historial de transacciones, estado cacheado
@@ -267,15 +254,12 @@ docker compose exec backend npm test
 ```mermaid
 sequenceDiagram
     actor U as Usuario
-    participant FE as Frontend
     participant BE as Backend
     participant SC as Soroban Contract
-    U ->> FE: Crear viaje
-    FE ->> BE: POST trips
+    U ->> BE: POST trips
     BE ->> SC: create_trip(organizer, token, target, min, deadline, penalty)
     SC -->> BE: trip_id
-    BE -->> FE: Trip + trip_id
-    FE -->> U: Link para compartir
+    BE -->> U: Trip + trip_id
 ```
 
 > **Nota**: Se usa un único contrato multi-escrow. No se despliega un contrato nuevo por viaje, solo se invoca
@@ -286,16 +270,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor P as Participante
-    participant FE as Frontend
-    participant W as Freighter Wallet
+    participant W as Wallet
     participant SC as Soroban Contract
-    P ->> FE: Contribuir XLM al viaje
-    FE ->> W: Solicitar firma para contribute(trip_id, amount)
-    W -->> FE: Transacción firmada
-    FE ->> SC: contribute(trip_id, participant, amount)
+    P ->> W: Solicitar firma para contribute(trip_id, amount)
+    W -->> P: Transacción firmada
+    P ->> SC: contribute(trip_id, participant, amount)
     Note over SC: Validar estado Funding<br/>Transferir tokens<br/>Actualizar balance<br/>Auto-completar si meta alcanzada
-    SC -->> FE: Evento ContributionEvent
-    FE -->> P: Balance actualizado
+    SC -->> P: Evento ContributionEvent
 ```
 
 ### 3. Abandono con Penalización
@@ -303,18 +284,16 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor P as Participante
-    participant FE as Frontend
-    participant W as Freighter Wallet
+    participant W as Wallet
     participant SC as Soroban Contract
     participant G as Resto del Grupo
-    P ->> FE: Solicitar retiro del viaje
-    FE ->> W: Solicitar firma para withdraw(trip_id)
-    W -->> FE: Transacción firmada
-    FE ->> SC: withdraw(trip_id, participant)
+    P ->> W: Solicitar firma para withdraw(trip_id)
+    W -->> P: Transacción firmada
+    P ->> SC: withdraw(trip_id, participant)
     Note over SC: 1. Calcular penalización (% configurado)<br/>2. Redistribuir penalización a restantes<br/>3. Reembolsar (monto - penalización)
     SC -->> P: Reembolso parcial
     SC -->> G: Balances incrementados
-    SC -->> FE: Evento WithdrawalEvent
+    SC -->> P: Evento WithdrawalEvent
 ```
 
 ### 4. Cancelación por Organizador
@@ -322,14 +301,12 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor O as Organizador
-    participant FE as Frontend
     participant SC as Soroban Contract
     participant P as Participantes
-    O ->> FE: Cancelar viaje
-    FE ->> SC: cancel(trip_id)
+    O ->> SC: cancel(trip_id)
     Note over SC: Reembolso completo<br/>a todos los participantes<br/>(sin penalización)
     SC -->> P: Reembolso 100%
-    SC -->> FE: Evento CancelledEvent
+    SC -->> O: Evento CancelledEvent
 ```
 
 ---
@@ -514,16 +491,9 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    APP[CoTravel App]
-    APP --> FW[Freighter Wallet]
+    APP[CoTravel Backend]
     APP --> SN[Stellar Network]
     APP --> PA[Partners API]
-
-    subgraph FW[Freighter Wallet]
-        A1[Autenticación]
-        A2[Firma de TX]
-        A3[Gestión keys]
-    end
 
     subgraph SN[Stellar Network]
         B1[Testnet]
@@ -544,14 +514,14 @@ flowchart TB
 
 ## Seguridad
 
-| Aspecto         | Implementación                                          |
-|-----------------|---------------------------------------------------------|
-| Autenticación   | Challenge-response con firma Stellar + JWT (24h)        |
-| Autorización    | Middleware `requireAuth` + `requireOrganizer` por ruta  |
-| Fondos          | Custodia en smart contract, no en backend               |
-| Firma de TX     | Frontend firma con wallet, backend solo retransmite XDR |
-| Datos sensibles | JWT_SECRET configurable, HTTPS en producción            |
-| Contratos       | Auditoría antes de mainnet                              |
+| Aspecto         | Implementación                                         |
+|-----------------|--------------------------------------------------------|
+| Autenticación   | Challenge-response con firma Stellar + JWT (24h)       |
+| Autorización    | Middleware `requireAuth` + `requireOrganizer` por ruta |
+| Fondos          | Custodia en smart contract, no en backend              |
+| Firma de TX     | Cliente firma con wallet, backend solo retransmite XDR |
+| Datos sensibles | JWT_SECRET configurable, HTTPS en producción           |
+| Contratos       | Auditoría antes de mainnet                             |
 
 ---
 
@@ -605,13 +575,13 @@ flowchart LR
 - [x] Middleware de autorización (requireAuth, requireOrganizer, loadTrip)
 - [x] Tests de integración con Jest + Supertest (48 tests, 6 suites)
 - [x] Aislamiento de tests con transaction rollback (BEGIN/ROLLBACK)
-- [x] Docker Compose completo (PostgreSQL, MinIO, Backend, Frontend, Soroban)
+- [x] Docker Compose completo (PostgreSQL, MinIO, Backend, Soroban)
 
 ### Pendiente 📋
 
-- [ ] Inicializar frontend con React + Vite
-- [ ] Integrar Freighter Wallet
-- [ ] Conectar frontend con contrato vía Stellar SDK
+- [ ] Inicializar frontend (desde cero)
+- [ ] Integrar wallet Stellar
+- [ ] Conectar frontend con backend API + contrato
 - [ ] Indexar eventos del contrato para sincronizar con DB
 - [ ] Diseñar flujo de invitaciones por link
 - [ ] Desarrollar módulo de partners y ofertas

@@ -106,7 +106,7 @@ CREATE TABLE transactions
     trip_id    INTEGER REFERENCES trips (id) ON DELETE CASCADE,
     user_id    INTEGER REFERENCES users (id),
     tx_hash    VARCHAR(64) UNIQUE NOT NULL, -- Hash de la transacción Stellar
-    type       VARCHAR(50)        NOT NULL, -- contribution/withdrawal/release/cancel
+    type VARCHAR(50) NOT NULL,              -- create_trip/contribution/withdrawal/release/cancel
     amount     DECIMAL(20, 7)     NOT NULL, -- En XLM
 
     -- Datos del evento indexado

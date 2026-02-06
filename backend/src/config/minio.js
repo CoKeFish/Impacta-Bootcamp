@@ -10,8 +10,6 @@ const minioClient = new Minio.Client({
 
 const BUCKETS = {
     IMAGES: 'images',
-    AVATARS: 'avatars',
-    TRIP_IMAGES: 'trip-images',
 };
 
 async function initBuckets() {

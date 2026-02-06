@@ -54,7 +54,6 @@ services:
       SOROBAN_RPC_URL: https://soroban-testnet.stellar.org
       SOROBAN_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
       CONTRACT_ID: CBZJNP3KVSWCTRQJNF6Y5P55WDIGZ5JSABKDZ4RBGLFUMFZQK5BKFBIC
-      NATIVE_TOKEN_ID: CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
       JWT_SECRET: cotravel-dev-secret-change-in-production
     volumes:
       - ./backend:/app
@@ -66,22 +65,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-
-  # Frontend React (Stellar Scaffold)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: impacta-frontend
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "5173:5173"
-    depends_on:
-      - backend
 
   # Soroban Network (Testnet)
   soroban:
