@@ -3,6 +3,7 @@
 ## Qué hace
 
 Base de datos relacional que almacena toda la información off-chain de CoTravel:
+
 - Perfiles de usuarios y preferencias
 - Metadata de viajes (nombre, descripción, imágenes)
 - Registro de participantes y su estado en la app
@@ -13,24 +14,25 @@ Base de datos relacional que almacena toda la información off-chain de CoTravel
 
 ## Entornos
 
-| Entorno | Servicio | Storage |
-|---------|----------|---------|
-| **Local** | PostgreSQL 16 (Docker) | MinIO (Docker) |
-| **Producción** | Supabase PostgreSQL | Supabase Storage |
+| Entorno        | Servicio               | Storage          |
+|----------------|------------------------|------------------|
+| **Local**      | PostgreSQL 16 (Docker) | MinIO (Docker)   |
+| **Producción** | Supabase PostgreSQL    | Supabase Storage |
 
 ---
 
 ## Separación On-Chain vs Off-Chain
 
-> **Principio**: Va off-chain todo lo que es **UX/producto**, **consultas frecuentes**, o **datos que no requieren verificación pública**.
+> **Principio**: Va off-chain todo lo que es **UX/producto**, **consultas frecuentes**, o **datos que no requieren
+verificación pública**.
 
-| Dato | Off-chain (PostgreSQL) | On-chain (Contrato) |
-|------|------------------------|---------------------|
-| **Usuario** | username, avatar, preferencias | wallet_address (identidad) |
-| **Viaje** | nombre, descripción, imágenes | target_amount, deadline, rules |
-| **Participante** | joined_at, status UX, notificaciones | balance real, contribuciones |
-| **Transacción** | tx_hash (referencia), cache de montos | la transacción misma en el ledger |
-| **Partners** | info, descuentos, logos | - (no aplica) |
+| Dato             | Off-chain (PostgreSQL)                | On-chain (Contrato)               |
+|------------------|---------------------------------------|-----------------------------------|
+| **Usuario**      | username, avatar, preferencias        | wallet_address (identidad)        |
+| **Viaje**        | nombre, descripción, imágenes         | target_amount, deadline, rules    |
+| **Participante** | joined_at, status UX, notificaciones  | balance real, contribuciones      |
+| **Transacción**  | tx_hash (referencia), cache de montos | la transacción misma en el ledger |
+| **Partners**     | info, descuentos, logos               | - (no aplica)                     |
 
 ---
 
@@ -52,15 +54,15 @@ users ──────┬──► trips ◄────── partners
 
 ### Tablas
 
-| Tabla | Propósito | Registros típicos |
-|-------|-----------|-------------------|
-| `users` | Perfiles de usuarios | wallet_address, username, avatar |
-| `trips` | Metadata de viajes | nombre, descripción, contract_trip_id |
-| `trip_participants` | Quién participa en qué | usuario + viaje + balance cache |
-| `transactions` | Índice de eventos on-chain | tx_hash, tipo, monto |
-| `partners` | Empresas asociadas | nombre, categoría, descuento |
-| `trip_offers` | Ofertas por viaje | partner + viaje + precio |
-| `images` | Metadata de archivos | filename, size, trip_id |
+| Tabla               | Propósito                  | Registros típicos                     |
+|---------------------|----------------------------|---------------------------------------|
+| `users`             | Perfiles de usuarios       | wallet_address, username, avatar      |
+| `trips`             | Metadata de viajes         | nombre, descripción, contract_trip_id |
+| `trip_participants` | Quién participa en qué     | usuario + viaje + balance cache       |
+| `transactions`      | Índice de eventos on-chain | tx_hash, tipo, monto                  |
+| `partners`          | Empresas asociadas         | nombre, categoría, descuento          |
+| `trip_offers`       | Ofertas por viaje          | partner + viaje + precio              |
+| `images`            | Metadata de archivos       | filename, size, trip_id               |
 
 ### Campo Clave: `contract_trip_id`
 
@@ -139,19 +141,19 @@ Password: impacta123
 1. Ir a **Storage** en el menú lateral
 2. Click **New bucket**
 3. Crear bucket `avatars`:
-   - Name: `avatars`
-   - Public: ✅ Sí
+    - Name: `avatars`
+    - Public: ✅ Sí
 4. Crear bucket `trip-images`:
-   - Name: `trip-images`
-   - Public: ✅ Sí
+    - Name: `trip-images`
+    - Public: ✅ Sí
 
 ### Paso 4: Obtener Credenciales
 
 1. Ir a **Settings → API**
 2. Copiar:
-   - **Project URL** → `SUPABASE_URL`
-   - **anon public** → `SUPABASE_ANON_KEY`
-   - **service_role** → `SUPABASE_SERVICE_KEY` (secreto!)
+    - **Project URL** → `SUPABASE_URL`
+    - **anon public** → `SUPABASE_ANON_KEY`
+    - **service_role** → `SUPABASE_SERVICE_KEY` (secreto!)
 
 3. Ir a **Settings → Database**
 4. En **Connection string**, copiar URI → `DATABASE_URL`
@@ -194,14 +196,14 @@ DATABASE_URL=postgresql://postgres:[password]@db.xxxxx.supabase.co:5432/postgres
 
 ### Source of Truth
 
-| Dato | Fuente de Verdad | Cache en |
-|------|------------------|----------|
-| Balance de participante | Contrato | trip_participants.contributed_amount |
-| Total recaudado | Contrato | trips.total_collected |
-| Estado del escrow | Contrato | trips.status |
-| Perfil de usuario | PostgreSQL | - |
-| Info del viaje | PostgreSQL | - |
-| Partners/ofertas | PostgreSQL | - |
+| Dato                    | Fuente de Verdad | Cache en                             |
+|-------------------------|------------------|--------------------------------------|
+| Balance de participante | Contrato         | trip_participants.contributed_amount |
+| Total recaudado         | Contrato         | trips.total_collected                |
+| Estado del escrow       | Contrato         | trips.status                         |
+| Perfil de usuario       | PostgreSQL       | -                                    |
+| Info del viaje          | PostgreSQL       | -                                    |
+| Partners/ofertas        | PostgreSQL       | -                                    |
 
 ---
 
@@ -286,11 +288,13 @@ AND t.deadline > NOW();
 ## Consideraciones
 
 ### Consistencia Eventual
+
 - Los datos de cache (balances, totales) pueden estar desactualizados
 - Para operaciones críticas, siempre consultar el contrato
 - El indexador debe procesar eventos en orden
 
 ### Costos Supabase Pro ($25/mes)
+
 - 8GB RAM para PostgreSQL
 - 100GB Storage incluido
 - Backups diarios automáticos
@@ -298,5 +302,6 @@ AND t.deadline > NOW();
 - Suficiente para miles de usuarios
 
 ### Migraciones
+
 - Por ahora, migraciones manuales (ejecutar SQL)
 - Futuro: usar herramientas como Prisma o Drizzle
