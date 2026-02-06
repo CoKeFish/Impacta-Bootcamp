@@ -2,7 +2,7 @@ const request = require('supertest');
 const {Keypair} = require('@stellar/stellar-sdk');
 const app = require('../src/app');
 const {beginTransaction, rollbackTransaction} = require('./dbHelper');
-const {loginWithNewWallet} = require('./helpers');
+const {loginWithNewWallet, signChallenge} = require('./helpers');
 
 beforeEach(() => beginTransaction());
 afterEach(() => rollbackTransaction());
@@ -38,9 +38,7 @@ describe('Auth - Login', () => {
             .get('/api/auth/challenge')
             .query({wallet});
 
-        const signature = keypair
-            .sign(Buffer.from(challengeRes.body.challenge, 'utf-8'))
-            .toString('base64');
+        const signature = signChallenge(challengeRes.body.challenge, keypair);
 
         const res = await request(app)
             .post('/api/auth/login')
@@ -63,12 +61,12 @@ describe('Auth - Login', () => {
 
         // First login
         let cr = await request(app).get('/api/auth/challenge').query({wallet});
-        let sig = keypair.sign(Buffer.from(cr.body.challenge, 'utf-8')).toString('base64');
+        let sig = signChallenge(cr.body.challenge, keypair);
         const first = await request(app).post('/api/auth/login').send({wallet, signature: sig});
 
         // Second login
         cr = await request(app).get('/api/auth/challenge').query({wallet});
-        sig = keypair.sign(Buffer.from(cr.body.challenge, 'utf-8')).toString('base64');
+        sig = signChallenge(cr.body.challenge, keypair);
         const second = await request(app).post('/api/auth/login').send({wallet, signature: sig});
 
         expect(first.body.user.id).toBe(second.body.user.id);
@@ -84,7 +82,7 @@ describe('Auth - Login', () => {
     test('POST /api/auth/login without prior challenge returns 400', async () => {
         const keypair = Keypair.random();
         const wallet = keypair.publicKey();
-        const signature = keypair.sign(Buffer.from('no-challenge', 'utf-8')).toString('base64');
+        const signature = signChallenge('no-challenge', keypair);
 
         const res = await request(app)
             .post('/api/auth/login')
@@ -98,15 +96,29 @@ describe('Auth - Login', () => {
         const wallet = keypair.publicKey();
 
         // Get real challenge
-        await request(app).get('/api/auth/challenge').query({wallet});
+        const cr = await request(app).get('/api/auth/challenge').query({wallet});
 
-        // Sign with a different keypair
+        // Sign with a different keypair (wrong key)
         const wrong = Keypair.random();
-        const badSig = wrong.sign(Buffer.from('wrong', 'utf-8')).toString('base64');
+        const badSig = signChallenge(cr.body.challenge, wrong);
 
         const res = await request(app)
             .post('/api/auth/login')
             .send({wallet, signature: badSig});
+        expect(res.status).toBe(401);
+    });
+
+    test('POST /api/auth/login with tampered signature returns 401', async () => {
+        const keypair = Keypair.random();
+        const wallet = keypair.publicKey();
+
+        // Get real challenge
+        await request(app).get('/api/auth/challenge').query({wallet});
+
+        // Send garbage as signature
+        const res = await request(app)
+            .post('/api/auth/login')
+            .send({wallet, signature: 'not-valid-base64-signature'});
         expect(res.status).toBe(401);
     });
 

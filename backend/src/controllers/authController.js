@@ -7,9 +7,24 @@ const {generateToken} = require('../middleware/auth');
 const challenges = new Map();
 const CHALLENGE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
+/**
+ * Verify a message signed with Freighter's signMessage (SEP-0053).
+ * Freighter prepends "Stellar Signed Message:\n" and SHA-256 hashes before signing.
+ */
+function verifySignedMessage(publicKey, message, signatureBase64) {
+    const prefix = Buffer.from('Stellar Signed Message:\n', 'utf-8');
+    const messageBytes = Buffer.from(message, 'utf-8');
+    const encodedMessage = Buffer.concat([prefix, messageBytes]);
+    const messageHash = crypto.createHash('sha256').update(encodedMessage).digest();
+    const signatureBuffer = Buffer.from(signatureBase64, 'base64');
+
+    const keypair = Keypair.fromPublicKey(publicKey);
+    return keypair.verify(messageHash, signatureBuffer);
+}
+
 module.exports = {
     // GET /api/auth/challenge?wallet=GABCD...
-    // Returns a random challenge string for the wallet to sign
+    // Returns a random challenge string for the wallet to sign via signMessage
     async getChallenge(req, res, next) {
         try {
             const {wallet} = req.query;
@@ -17,8 +32,8 @@ module.exports = {
                 return res.status(400).json({error: 'wallet query parameter required'});
             }
 
-            const challenge = crypto.randomBytes(32).toString('hex');
-            const message = `CoTravel Login: ${challenge}`;
+            const nonce = crypto.randomBytes(32).toString('hex');
+            const message = `CoTravel Login: ${nonce}`;
 
             challenges.set(wallet, {
                 message,
@@ -39,7 +54,7 @@ module.exports = {
     },
 
     // POST /api/auth/login
-    // Verifies the signed challenge and returns a JWT
+    // Verifies a message signature (SEP-0053) and returns a JWT
     //
     // For wallet auth: { wallet, signature }
     // Future Google:   { provider: "google", token: "..." }
@@ -66,12 +81,9 @@ module.exports = {
                     return res.status(400).json({error: 'Challenge expired. Request a new one.'});
                 }
 
-                // Verify signature
+                // Verify signature (SEP-0053: prefix + SHA-256 + Ed25519)
                 try {
-                    const keypair = Keypair.fromPublicKey(wallet);
-                    const messageBuffer = Buffer.from(stored.message, 'utf-8');
-                    const signatureBuffer = Buffer.from(signature, 'base64');
-                    const valid = keypair.verify(messageBuffer, signatureBuffer);
+                    const valid = verifySignedMessage(wallet, stored.message, signature);
 
                     if (!valid) {
                         return res.status(401).json({error: 'Invalid signature'});
@@ -94,22 +106,10 @@ module.exports = {
             }
 
             // --- Future: Google OAuth ---
-            // if (provider === 'google') {
-            //     const { token: googleToken } = req.body;
-            //     // 1. Verify googleToken with Google API
-            //     // 2. Get email/name from Google profile
-            //     // 3. Find or create user (link wallet later)
-            //     // 4. return res.json({ token: generateToken(user, 'google'), user });
-            // }
+            // if (provider === 'google') { ... }
 
             // --- Future: Facebook OAuth ---
-            // if (provider === 'facebook') {
-            //     const { token: fbToken } = req.body;
-            //     // 1. Verify fbToken with Facebook Graph API
-            //     // 2. Get profile info
-            //     // 3. Find or create user
-            //     // 4. return res.json({ token: generateToken(user, 'facebook'), user });
-            // }
+            // if (provider === 'facebook') { ... }
 
             return res.status(400).json({error: `Unsupported provider: ${provider}`});
         } catch (err) {

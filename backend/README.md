@@ -118,10 +118,10 @@ npm test      # Tests con Jest
 | Suite                  | Tests | Cobertura                                  |
 |------------------------|-------|--------------------------------------------|
 | `health.test.js`       | 2     | Root y health check (DB + storage)         |
-| `auth.test.js`         | 8     | Challenge, login, firma, JWT, /me          |
+| `auth.test.js`         | 11    | Challenge, login, firma, JWT, /me          |
 | `users.test.js`        | 5     | Crear, duplicado, buscar por wallet        |
 | `trips.test.js`        | 15    | CRUD, link-contract, release, cancel, auth |
-| `participants.test.js` | 9     | Join, contribute, withdraw, auto-join      |
+| `participants.test.js` | 10    | Join, contribute, withdraw, auto-join      |
 | `images.test.js`       | 5     | Upload, get, list, validaciones            |
 
 Los tests usan la DB y MinIO reales (del docker compose), con rollback automatico para no contaminar datos.

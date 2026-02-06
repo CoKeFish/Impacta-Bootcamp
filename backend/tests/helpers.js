@@ -1,5 +1,21 @@
 const {Keypair} = require('@stellar/stellar-sdk');
+const crypto = require('crypto');
 const request = require('supertest');
+
+/**
+ * Sign a challenge message following SEP-0053 (same as Freighter's signMessage).
+ * 1. Prepend "Stellar Signed Message:\n"
+ * 2. SHA-256 hash the concatenated bytes
+ * 3. Ed25519 sign the hash
+ * Returns base64-encoded signature.
+ */
+function signChallenge(message, keypair) {
+    const prefix = Buffer.from('Stellar Signed Message:\n', 'utf-8');
+    const messageBytes = Buffer.from(message, 'utf-8');
+    const encodedMessage = Buffer.concat([prefix, messageBytes]);
+    const messageHash = crypto.createHash('sha256').update(encodedMessage).digest();
+    return keypair.sign(messageHash).toString('base64');
+}
 
 /**
  * Generate a random Stellar wallet, complete the challenge-response
@@ -16,10 +32,8 @@ async function loginWithNewWallet(app) {
 
     const message = challengeRes.body.challenge;
 
-    // 2. Sign challenge
-    const signature = keypair
-        .sign(Buffer.from(message, 'utf-8'))
-        .toString('base64');
+    // 2. Sign challenge (SEP-0053)
+    const signature = signChallenge(message, keypair);
 
     // 3. Login
     const loginRes = await request(app)
@@ -54,4 +68,4 @@ async function createTestTrip(app, token) {
     return res.body;
 }
 
-module.exports = {loginWithNewWallet, createTestTrip};
+module.exports = {loginWithNewWallet, createTestTrip, signChallenge};
