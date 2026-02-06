@@ -56,8 +56,12 @@ flowchart LR
 
         subgraph BK["backend"]
             R[routes]
-            S[services]
+            CT2[controllers]
             M[models]
+            S[services]
+            MW[middleware]
+            CF[config]
+            T[tests]
         end
 
         subgraph CT["contracts"]
@@ -80,8 +84,8 @@ flowchart LR
         F[Frontend<br/>:5173]
         B[Backend<br/>:3000]
         P[(PostgreSQL<br/>:5432)]
-        M[(MinIO<br/>:9000/:9001)]
-        S[Soroban<br/>:8000/:8080]
+        M[(MinIO<br/>:9000-9001)]
+        S[Soroban<br/>:8000-8080]
     end
 
     F --> B
@@ -100,6 +104,162 @@ flowchart LR
 
 ---
 
+## Backend API
+
+### Arquitectura
+
+El backend sigue un patrón **MVC** con separación clara de responsabilidades:
+
+```
+backend/
+├── src/
+│   ├── app.js              ← Express app exportable (sin listen)
+│   ├── index.js             ← Punto de entrada: init DB/MinIO + listen
+│   ├── config/
+│   │   ├── db.js            ← Pool de PostgreSQL (singleton)
+│   │   ├── minio.js         ← Cliente MinIO + inicialización de buckets
+│   │   └── soroban.js       ← Soroban RPC Server + config de red
+│   ├── middleware/
+│   │   ├── auth.js          ← JWT: requireAuth, requireOrganizer, loadTrip
+│   │   └── errorHandler.js  ← Manejo centralizado de errores
+│   ├── routes/
+│   │   ├── auth.js          ← /api/auth (challenge, login, me)
+│   │   ├── health.js        ← /health (status DB)
+│   │   ├── images.js        ← /images (upload, get, list)
+│   │   ├── trips.js         ← /api/trips (CRUD + contract ops)
+│   │   └── users.js         ← /api/users (create, get)
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── imagesController.js
+│   │   ├── participantsController.js
+│   │   ├── tripsController.js
+│   │   └── usersController.js
+│   ├── models/
+│   │   ├── imageModel.js
+│   │   ├── participantModel.js
+│   │   ├── transactionModel.js
+│   │   ├── tripModel.js
+│   │   └── userModel.js
+│   └── services/
+│       └── sorobanService.js ← Read-only queries + submitTx
+├── tests/                    ← Integration tests (Jest + Supertest)
+├── jest.config.js
+└── package.json
+```
+
+### Autenticación
+
+Challenge-response con firma de wallet Stellar + JWT:
+
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant FE as Frontend
+    participant BE as Backend
+    participant W as Wallet
+
+    U ->> FE: Conectar wallet
+    FE ->> BE: GET /api/auth/challenge?wallet=GABCD...
+    BE -->> FE: challenge (string aleatorio)
+    FE ->> W: Firmar challenge
+    W -->> FE: signature (base64)
+    FE ->> BE: POST /api/auth/login {wallet, signature}
+    Note over BE: Verificar firma con Stellar SDK<br/>Crear usuario si no existe<br/>Generar JWT (24h)
+    BE -->> FE: {token, user}
+```
+
+### Endpoints
+
+| Método | Ruta                           | Auth            | Descripción                          |
+|--------|--------------------------------|-----------------|--------------------------------------|
+| `GET`  | `/`                            | -               | Health check (API running)           |
+| `GET`  | `/health`                      | -               | Health check (DB connected)          |
+| `GET`  | `/api/auth/challenge`          | -               | Obtener challenge para wallet        |
+| `POST` | `/api/auth/login`              | -               | Login con firma → JWT                |
+| `GET`  | `/api/auth/me`                 | JWT             | Usuario autenticado                  |
+| `POST` | `/api/users`                   | -               | Crear usuario                        |
+| `GET`  | `/api/users/:wallet`           | -               | Buscar usuario por wallet            |
+| `GET`  | `/api/trips`                   | -               | Listar viajes                        |
+| `POST` | `/api/trips`                   | JWT             | Crear viaje (draft)                  |
+| `GET`  | `/api/trips/:id`               | -               | Detalle de viaje (+ estado on-chain) |
+| `GET`  | `/api/trips/:id/participants`  | -               | Listar participantes                 |
+| `POST` | `/api/trips/:id/join`          | JWT             | Unirse a viaje                       |
+| `POST` | `/api/trips/:id/contribute`    | JWT             | Contribuir (submit XDR)              |
+| `POST` | `/api/trips/:id/withdraw`      | JWT             | Retirarse (submit XDR)               |
+| `POST` | `/api/trips/:id/link-contract` | JWT + Organizer | Vincular contrato Soroban            |
+| `POST` | `/api/trips/:id/release`       | JWT + Organizer | Liberar fondos                       |
+| `POST` | `/api/trips/:id/cancel`        | JWT + Organizer | Cancelar viaje                       |
+| `POST` | `/images/upload`               | -               | Subir imagen (MinIO)                 |
+| `GET`  | `/images/:filename`            | -               | Obtener imagen (stream)              |
+| `GET`  | `/images`                      | -               | Listar imágenes                      |
+
+### Arquitectura Híbrida (Off-chain + On-chain)
+
+El backend actúa como **intermediario** entre el frontend y la blockchain:
+
+```mermaid
+flowchart LR
+    FE[Frontend] -->|signed XDR| BE[Backend]
+    BE -->|submitTx| SR[Soroban RPC]
+    SR -->|result| BE
+    BE -->|cache state| DB[(PostgreSQL)]
+    BE -->|response| FE
+```
+
+- **Off-chain (PostgreSQL)**: Usuarios, metadata de viajes, historial de transacciones, estado cacheado
+- **On-chain (Soroban)**: Escrow real, balances, reglas de negocio (penalización, release, cancel)
+- **Source of truth**: El contrato Soroban es la fuente de verdad para fondos y estado financiero
+
+---
+
+## Testing
+
+### Stack de Testing
+
+| Herramienta | Propósito                                            |
+|-------------|------------------------------------------------------|
+| Jest        | Framework de testing (assertions, mocks, lifecycle)  |
+| Supertest   | Peticiones HTTP al Express app sin levantar servidor |
+
+### Arquitectura de Tests
+
+```
+Real (Docker)              Mockeado
+─────────────              ────────
+PostgreSQL ✓               sorobanService.submitTx
+MinIO ✓                    sorobanService.getTripState
+Express routing ✓
+JWT auth ✓
+Stellar SDK (firma) ✓
+```
+
+**Aislamiento de DB**: Cada test corre dentro de `BEGIN` / `ROLLBACK`. La base de datos nunca se contamina entre tests.
+
+**Aislamiento de MinIO**: Los tests de imágenes limpian objetos subidos en `afterEach`.
+
+### Test Suites (48 tests)
+
+| Suite                  | Tests | Cobertura                                                     |
+|------------------------|-------|---------------------------------------------------------------|
+| `health.test.js`       | 2     | Smoke test: API + DB                                          |
+| `auth.test.js`         | 10    | Challenge, login, firma, JWT, /me                             |
+| `users.test.js`        | 5     | CRUD usuarios                                                 |
+| `trips.test.js`        | 15    | CRUD viajes + link-contract + release/cancel + auth organizer |
+| `participants.test.js` | 10    | Join, contribute, withdraw + auto-join                        |
+| `images.test.js`       | 5     | Upload/get/list con MinIO real                                |
+
+### Ejecución
+
+```bash
+# Requisito: containers Docker corriendo
+docker compose up -d postgres minio backend
+
+# Ejecutar tests dentro del container
+docker compose exec backend npm test
+```
+
+---
+
 ## Flujos Principales
 
 ### 1. Creación de Viaje Grupal
@@ -109,14 +269,17 @@ sequenceDiagram
     actor U as Usuario
     participant FE as Frontend
     participant BE as Backend
-    participant SC as Soroban
+    participant SC as Soroban Contract
     U ->> FE: Crear viaje
-    FE ->> BE: POST /trips
-    BE ->> SC: Deploy contract
-    SC -->> BE: Contract ID
-    BE -->> FE: Trip + Contract ID
+    FE ->> BE: POST trips
+    BE ->> SC: create_trip(organizer, token, target, min, deadline, penalty)
+    SC -->> BE: trip_id
+    BE -->> FE: Trip + trip_id
     FE -->> U: Link para compartir
 ```
+
+> **Nota**: Se usa un único contrato multi-escrow. No se despliega un contrato nuevo por viaje, solo se invoca
+`create_trip()` que retorna un `trip_id`.
 
 ### 2. Contribución al Presupuesto
 
@@ -126,26 +289,47 @@ sequenceDiagram
     participant FE as Frontend
     participant W as Freighter Wallet
     participant SC as Soroban Contract
-    P ->> FE: Contribuir XLM
-    FE ->> W: Solicitar firma
+    P ->> FE: Contribuir XLM al viaje
+    FE ->> W: Solicitar firma para contribute(trip_id, amount)
     W -->> FE: Transacción firmada
-    FE ->> SC: Enviar transacción
-    Note over SC: Validar monto<br/>Actualizar balance<br/>Emitir evento
-    SC -->> FE: Confirmación
+    FE ->> SC: contribute(trip_id, participant, amount)
+    Note over SC: Validar estado Funding<br/>Transferir tokens<br/>Actualizar balance<br/>Auto-completar si meta alcanzada
+    SC -->> FE: Evento ContributionEvent
     FE -->> P: Balance actualizado
 ```
 
-### 3. Abandono y Reembolso
+### 3. Abandono con Penalización
 
 ```mermaid
 sequenceDiagram
     actor P as Participante
+    participant FE as Frontend
+    participant W as Freighter Wallet
     participant SC as Soroban Contract
     participant G as Resto del Grupo
-    P ->> SC: Solicitar retiro
-    Note over SC: 1. Calcular penalización<br/>2. Retener % para grupo<br/>3. Redistribuir a miembros
-    SC -->> P: Reembolso (- penalización)
-    SC -->> G: Fondos redistribuidos
+    P ->> FE: Solicitar retiro del viaje
+    FE ->> W: Solicitar firma para withdraw(trip_id)
+    W -->> FE: Transacción firmada
+    FE ->> SC: withdraw(trip_id, participant)
+    Note over SC: 1. Calcular penalización (% configurado)<br/>2. Redistribuir penalización a restantes<br/>3. Reembolsar (monto - penalización)
+    SC -->> P: Reembolso parcial
+    SC -->> G: Balances incrementados
+    SC -->> FE: Evento WithdrawalEvent
+```
+
+### 4. Cancelación por Organizador
+
+```mermaid
+sequenceDiagram
+    actor O as Organizador
+    participant FE as Frontend
+    participant SC as Soroban Contract
+    participant P as Participantes
+    O ->> FE: Cancelar viaje
+    FE ->> SC: cancel(trip_id)
+    Note over SC: Reembolso completo<br/>a todos los participantes<br/>(sin penalización)
+    SC -->> P: Reembolso 100%
+    SC -->> FE: Evento CancelledEvent
 ```
 
 ---
@@ -154,16 +338,23 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Creado: Organizador crea viaje
-    Creado --> Financiando: Participantes se unen
-    Financiando --> Financiando: Contribuciones
-    Financiando --> Cancelado: No alcanza mínimo
-    Financiando --> Completado: Meta alcanzada
-    Completado --> EnCurso: Fondos liberados
-    EnCurso --> Finalizado: Viaje terminado
-    Cancelado --> [*]: Reembolso total
-    Finalizado --> [*]
+    [*] --> Funding: create_trip()
+    Funding --> Funding: contribute()
+    Funding --> Completed: Meta + Min participantes
+    Completed --> Funding: withdraw() (bajo umbral)
+    Funding --> Cancelled: cancel()
+    Completed --> Cancelled: cancel()
+    Completed --> Released: release()
+    Cancelled --> [*]: Reembolso total
+    Released --> [*]: Fondos al organizador
 ```
+
+**Transiciones de estado en el contrato:**
+
+- `Funding` → `Completed`: Cuando `total >= target` Y `participants >= min_participants`
+- `Completed` → `Funding`: Si un withdraw reduce por debajo del umbral
+- `Funding/Completed` → `Cancelled`: Solo el organizador puede cancelar
+- `Completed` → `Released`: Solo el organizador puede liberar
 
 ---
 
@@ -195,8 +386,10 @@ erDiagram
         decimal target_amount
         int min_participants
         timestamp deadline
-        string contract_id
+        int penalty_percent
+        bigint contract_trip_id "trip_id del contrato"
         string status
+        decimal total_collected
         timestamp created_at
     }
 
@@ -237,32 +430,83 @@ erDiagram
 
 ---
 
-## Smart Contract - Funcionalidades
+## Smart Contract - Arquitectura Multi-Escrow
+
+El contrato utiliza un patrón **multi-escrow**: un único contrato desplegado gestiona N viajes independientes mediante
+`trip_id`.
+
+### ¿Por qué Multi-Escrow?
+
+| Aspecto     | Factory (1 contrato/viaje)  | Multi-Escrow (1 contrato, N viajes) |
+|-------------|-----------------------------|-------------------------------------|
+| Deploy      | Despliega WASM cada vez     | Un solo deploy                      |
+| Costo       | ~100k stroops/viaje         | Solo costo de storage               |
+| Complejidad | Requiere factory + tracking | Lógica simple con trip_id           |
+| Aislamiento | Total (contratos separados) | Por storage key (TripKey enum)      |
+
+### Storage del Contrato
 
 ```mermaid
 flowchart TB
-    subgraph Contract["Soroban Escrow Contract"]
-        I[Inicialización]
-        C[Contribución]
-        W[Retiro/Abandono]
-        R[Liberación]
-        Q[Consultas]
+    subgraph Instance["Instance Storage (Global)"]
+        NID[NEXT_TRIP_ID<br/>Contador auto-incremental]
+        TL[TRIPS<br/>Lista de trip_ids]
     end
 
-    I -->|" Monto objetivo<br/>Min. participantes<br/>Deadline<br/>% penalización "| Contract
-    C -->|" Recibir fondos<br/>Actualizar balance "| Contract
-    W -->|" Calcular penalización<br/>Redistribuir<br/>Reembolsar "| Contract
-    R -->|" Verificar meta<br/>Liberar a organizador "| Contract
-    Q -->|" Balance<br/>Total recaudado<br/>Lista miembros "| Contract
+    subgraph Persistent["Persistent Storage (Por Viaje)"]
+        TC[TripKey::Config<br/>organizer, token, target, deadline, penalty]
+        TS[TripKey::State<br/>status, total_collected, participant_count]
+        TB[TripKey::Balances<br/>Map wallet → balance]
+        TP[TripKey::Participants<br/>Vec de wallets]
+    end
 ```
 
-| Función             | Descripción                                                                           |
-|---------------------|---------------------------------------------------------------------------------------|
-| **Inicialización**  | Crear viaje con monto objetivo, mínimo de participantes, deadline y % de penalización |
-| **Contribución**    | Recibir fondos de participantes y actualizar balances                                 |
-| **Retiro/Abandono** | Calcular penalización, redistribuir al grupo, reembolsar                              |
-| **Liberación**      | Liberar fondos al organizador cuando se cumple la meta                                |
-| **Consultas**       | Balance por participante, total recaudado, lista de miembros                          |
+### API del Contrato
+
+```mermaid
+flowchart TB
+    subgraph Contract["Soroban Multi-Escrow Contract"]
+        subgraph Mgmt["Gestión de Viajes"]
+            CT[create_trip]
+        end
+        subgraph Ops["Operaciones"]
+            C[contribute]
+            W[withdraw]
+            R[release]
+            X[cancel]
+        end
+        subgraph Query["Consultas"]
+            GTC[get_trip_count]
+            GT[get_trips]
+            GTI[get_trip]
+            GS[get_state]
+            GB[get_balance]
+            GP[get_participants]
+        end
+    end
+```
+
+| Función            | Parámetros                                                    | Descripción                                    |
+|--------------------|---------------------------------------------------------------|------------------------------------------------|
+| `create_trip`      | organizer, token, target, min_participants, deadline, penalty | Crear viaje, retorna `trip_id`                 |
+| `contribute`       | trip_id, participant, amount                                  | Aportar fondos (auto-completa si alcanza meta) |
+| `withdraw`         | trip_id, participant                                          | Retirarse con penalización redistribuida       |
+| `release`          | trip_id                                                       | Liberar fondos al organizador (solo Completed) |
+| `cancel`           | trip_id                                                       | Cancelar y reembolsar todo (sin penalización)  |
+| `get_trip_count`   | -                                                             | Total de viajes creados                        |
+| `get_trips`        | -                                                             | Lista de todos los trip_id                     |
+| `get_trip`         | trip_id                                                       | Info resumida del viaje                        |
+| `get_state`        | trip_id                                                       | Estado actual (status, totales)                |
+| `get_balance`      | trip_id, participant                                          | Balance de un participante                     |
+| `get_participants` | trip_id                                                       | Lista de participantes del viaje               |
+
+### Contrato Desplegado (Testnet)
+
+| Dato        | Valor                                                      |
+|-------------|------------------------------------------------------------|
+| Contract ID | `CBZJNP3KVSWCTRQJNF6Y5P55WDIGZ5JSABKDZ4RBGLFUMFZQK5BKFBIC` |
+| Token (XLM) | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` |
+| Network     | Test SDF Network ; September 2015                          |
 
 ---
 
@@ -300,13 +544,14 @@ flowchart TB
 
 ## Seguridad
 
-| Aspecto         | Implementación                            |
-|-----------------|-------------------------------------------|
-| Autenticación   | Wallet-based (Freighter)                  |
-| Autorización    | Verificación de firma en cada transacción |
-| Fondos          | Custodia en smart contract, no en backend |
-| Datos sensibles | Encriptación en tránsito (HTTPS) y reposo |
-| Contratos       | Auditoría antes de mainnet                |
+| Aspecto         | Implementación                                          |
+|-----------------|---------------------------------------------------------|
+| Autenticación   | Challenge-response con firma Stellar + JWT (24h)        |
+| Autorización    | Middleware `requireAuth` + `requireOrganizer` por ruta  |
+| Fondos          | Custodia en smart contract, no en backend               |
+| Firma de TX     | Frontend firma con wallet, backend solo retransmite XDR |
+| Datos sensibles | JWT_SECRET configurable, HTTPS en producción            |
+| Contratos       | Auditoría antes de mainnet                              |
 
 ---
 
@@ -343,10 +588,31 @@ flowchart LR
 
 ## Próximos Pasos
 
-- [ ] Inicializar frontend con Stellar Scaffold
-- [ ] Crear contrato de escrow básico en Soroban
-- [ ] Implementar API de viajes y participantes
+### Completado ✅
+
+- [x] Crear contrato multi-escrow en Soroban (Rust)
+- [x] Desplegar contrato en testnet
+- [x] Tests unitarios del contrato (6 tests)
+- [x] Makefile con comandos de desarrollo
+- [x] Documentación del contrato (README.md)
+- [x] Base de datos PostgreSQL (schema completo, 7 tablas, verificada)
+- [x] Documentación de base de datos (README.md + Supabase)
+- [x] Variables de entorno (.env.example)
+- [x] Backend API REST completa (Express + 5 rutas, 5 controllers, 5 models)
+- [x] Autenticación challenge-response con Stellar wallet + JWT
+- [x] Integración con Soroban (submitTx, read-only queries)
+- [x] Almacenamiento de imágenes con MinIO (upload, stream, list)
+- [x] Middleware de autorización (requireAuth, requireOrganizer, loadTrip)
+- [x] Tests de integración con Jest + Supertest (48 tests, 6 suites)
+- [x] Aislamiento de tests con transaction rollback (BEGIN/ROLLBACK)
+- [x] Docker Compose completo (PostgreSQL, MinIO, Backend, Frontend, Soroban)
+
+### Pendiente 📋
+
+- [ ] Inicializar frontend con React + Vite
 - [ ] Integrar Freighter Wallet
+- [ ] Conectar frontend con contrato vía Stellar SDK
+- [ ] Indexar eventos del contrato para sincronizar con DB
 - [ ] Diseñar flujo de invitaciones por link
 - [ ] Desarrollar módulo de partners y ofertas
 - [ ] Testing en testnet con usuarios reales

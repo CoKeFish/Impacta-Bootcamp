@@ -51,6 +51,11 @@ services:
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
+      SOROBAN_RPC_URL: https://soroban-testnet.stellar.org
+      SOROBAN_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+      CONTRACT_ID: CBZJNP3KVSWCTRQJNF6Y5P55WDIGZ5JSABKDZ4RBGLFUMFZQK5BKFBIC
+      NATIVE_TOKEN_ID: CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
+      JWT_SECRET: cotravel-dev-secret-change-in-production
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -78,17 +83,31 @@ services:
     depends_on:
       - backend
 
-  # Soroban Development Environment
+  # Soroban Network (Testnet)
   soroban:
-    image: stellar/quickstart:soroban-dev
+    image: stellar/quickstart:testing
     container_name: impacta-soroban
-    command: --local --enable-soroban-rpc
-    volumes:
-      - ./contracts:/workspace
+    command: --testnet --enable-soroban-rpc
     ports:
       - "8000:8000"   # Horizon API
       - "8080:8080"   # Soroban RPC
 
+  # Soroban Development CLI (for building contracts)
+  soroban-dev:
+    build:
+      context: ./contracts
+      dockerfile: Dockerfile.dev
+    container_name: impacta-soroban-dev
+    volumes:
+      - ./contracts:/workspace
+      - cargo_cache:/usr/local/cargo/registry
+    depends_on:
+      - soroban
+    environment:
+      - SOROBAN_RPC_URL=http://soroban:8000/soroban/rpc
+      - SOROBAN_NETWORK_PASSPHRASE=Test SDF Network ; September 2015
+
 volumes:
   postgres_data:
   minio_data:
+  cargo_cache:
