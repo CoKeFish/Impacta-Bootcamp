@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const tripsCtrl = require('../controllers/tripsController');
 const participantsCtrl = require('../controllers/participantsController');
-const { requireAuth, requireOrganizer, loadTrip } = require('../middleware/auth');
+const {requireAuth, requireOrganizer, loadTrip} = require('../middleware/auth');
 
 // Public (anyone can browse)
 router.get('/', tripsCtrl.getAll);

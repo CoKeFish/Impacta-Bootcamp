@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
-const { beginTransaction, rollbackTransaction } = require('./dbHelper');
+const {beginTransaction, rollbackTransaction} = require('./dbHelper');
 
 beforeEach(() => beginTransaction());
 afterEach(() => rollbackTransaction());

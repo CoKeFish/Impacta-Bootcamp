@@ -1,11 +1,11 @@
 const imageModel = require('../models/imageModel');
-const { minioClient, BUCKETS } = require('../config/minio');
+const {minioClient, BUCKETS} = require('../config/minio');
 
 module.exports = {
     async upload(req, res, next) {
         try {
             if (!req.file) {
-                return res.status(400).json({ error: 'No image provided' });
+                return res.status(400).json({error: 'No image provided'});
             }
 
             const fileName = `${Date.now()}-${req.file.originalname}`;
@@ -13,7 +13,7 @@ module.exports = {
             await minioClient.putObject(
                 BUCKETS.IMAGES, fileName,
                 req.file.buffer, req.file.size,
-                { 'Content-Type': req.file.mimetype }
+                {'Content-Type': req.file.mimetype}
             );
 
             const image = await imageModel.create(
@@ -37,7 +37,7 @@ module.exports = {
             const stream = await minioClient.getObject(BUCKETS.IMAGES, req.params.filename);
             stream.pipe(res);
         } catch (err) {
-            res.status(404).json({ error: 'Image not found' });
+            res.status(404).json({error: 'Image not found'});
         }
     },
 

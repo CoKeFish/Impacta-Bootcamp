@@ -2,7 +2,7 @@ const pool = require('../config/db');
 
 module.exports = {
     async findByTripAndUser(tripId, userId) {
-        const { rows } = await pool.query(
+        const {rows} = await pool.query(
             'SELECT * FROM trip_participants WHERE trip_id = $1 AND user_id = $2',
             [tripId, userId]
         );
@@ -10,7 +10,7 @@ module.exports = {
     },
 
     async findByTrip(tripId) {
-        const { rows } = await pool.query(
+        const {rows} = await pool.query(
             `SELECT tp.*, u.wallet_address, u.username
              FROM trip_participants tp
              JOIN users u ON tp.user_id = u.id
@@ -22,7 +22,7 @@ module.exports = {
     },
 
     async create(tripId, userId) {
-        const { rows } = await pool.query(
+        const {rows} = await pool.query(
             `INSERT INTO trip_participants (trip_id, user_id)
              VALUES ($1, $2)
              RETURNING *`,
@@ -32,7 +32,7 @@ module.exports = {
     },
 
     async updateAmount(tripId, userId, amount) {
-        const { rows } = await pool.query(
+        const {rows} = await pool.query(
             `UPDATE trip_participants SET contributed_amount = $3
              WHERE trip_id = $1 AND user_id = $2
              RETURNING *`,
@@ -42,7 +42,7 @@ module.exports = {
     },
 
     async updateStatus(tripId, userId, status) {
-        const { rows } = await pool.query(
+        const {rows} = await pool.query(
             `UPDATE trip_participants SET status = $3
              WHERE trip_id = $1 AND user_id = $2
              RETURNING *`,

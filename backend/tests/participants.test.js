@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../src/app');
-const { beginTransaction, rollbackTransaction } = require('./dbHelper');
-const { loginWithNewWallet, createTestTrip } = require('./helpers');
+const {beginTransaction, rollbackTransaction} = require('./dbHelper');
+const {loginWithNewWallet, createTestTrip} = require('./helpers');
 const sorobanService = require('../src/services/sorobanService');
 
 jest.mock('../src/services/sorobanService');
@@ -90,7 +90,7 @@ describe('Participants - Contribute', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/contribute`)
             .set('Authorization', `Bearer ${user.token}`)
-            .send({ signed_xdr: 'fake-xdr', amount: 100 });
+            .send({signed_xdr: 'fake-xdr', amount: 100});
 
         expect(res.status).toBe(200);
         expect(res.body.tx_hash).toBe('contrib-hash-001');
@@ -110,7 +110,7 @@ describe('Participants - Contribute', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/contribute`)
             .set('Authorization', `Bearer ${user.token}`)
-            .send({ signed_xdr: 'fake-xdr', amount: 50 });
+            .send({signed_xdr: 'fake-xdr', amount: 50});
 
         expect(res.status).toBe(200);
         expect(res.body.tx_hash).toBe('autojoin-hash-001');
@@ -124,7 +124,7 @@ describe('Participants - Contribute', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/contribute`)
             .set('Authorization', `Bearer ${user.token}`)
-            .send({ amount: 100 });
+            .send({amount: 100});
         expect(res.status).toBe(400);
     });
 });
@@ -150,7 +150,7 @@ describe('Participants - Withdraw', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/withdraw`)
             .set('Authorization', `Bearer ${user.token}`)
-            .send({ signed_xdr: 'fake-withdraw-xdr' });
+            .send({signed_xdr: 'fake-withdraw-xdr'});
 
         expect(res.status).toBe(200);
         expect(res.body.tx_hash).toBe('withdraw-hash-001');
@@ -164,7 +164,7 @@ describe('Participants - Withdraw', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/withdraw`)
             .set('Authorization', `Bearer ${other.token}`)
-            .send({ signed_xdr: 'fake-xdr' });
+            .send({signed_xdr: 'fake-xdr'});
         expect(res.status).toBe(404);
     });
 

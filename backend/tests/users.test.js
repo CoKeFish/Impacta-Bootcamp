@@ -1,7 +1,7 @@
 const request = require('supertest');
-const { Keypair } = require('@stellar/stellar-sdk');
+const {Keypair} = require('@stellar/stellar-sdk');
 const app = require('../src/app');
-const { beginTransaction, rollbackTransaction } = require('./dbHelper');
+const {beginTransaction, rollbackTransaction} = require('./dbHelper');
 
 beforeEach(() => beginTransaction());
 afterEach(() => rollbackTransaction());
@@ -11,7 +11,7 @@ describe('Users', () => {
         const wallet = Keypair.random().publicKey();
         const res = await request(app)
             .post('/api/users')
-            .send({ wallet_address: wallet, username: 'testuser' });
+            .send({wallet_address: wallet, username: 'testuser'});
 
         expect(res.status).toBe(201);
         expect(res.body.wallet_address).toBe(wallet);
@@ -20,18 +20,18 @@ describe('Users', () => {
 
     test('POST /api/users duplicate wallet returns 409', async () => {
         const wallet = Keypair.random().publicKey();
-        await request(app).post('/api/users').send({ wallet_address: wallet });
+        await request(app).post('/api/users').send({wallet_address: wallet});
 
         const res = await request(app)
             .post('/api/users')
-            .send({ wallet_address: wallet });
+            .send({wallet_address: wallet});
         expect(res.status).toBe(409);
     });
 
     test('POST /api/users without wallet returns 400', async () => {
         const res = await request(app)
             .post('/api/users')
-            .send({ username: 'noWallet' });
+            .send({username: 'noWallet'});
         expect(res.status).toBe(400);
     });
 
@@ -39,7 +39,7 @@ describe('Users', () => {
         const wallet = Keypair.random().publicKey();
         await request(app)
             .post('/api/users')
-            .send({ wallet_address: wallet, username: 'lookup' });
+            .send({wallet_address: wallet, username: 'lookup'});
 
         const res = await request(app).get(`/api/users/${wallet}`);
         expect(res.status).toBe(200);

@@ -24,4 +24,4 @@ async function initBuckets() {
     }
 }
 
-module.exports = { minioClient, BUCKETS, initBuckets };
+module.exports = {minioClient, BUCKETS, initBuckets};

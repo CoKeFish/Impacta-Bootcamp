@@ -1,8 +1,8 @@
 const request = require('supertest');
-const { Keypair } = require('@stellar/stellar-sdk');
+const {Keypair} = require('@stellar/stellar-sdk');
 const app = require('../src/app');
-const { beginTransaction, rollbackTransaction } = require('./dbHelper');
-const { loginWithNewWallet } = require('./helpers');
+const {beginTransaction, rollbackTransaction} = require('./dbHelper');
+const {loginWithNewWallet} = require('./helpers');
 
 beforeEach(() => beginTransaction());
 afterEach(() => rollbackTransaction());
@@ -14,7 +14,7 @@ describe('Auth - Challenge', () => {
         const wallet = Keypair.random().publicKey();
         const res = await request(app)
             .get('/api/auth/challenge')
-            .query({ wallet });
+            .query({wallet});
 
         expect(res.status).toBe(200);
         expect(res.body.challenge).toMatch(/^CoTravel Login: /);
@@ -36,7 +36,7 @@ describe('Auth - Login', () => {
 
         const challengeRes = await request(app)
             .get('/api/auth/challenge')
-            .query({ wallet });
+            .query({wallet});
 
         const signature = keypair
             .sign(Buffer.from(challengeRes.body.challenge, 'utf-8'))
@@ -44,7 +44,7 @@ describe('Auth - Login', () => {
 
         const res = await request(app)
             .post('/api/auth/login')
-            .send({ wallet, signature });
+            .send({wallet, signature});
 
         expect(res.status).toBe(200);
         expect(res.body.token).toBeDefined();
@@ -52,7 +52,7 @@ describe('Auth - Login', () => {
     });
 
     test('POST /api/auth/login creates new user on first login', async () => {
-        const { user, wallet } = await loginWithNewWallet(app);
+        const {user, wallet} = await loginWithNewWallet(app);
         expect(user.wallet_address).toBe(wallet);
         expect(user.id).toBeDefined();
     });
@@ -62,14 +62,14 @@ describe('Auth - Login', () => {
         const wallet = keypair.publicKey();
 
         // First login
-        let cr = await request(app).get('/api/auth/challenge').query({ wallet });
+        let cr = await request(app).get('/api/auth/challenge').query({wallet});
         let sig = keypair.sign(Buffer.from(cr.body.challenge, 'utf-8')).toString('base64');
-        const first = await request(app).post('/api/auth/login').send({ wallet, signature: sig });
+        const first = await request(app).post('/api/auth/login').send({wallet, signature: sig});
 
         // Second login
-        cr = await request(app).get('/api/auth/challenge').query({ wallet });
+        cr = await request(app).get('/api/auth/challenge').query({wallet});
         sig = keypair.sign(Buffer.from(cr.body.challenge, 'utf-8')).toString('base64');
-        const second = await request(app).post('/api/auth/login').send({ wallet, signature: sig });
+        const second = await request(app).post('/api/auth/login').send({wallet, signature: sig});
 
         expect(first.body.user.id).toBe(second.body.user.id);
     });
@@ -88,7 +88,7 @@ describe('Auth - Login', () => {
 
         const res = await request(app)
             .post('/api/auth/login')
-            .send({ wallet, signature });
+            .send({wallet, signature});
         expect(res.status).toBe(400);
         expect(res.body.error).toContain('No challenge found');
     });
@@ -98,7 +98,7 @@ describe('Auth - Login', () => {
         const wallet = keypair.publicKey();
 
         // Get real challenge
-        await request(app).get('/api/auth/challenge').query({ wallet });
+        await request(app).get('/api/auth/challenge').query({wallet});
 
         // Sign with a different keypair
         const wrong = Keypair.random();
@@ -106,14 +106,14 @@ describe('Auth - Login', () => {
 
         const res = await request(app)
             .post('/api/auth/login')
-            .send({ wallet, signature: badSig });
+            .send({wallet, signature: badSig});
         expect(res.status).toBe(401);
     });
 
     test('POST /api/auth/login unsupported provider returns 400', async () => {
         const res = await request(app)
             .post('/api/auth/login')
-            .send({ provider: 'twitter', token: 'abc' });
+            .send({provider: 'twitter', token: 'abc'});
         expect(res.status).toBe(400);
         expect(res.body.error).toContain('Unsupported provider');
     });
@@ -123,7 +123,7 @@ describe('Auth - Login', () => {
 
 describe('Auth - Me', () => {
     test('GET /api/auth/me with valid JWT returns user', async () => {
-        const { token, wallet } = await loginWithNewWallet(app);
+        const {token, wallet} = await loginWithNewWallet(app);
         const res = await request(app)
             .get('/api/auth/me')
             .set('Authorization', `Bearer ${token}`);

@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../src/app');
-const { beginTransaction, rollbackTransaction } = require('./dbHelper');
-const { minioClient, BUCKETS, initBuckets } = require('../src/config/minio');
+const {beginTransaction, rollbackTransaction} = require('./dbHelper');
+const {minioClient, BUCKETS, initBuckets} = require('../src/config/minio');
 
 // Track uploaded files for manual MinIO cleanup (can't rollback object storage)
 let uploadedFiles = [];
@@ -19,7 +19,8 @@ afterEach(async () => {
     for (const filename of uploadedFiles) {
         try {
             await minioClient.removeObject(BUCKETS.IMAGES, filename);
-        } catch (_) { /* ignore cleanup errors */ }
+        } catch (_) { /* ignore cleanup errors */
+        }
     }
     await rollbackTransaction();
 });

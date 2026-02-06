@@ -24,4 +24,4 @@ async function rollbackTransaction() {
     client.release();
 }
 
-module.exports = { beginTransaction, rollbackTransaction, pool };
+module.exports = {beginTransaction, rollbackTransaction, pool};

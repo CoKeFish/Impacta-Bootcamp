@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../src/app');
-const { beginTransaction, rollbackTransaction } = require('./dbHelper');
-const { loginWithNewWallet, createTestTrip } = require('./helpers');
+const {beginTransaction, rollbackTransaction} = require('./dbHelper');
+const {loginWithNewWallet, createTestTrip} = require('./helpers');
 const sorobanService = require('../src/services/sorobanService');
 
 jest.mock('../src/services/sorobanService');
@@ -24,7 +24,7 @@ describe('Trips - Public', () => {
     });
 
     test('GET /api/trips includes created trip', async () => {
-        const { token } = await loginWithNewWallet(app);
+        const {token} = await loginWithNewWallet(app);
         const trip = await createTestTrip(app, token);
 
         const res = await request(app).get('/api/trips');
@@ -33,7 +33,7 @@ describe('Trips - Public', () => {
     });
 
     test('POST /api/trips with auth creates draft', async () => {
-        const { token } = await loginWithNewWallet(app);
+        const {token} = await loginWithNewWallet(app);
         const trip = await createTestTrip(app, token);
 
         expect(trip.id).toBeDefined();
@@ -41,11 +41,11 @@ describe('Trips - Public', () => {
     });
 
     test('POST /api/trips missing fields returns 400', async () => {
-        const { token } = await loginWithNewWallet(app);
+        const {token} = await loginWithNewWallet(app);
         const res = await request(app)
             .post('/api/trips')
             .set('Authorization', `Bearer ${token}`)
-            .send({ name: 'Incomplete' });
+            .send({name: 'Incomplete'});
         expect(res.status).toBe(400);
     });
 
@@ -62,7 +62,7 @@ describe('Trips - Public', () => {
     });
 
     test('GET /api/trips/:id returns trip', async () => {
-        const { token } = await loginWithNewWallet(app);
+        const {token} = await loginWithNewWallet(app);
         const trip = await createTestTrip(app, token);
 
         const res = await request(app).get(`/api/trips/${trip.id}`);
@@ -80,7 +80,7 @@ describe('Trips - Public', () => {
 
 describe('Trips - Link Contract', () => {
     test('POST link-contract as organizer succeeds', async () => {
-        const { token } = await loginWithNewWallet(app);
+        const {token} = await loginWithNewWallet(app);
         const trip = await createTestTrip(app, token);
 
         sorobanService.submitTx.mockResolvedValue({
@@ -92,7 +92,7 @@ describe('Trips - Link Contract', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/link-contract`)
             .set('Authorization', `Bearer ${token}`)
-            .send({ signed_xdr: 'fake-xdr' });
+            .send({signed_xdr: 'fake-xdr'});
 
         expect(res.status).toBe(200);
         expect(res.body.contract_trip_id).toBe(1);
@@ -100,7 +100,7 @@ describe('Trips - Link Contract', () => {
     });
 
     test('POST link-contract without XDR returns 400', async () => {
-        const { token } = await loginWithNewWallet(app);
+        const {token} = await loginWithNewWallet(app);
         const trip = await createTestTrip(app, token);
 
         const res = await request(app)
@@ -111,7 +111,7 @@ describe('Trips - Link Contract', () => {
     });
 
     test('POST link-contract already linked returns 409', async () => {
-        const { token } = await loginWithNewWallet(app);
+        const {token} = await loginWithNewWallet(app);
         const trip = await createTestTrip(app, token);
 
         sorobanService.submitTx.mockResolvedValue({
@@ -123,12 +123,12 @@ describe('Trips - Link Contract', () => {
         await request(app)
             .post(`/api/trips/${trip.id}/link-contract`)
             .set('Authorization', `Bearer ${token}`)
-            .send({ signed_xdr: 'xdr-1' });
+            .send({signed_xdr: 'xdr-1'});
 
         const res = await request(app)
             .post(`/api/trips/${trip.id}/link-contract`)
             .set('Authorization', `Bearer ${token}`)
-            .send({ signed_xdr: 'xdr-2' });
+            .send({signed_xdr: 'xdr-2'});
         expect(res.status).toBe(409);
     });
 
@@ -140,7 +140,7 @@ describe('Trips - Link Contract', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/link-contract`)
             .set('Authorization', `Bearer ${other.token}`)
-            .send({ signed_xdr: 'fake-xdr' });
+            .send({signed_xdr: 'fake-xdr'});
         expect(res.status).toBe(403);
     });
 });
@@ -166,7 +166,7 @@ describe('Trips - Release & Cancel', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/release`)
             .set('Authorization', `Bearer ${token}`)
-            .send({ signed_xdr: 'fake-release-xdr' });
+            .send({signed_xdr: 'fake-release-xdr'});
 
         expect(res.status).toBe(200);
         expect(res.body.tx_hash).toBe('release-hash-001');
@@ -178,7 +178,7 @@ describe('Trips - Release & Cancel', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/release`)
             .set('Authorization', `Bearer ${other.token}`)
-            .send({ signed_xdr: 'fake-xdr' });
+            .send({signed_xdr: 'fake-xdr'});
         expect(res.status).toBe(403);
     });
 
@@ -192,7 +192,7 @@ describe('Trips - Release & Cancel', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/cancel`)
             .set('Authorization', `Bearer ${token}`)
-            .send({ signed_xdr: 'fake-cancel-xdr' });
+            .send({signed_xdr: 'fake-cancel-xdr'});
 
         expect(res.status).toBe(200);
         expect(res.body.tx_hash).toBe('cancel-hash-001');
@@ -204,7 +204,7 @@ describe('Trips - Release & Cancel', () => {
         const res = await request(app)
             .post(`/api/trips/${trip.id}/cancel`)
             .set('Authorization', `Bearer ${other.token}`)
-            .send({ signed_xdr: 'fake-xdr' });
+            .send({signed_xdr: 'fake-xdr'});
         expect(res.status).toBe(403);
     });
 });

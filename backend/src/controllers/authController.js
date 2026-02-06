@@ -1,7 +1,7 @@
-const { Keypair } = require('@stellar/stellar-sdk');
+const {Keypair} = require('@stellar/stellar-sdk');
 const crypto = require('crypto');
 const userModel = require('../models/userModel');
-const { generateToken } = require('../middleware/auth');
+const {generateToken} = require('../middleware/auth');
 
 // In-memory challenge store (simple for bootcamp, use Redis in production)
 const challenges = new Map();
@@ -12,9 +12,9 @@ module.exports = {
     // Returns a random challenge string for the wallet to sign
     async getChallenge(req, res, next) {
         try {
-            const { wallet } = req.query;
+            const {wallet} = req.query;
             if (!wallet) {
-                return res.status(400).json({ error: 'wallet query parameter required' });
+                return res.status(400).json({error: 'wallet query parameter required'});
             }
 
             const challenge = crypto.randomBytes(32).toString('hex');
@@ -32,7 +32,7 @@ module.exports = {
                 }
             }
 
-            res.json({ challenge: message });
+            res.json({challenge: message});
         } catch (err) {
             next(err);
         }
@@ -46,24 +46,24 @@ module.exports = {
     // Future Facebook: { provider: "facebook", token: "..." }
     async login(req, res, next) {
         try {
-            const { wallet, signature, provider } = req.body;
+            const {wallet, signature, provider} = req.body;
 
             // --- Wallet authentication (default) ---
             if (!provider || provider === 'wallet') {
                 if (!wallet || !signature) {
-                    return res.status(400).json({ error: 'wallet and signature required' });
+                    return res.status(400).json({error: 'wallet and signature required'});
                 }
 
                 // Verify challenge exists
                 const stored = challenges.get(wallet);
                 if (!stored) {
-                    return res.status(400).json({ error: 'No challenge found. Request one first.' });
+                    return res.status(400).json({error: 'No challenge found. Request one first.'});
                 }
 
                 // Check expiry
                 if (Date.now() - stored.createdAt > CHALLENGE_EXPIRY_MS) {
                     challenges.delete(wallet);
-                    return res.status(400).json({ error: 'Challenge expired. Request a new one.' });
+                    return res.status(400).json({error: 'Challenge expired. Request a new one.'});
                 }
 
                 // Verify signature
@@ -74,10 +74,10 @@ module.exports = {
                     const valid = keypair.verify(messageBuffer, signatureBuffer);
 
                     if (!valid) {
-                        return res.status(401).json({ error: 'Invalid signature' });
+                        return res.status(401).json({error: 'Invalid signature'});
                     }
                 } catch (e) {
-                    return res.status(401).json({ error: 'Signature verification failed: ' + e.message });
+                    return res.status(401).json({error: 'Signature verification failed: ' + e.message});
                 }
 
                 // Consume challenge
@@ -90,7 +90,7 @@ module.exports = {
                 }
 
                 const token = generateToken(user, 'wallet');
-                return res.json({ token, user });
+                return res.json({token, user});
             }
 
             // --- Future: Google OAuth ---
@@ -111,7 +111,7 @@ module.exports = {
             //     // 4. return res.json({ token: generateToken(user, 'facebook'), user });
             // }
 
-            return res.status(400).json({ error: `Unsupported provider: ${provider}` });
+            return res.status(400).json({error: `Unsupported provider: ${provider}`});
         } catch (err) {
             next(err);
         }
@@ -122,7 +122,7 @@ module.exports = {
         try {
             const user = await userModel.findById(req.user.id);
             if (!user) {
-                return res.status(404).json({ error: 'User not found' });
+                return res.status(404).json({error: 'User not found'});
             }
             res.json(user);
         } catch (err) {

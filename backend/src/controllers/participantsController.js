@@ -13,7 +13,7 @@ module.exports = {
             // Check if already joined
             const existing = await participantModel.findByTripAndUser(trip.id, req.user.id);
             if (existing) {
-                return res.status(409).json({ error: 'Already joined this trip', participant: existing });
+                return res.status(409).json({error: 'Already joined this trip', participant: existing});
             }
 
             const participant = await participantModel.create(trip.id, req.user.id);
@@ -27,9 +27,9 @@ module.exports = {
     // Requires: requireAuth + loadTrip
     async recordContribution(req, res, next) {
         try {
-            const { signed_xdr, amount } = req.body;
+            const {signed_xdr, amount} = req.body;
             if (!signed_xdr || !amount) {
-                return res.status(400).json({ error: 'Required: signed_xdr, amount' });
+                return res.status(400).json({error: 'Required: signed_xdr, amount'});
             }
 
             const trip = req.trip;
@@ -68,7 +68,7 @@ module.exports = {
             }
 
             const updatedTrip = await tripModel.findById(trip.id);
-            res.json({ tx_hash: result.hash, contributed: newAmount, trip: updatedTrip });
+            res.json({tx_hash: result.hash, contributed: newAmount, trip: updatedTrip});
         } catch (err) {
             next(err);
         }
@@ -78,15 +78,15 @@ module.exports = {
     // Requires: requireAuth + loadTrip
     async recordWithdrawal(req, res, next) {
         try {
-            const { signed_xdr } = req.body;
+            const {signed_xdr} = req.body;
             if (!signed_xdr) {
-                return res.status(400).json({ error: 'signed_xdr is required' });
+                return res.status(400).json({error: 'signed_xdr is required'});
             }
 
             const trip = req.trip;
             const participant = await participantModel.findByTripAndUser(trip.id, req.user.id);
             if (!participant) {
-                return res.status(404).json({ error: 'Not a participant of this trip' });
+                return res.status(404).json({error: 'Not a participant of this trip'});
             }
 
             // Submit to Soroban
@@ -115,7 +115,7 @@ module.exports = {
             }
 
             const updatedTrip = await tripModel.findById(trip.id);
-            res.json({ tx_hash: result.hash, trip: updatedTrip });
+            res.json({tx_hash: result.hash, trip: updatedTrip});
         } catch (err) {
             next(err);
         }
@@ -126,7 +126,7 @@ module.exports = {
         try {
             const trip = await tripModel.findById(req.params.id);
             if (!trip) {
-                return res.status(404).json({ error: 'Trip not found' });
+                return res.status(404).json({error: 'Trip not found'});
             }
             const participants = await participantModel.findByTrip(trip.id);
             res.json(participants);

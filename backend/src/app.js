@@ -18,7 +18,7 @@ app.use('/images', require('./routes/images'));
 
 // Root
 app.get('/', (req, res) => {
-    res.json({ message: 'CoTravel API running', version: '1.0.0' });
+    res.json({message: 'CoTravel API running', version: '1.0.0'});
 });
 
 // Error handler (must be last)

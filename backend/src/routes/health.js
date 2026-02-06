@@ -4,9 +4,9 @@ const pool = require('../config/db');
 router.get('/', async (req, res) => {
     try {
         await pool.query('SELECT 1');
-        res.json({ status: 'ok', database: 'connected' });
+        res.json({status: 'ok', database: 'connected'});
     } catch (error) {
-        res.status(500).json({ status: 'error', message: error.message });
+        res.status(500).json({status: 'error', message: error.message});
     }
 });
 

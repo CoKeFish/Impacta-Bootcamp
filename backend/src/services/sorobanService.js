@@ -7,7 +7,7 @@ const {
     scValToNative,
     Account,
 } = require('@stellar/stellar-sdk');
-const { server, CONTRACT_ID, NETWORK_PASSPHRASE } = require('../config/soroban');
+const {server, CONTRACT_ID, NETWORK_PASSPHRASE} = require('../config/soroban');
 
 // Dummy source for read-only simulations (does not need to exist on-chain)
 const DUMMY_SOURCE = 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF';
@@ -98,26 +98,26 @@ module.exports = {
 
     async getTripInfo(tripId) {
         return callReadOnly('get_trip', [
-            nativeToScVal(tripId, { type: 'u64' }),
+            nativeToScVal(tripId, {type: 'u64'}),
         ]);
     },
 
     async getTripState(tripId) {
         return callReadOnly('get_state', [
-            nativeToScVal(tripId, { type: 'u64' }),
+            nativeToScVal(tripId, {type: 'u64'}),
         ]);
     },
 
     async getBalance(tripId, walletAddress) {
         return callReadOnly('get_balance', [
-            nativeToScVal(tripId, { type: 'u64' }),
+            nativeToScVal(tripId, {type: 'u64'}),
             new Address(walletAddress).toScVal(),
         ]);
     },
 
     async getParticipants(tripId) {
         return callReadOnly('get_participants', [
-            nativeToScVal(tripId, { type: 'u64' }),
+            nativeToScVal(tripId, {type: 'u64'}),
         ]);
     },
 

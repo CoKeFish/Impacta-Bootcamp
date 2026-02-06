@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const authCtrl = require('../controllers/authController');
-const { requireAuth } = require('../middleware/auth');
+const {requireAuth} = require('../middleware/auth');
 
 // Public (no auth needed)
 router.get('/challenge', authCtrl.getChallenge);

@@ -2,7 +2,7 @@ const pool = require('../config/db');
 
 module.exports = {
     async findByWallet(walletAddress) {
-        const { rows } = await pool.query(
+        const {rows} = await pool.query(
             'SELECT * FROM users WHERE wallet_address = $1',
             [walletAddress]
         );
@@ -10,7 +10,7 @@ module.exports = {
     },
 
     async findById(id) {
-        const { rows } = await pool.query(
+        const {rows} = await pool.query(
             'SELECT * FROM users WHERE id = $1',
             [id]
         );
@@ -18,7 +18,7 @@ module.exports = {
     },
 
     async create(walletAddress, username) {
-        const { rows } = await pool.query(
+        const {rows} = await pool.query(
             'INSERT INTO users (wallet_address, username) VALUES ($1, $2) RETURNING *',
             [walletAddress, username]
         );

@@ -1,4 +1,4 @@
-const { Keypair } = require('@stellar/stellar-sdk');
+const {Keypair} = require('@stellar/stellar-sdk');
 const request = require('supertest');
 
 /**
@@ -12,7 +12,7 @@ async function loginWithNewWallet(app) {
     // 1. Get challenge
     const challengeRes = await request(app)
         .get('/api/auth/challenge')
-        .query({ wallet });
+        .query({wallet});
 
     const message = challengeRes.body.challenge;
 
@@ -24,7 +24,7 @@ async function loginWithNewWallet(app) {
     // 3. Login
     const loginRes = await request(app)
         .post('/api/auth/login')
-        .send({ wallet, signature });
+        .send({wallet, signature});
 
     return {
         token: loginRes.body.token,
@@ -54,4 +54,4 @@ async function createTestTrip(app, token) {
     return res.body;
 }
 
-module.exports = { loginWithNewWallet, createTestTrip };
+module.exports = {loginWithNewWallet, createTestTrip};
