@@ -1,0 +1,169 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "React 19",
+    "Vite 6",
+    "Tailwind CSS 3",
+    "shadcn/ui",
+    "React Router 7",
+    "TanStack Query 5",
+    "Zustand 5",
+    "@stellar/freighter-api",
+    "@stellar/stellar-sdk",
+    "Node.js",
+    "Express.js",
+    "PostgreSQL 16",
+    "MinIO (S3-compatible)",
+    "Soroban (Stellar smart contracts)",
+    "Jest",
+    "Supertest",
+    "Docker Compose"
+  ],
+  "features": [
+    {
+      "name": "Landing Page",
+      "description": "Public landing page with hero section, feature highlights (group coordination, on-chain escrow, fair penalties), and CTAs to browse or create trips.",
+      "files": [
+        "frontend/src/pages/Landing.tsx"
+      ]
+    },
+    {
+      "name": "Trip Dashboard",
+      "description": "Lists all trips as cards with progress bars showing collected vs target XLM, participant count, status badges, and organizer info. Uses TanStack Query for data fetching.",
+      "files": [
+        "frontend/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "name": "Trip Detail",
+      "description": "Displays trip details including budget stats (collected/target with progress bar), participant count vs minimum, deadline, penalty percentage, and a list of participants with their contributions.",
+      "files": [
+        "frontend/src/pages/TripDetail.tsx"
+      ]
+    },
+    {
+      "name": "Create Trip",
+      "description": "Authenticated form to create a new trip draft with fields: name, description, target amount (XLM), min participants, penalty percent, and deadline. Requires wallet connection.",
+      "files": [
+        "frontend/src/pages/CreateTrip.tsx"
+      ]
+    },
+    {
+      "name": "User Profile",
+      "description": "Shows authenticated user's wallet address, username, join date, and lists trips they organize and participate in.",
+      "files": [
+        "frontend/src/pages/Profile.tsx"
+      ]
+    },
+    {
+      "name": "Wallet Connection (Freighter)",
+      "description": "Connect/disconnect Stellar wallet via Freighter browser extension. Shows truncated address when connected, loading and error states.",
+      "files": [
+        "frontend/src/components/wallet/ConnectButton.tsx",
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/stores/walletStore.ts"
+      ]
+    },
+    {
+      "name": "Authentication (Challenge-Response)",
+      "description": "Wallet-based auth flow: request challenge from backend, sign with Freighter, submit signature to get JWT. Token persisted in localStorage and Zustand store.",
+      "files": [
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/stores/walletStore.ts",
+        "backend/src/controllers/authController.js",
+        "backend/src/routes/auth.js",
+        "backend/src/middleware/auth.js"
+      ]
+    },
+    {
+      "name": "Layout (Header, Footer, Navigation)",
+      "description": "Responsive layout with sticky header containing logo, navigation links (Trips, Create, Profile), and wallet connect button. Footer with project info.",
+      "files": [
+        "frontend/src/components/layout/Layout.tsx",
+        "frontend/src/components/layout/Header.tsx",
+        "frontend/src/components/layout/Footer.tsx"
+      ]
+    },
+    {
+      "name": "API Client",
+      "description": "HTTP client service with typed functions for all 18 backend endpoints. Automatically attaches JWT from localStorage. Handles JSON and FormData requests.",
+      "files": [
+        "frontend/src/services/api.ts"
+      ]
+    },
+    {
+      "name": "UI Components (shadcn/ui)",
+      "description": "Reusable UI components: Button (with asChild/Slot support), Card (Header/Title/Description/Content/Footer), Badge (with status variants including success/warning).",
+      "files": [
+        "frontend/src/components/ui/button.tsx",
+        "frontend/src/components/ui/card.tsx",
+        "frontend/src/components/ui/badge.tsx"
+      ]
+    },
+    {
+      "name": "Backend Health Check",
+      "description": "GET /health endpoint that verifies connectivity to both PostgreSQL (SELECT 1) and MinIO (listBuckets). Returns status for each service.",
+      "files": [
+        "backend/src/routes/health.js"
+      ]
+    },
+    {
+      "name": "User Management",
+      "description": "Create users with wallet address, lookup by wallet. Used internally by auth flow and directly via API.",
+      "files": [
+        "backend/src/controllers/usersController.js",
+        "backend/src/models/userModel.js",
+        "backend/src/routes/users.js"
+      ]
+    },
+    {
+      "name": "Trip Management",
+      "description": "Full CRUD for trips: create draft, list all, get by ID (with on-chain state refresh), link to Soroban contract, release funds, cancel trip. Organizer-only operations enforced via middleware.",
+      "files": [
+        "backend/src/controllers/tripsController.js",
+        "backend/src/models/tripModel.js",
+        "backend/src/routes/trips.js"
+      ]
+    },
+    {
+      "name": "Participant Management",
+      "description": "Join trips, record contributions (submit signed XDR to Soroban), record withdrawals, list participants. Auto-join on first contribution. Syncs on-chain state after operations.",
+      "files": [
+        "backend/src/controllers/participantsController.js",
+        "backend/src/models/participantModel.js"
+      ]
+    },
+    {
+      "name": "Soroban Integration",
+      "description": "Service for interacting with the multi-escrow Soroban smart contract. Read-only queries via simulation (get_trip, get_state, get_balance, get_participants). Write operations via signed XDR submission with 30s polling for confirmation.",
+      "files": [
+        "backend/src/services/sorobanService.js",
+        "backend/src/config/soroban.js"
+      ]
+    },
+    {
+      "name": "Image Management",
+      "description": "Upload images to MinIO object storage with metadata in PostgreSQL. Stream images back to client. List all images.",
+      "files": [
+        "backend/src/controllers/imagesController.js",
+        "backend/src/models/imageModel.js",
+        "backend/src/routes/images.js",
+        "backend/src/config/minio.js"
+      ]
+    },
+    {
+      "name": "Transaction Registry",
+      "description": "Records blockchain transactions (create_trip, contribution, withdrawal, release, cancel) with tx_hash, ledger sequence, and event data for off-chain indexing.",
+      "files": [
+        "backend/src/models/transactionModel.js"
+      ]
+    },
+    {
+      "name": "Database Schema",
+      "description": "PostgreSQL schema with 7 tables: users, trips, trip_participants, transactions, partners, trip_offers, images. Includes indexes for frequent queries and sample data.",
+      "files": [
+        "database/init.sql"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,588 @@
+[
+  {
+    "id": "TC001",
+    "title": "Successful Wallet-Based Authentication",
+    "description": "Verify that a user can authenticate by connecting their Stellar wallet via Freighter, completing the challenge-response flow, and receiving a valid JWT that is persisted.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the application and navigate to the wallet connection component"
+      },
+      {
+        "type": "action",
+        "description": "Click to connect Stellar wallet via Freighter extension"
+      },
+      {
+        "type": "action",
+        "description": "Request authentication challenge from backend"
+      },
+      {
+        "type": "action",
+        "description": "Sign challenge using Freighter wallet"
+      },
+      {
+        "type": "action",
+        "description": "Submit signed challenge to backend and receive JWT"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that JWT token is returned and stored in localStorage and in Zustand store"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify frontend shows connected wallet address truncated correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Authentication Failure with Invalid Signature",
+    "description": "Verify that authentication fails if the signed challenge is invalid or tampered, and no JWT is issued.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start authentication flow and obtain challenge from backend"
+      },
+      {
+        "type": "action",
+        "description": "Submit tampered or invalid signature to backend"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify backend rejects authentication and returns error status"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure frontend handles failure gracefully and does not store any JWT"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Create Trip Successfully with Valid Inputs",
+    "description": "Verify an authenticated user can create a new trip draft by submitting all required fields and that the trip is persisted correctly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate as a user with a connected wallet"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the Create Trip page"
+      },
+      {
+        "type": "action",
+        "description": "Fill out the form with valid name, description, target amount (XLM), minimum participants, penalty percent, and deadline"
+      },
+      {
+        "type": "action",
+        "description": "Submit the form to create the trip"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify backend responds with successful creation status and trip ID"
+      },
+      {
+        "type": "assertion",
+        "description": "Check the new trip appears in the Dashboard trip list"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Trip Creation Validation Errors",
+    "description": "Verify that creating a trip with missing required fields or invalid values is blocked with appropriate error messages.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate as user and access Create Trip page"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit trip creation with empty name field"
+      },
+      {
+        "type": "assertion",
+        "description": "Check validation error indicating 'name' is required"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit trip creation with negative target amount"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error indicating target amount must be positive"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit trip creation with past deadline date"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error indicating deadline must be a future date/time"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Trip List Display with Real-Time Progress",
+    "description": "Verify that the Trip Dashboard correctly lists all trips with accurate progress bars, participant counts, statuses, and organizer info, reflecting both off-chain and on-chain states.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access the Dashboard page as an authenticated or anonymous user"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm all trips from backend are listed as cards"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify each trip card shows the correct collected and target XLM amounts"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that progress bars visually represent collected amount vs target"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure participant counts and status badges match backend data"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm organizer information is displayed on each trip card"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Trip Detail View Displays Correct Information",
+    "description": "Verify the Trip Detail page shows complete and accurate information including budget stats, participants list with contributions, penalty values, deadlines, and on-chain contract linkage.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to a specific trip's detail page from the dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Validate display of collected, target amounts and progress bar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify display of participant count and minimum required participants"
+      },
+      {
+        "type": "assertion",
+        "description": "Check deadline and penalty percentage are visible and correct"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure participants list shows usernames and contribution amounts"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm on-chain escrow contract link or status is shown if linked"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Only Organizers Can Perform Sensitive Trip Operations",
+    "description": "Verify that only users marked as organizers can link escrow contracts, release funds, or cancel the trip, and unauthorized attempts are blocked with proper error responses.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate as a user who is not an organizer for a given trip"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to link an on-chain escrow contract to the trip"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify request is denied with 403 Forbidden status"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to release funds for the trip"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify request is denied with 403 Forbidden status"
+      },
+      {
+        "type": "action",
+        "description": "Authenticate as the organizer user"
+      },
+      {
+        "type": "action",
+        "description": "Perform linking, release, and cancel operations successfully"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm operations are accepted and trip status updates accordingly"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Participant Can Join Trip and Contribute Funds",
+    "description": "Verify that a user can join a trip, submit a signed Soroban transaction to contribute funds, and that the contribution is reflected both on-chain and off-chain.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate as a user who is not a participant yet"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to trip detail page"
+      },
+      {
+        "type": "action",
+        "description": "Initiate join trip and contribution workflow"
+      },
+      {
+        "type": "action",
+        "description": "Sign contribution transaction with wallet via Freighter"
+      },
+      {
+        "type": "action",
+        "description": "Submit signed Soroban transaction to backend"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm backend accepts transaction and inclusion on-chain within 30 seconds"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify participant appears in trip participants list with correct contribution amount"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Participant Withdrawal Applies On-Chain Penalties",
+    "description": "Verify that when a participant withdraws funds, penalties are enforced automatically on-chain, the transaction is recorded, and participant data updates accordingly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate as a participant with previously contributed funds"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to trip detail page"
+      },
+      {
+        "type": "action",
+        "description": "Initiate withdrawal and sign withdrawal transaction with Freighter"
+      },
+      {
+        "type": "action",
+        "description": "Submit signed withdrawal transaction to backend"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify backend confirms transaction inclusion on Soroban within time limits"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that participant's contribution amount and trip budget reflect withdrawal, applying configured penalty"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Image Upload Succeeds and Associates with Trip",
+    "description": "Verify that authenticated users can upload images that are stored in MinIO with metadata saved, and associated images appear on respective trip pages.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to trip detail page with image upload capability"
+      },
+      {
+        "type": "action",
+        "description": "Upload a valid image file"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm backend responds with success and image metadata stored"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify image is stored correctly in MinIO and accessible via URL"
+      },
+      {
+        "type": "assertion",
+        "description": "Check uploaded image is displayed on the trip detail UI"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Backend Health Check Endpoint Responses",
+    "description": "Verify the /health endpoint correctly reports the connectivity status of PostgreSQL and MinIO storage components.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET request to backend /health endpoint"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK"
+      },
+      {
+        "type": "assertion",
+        "description": "Check response JSON indicates success status for PostgreSQL connectivity (SELECT 1)"
+      },
+      {
+        "type": "assertion",
+        "description": "Check response JSON indicates success status for MinIO (listBuckets)"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Frontend Route Access Control Based on Authentication",
+    "description": "Verify frontend route guards correctly restrict access to pages requiring authentication such as Create Trip and Profile, redirecting or blocking unauthorized users.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access Create Trip page without authentication"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is redirected to login or wallet connect prompt"
+      },
+      {
+        "type": "action",
+        "description": "Authenticate as user"
+      },
+      {
+        "type": "action",
+        "description": "Access Create Trip page again"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm access is granted and form is visible"
+      },
+      {
+        "type": "action",
+        "description": "Access Profile page without authentication"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm redirect or access denied"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Backend CRUD APIs Return Correct Status Codes and Data Shapes",
+    "description": "Verify that all backend RESTful APIs for trips, participants, users, images, and transactions return expected HTTP status codes and JSON data conforming to their schemas.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform GET, POST, PUT, DELETE requests on trips endpoints with valid and invalid data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify 200 or 201 status on success, 400 or 403 on validation or authorization errors"
+      },
+      {
+        "type": "action",
+        "description": "Perform participant join and contribution operations with signed transactions"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm proper status codes and response data formats"
+      },
+      {
+        "type": "action",
+        "description": "Perform image upload and listing API calls"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify returned data includes metadata fields as expected"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Soroban Transaction Submission and Confirmation Within 30 Seconds",
+    "description": "Verify that signed Soroban transactions (create trip, contribution, withdrawal, release, cancel) submitted through the backend are confirmed on-chain within 30 seconds, and trip state updates accordingly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate and create new trip with backend API"
+      },
+      {
+        "type": "action",
+        "description": "Submit signed Soroban transaction for trip creation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify backend polls for confirmation and responds successfully within 30 seconds"
+      },
+      {
+        "type": "action",
+        "description": "Submit participant contribution signed transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm on-chain confirmation and UI updates within 30 seconds"
+      },
+      {
+        "type": "action",
+        "description": "Submit release funds signed transaction as organizer"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify trip lifecycle changes to released state on confirmation"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "User Profile Displays Correct Wallet and Trip Lists",
+    "description": "Verify that the authenticated user's profile page correctly shows wallet address, username, join date, and lists organized and participated trips.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate as a user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Profile page"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that wallet address is displayed and truncated correctly"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify username and join date are shown"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm lists of organized and participated trips are accurate and clickable"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Reject Contribution Transactions if On-Chain Validation Fails",
+    "description": "Verify that participant contribution attempts that fail Soroban smart contract validation are rejected with errors, and no off-chain state is updated.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate as participant user"
+      },
+      {
+        "type": "action",
+        "description": "Construct a contribution transaction with invalid parameters (e.g. amount zero or exceeding target)"
+      },
+      {
+        "type": "action",
+        "description": "Submit signed invalid transaction to backend"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify backend rejects with descriptive error"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm participant list and trip contribution amounts remain unchanged"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Cancel Trip and Trigger Full Refunds",
+    "description": "Verify that organizers can cancel a trip, resulting in on-chain transaction triggering refunds to all participants, and trip status updates to cancelled with proper backend indexing.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate as trip organizer"
+      },
+      {
+        "type": "action",
+        "description": "Initiate trip cancellation via backend API with signed Soroban transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify transaction confirms on-chain within 30 seconds"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that trip status updates to cancelled"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify participant contributions reset and refunds processed"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "List Participants and Their Contributions for a Trip",
+    "description": "Verify that the participants API and UI correctly list all participants of a trip with their contributed amounts and statuses.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Request participant list for a trip from backend"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response includes all participants with wallet addresses and contributions"
+      },
+      {
+        "type": "action",
+        "description": "View participant list on trip detail UI"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm displayed data matches backend response"
+      }
+    ]
+  }
+]

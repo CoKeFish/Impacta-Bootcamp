@@ -1,0 +1,17 @@
+{
+  "status": "init",
+  "scope": "codebase",
+  "type": "frontend",
+  "localEndpoint": "http://localhost:5173/",
+  "serverPort": 56757,
+  "executionArgs": {
+    "projectName": "Impacta-Bootcamp",
+    "projectPath": "C:\\Users\\rrtc2\\WebstormProjects\\Impacta-Bootcamp",
+    "testIds": [],
+    "additionalInstruction": "The frontend runs on localhost:5173 via Docker (Vite dev server). The backend runs on localhost:3000. The frontend proxies /api, /health, and /images to the backend. Tech stack: React 19 + Vite 6 + TypeScript, shadcn/ui + Tailwind CSS 3, React Router 7 (SPA), TanStack Query 5, Zustand 5, @stellar/freighter-api for wallet connection. The test plan file is at C:\\Users\\rrtc2\\WebstormProjects\\Impacta-Bootcamp\\testsprite_tests\\testsprite_frontend_test_plan.json",
+    "envs": {
+      "API_KEY": "sk-user-xVneq2Y7shr2ThjOr9QvZPE8EpcT3tJ8CnabtxXdiHc0vJmp--1ivBBUgmOwE_IgxRMh_jtIqJ3xStDZ4Z3PN9F-FpiAITvH9uKx3y7eK-MudDG9-3mHPikbaerBrAVmbVc"
+    }
+  },
+  "proxy": "http://59c7695e-61e3-4de5-bca3-cf0071c67f57:2mmsNZ0UwYoPHhenIZBaGXgfCkeniybf@tun.testsprite.com:8080"
+}
