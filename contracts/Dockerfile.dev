@@ -20,6 +20,11 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 
 RUN rustup target add wasm32-unknown-unknown wasm32v1-none
 
+# Nightly toolchain (requerido por cargo-scout-audit)
+RUN rustup toolchain install nightly \
+ && rustup component add clippy --toolchain nightly
+
 RUN cargo install --locked soroban-cli
+RUN cargo install cargo-scout-audit
 
 CMD ["tail", "-f", "/dev/null"]

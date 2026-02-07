@@ -35,6 +35,10 @@ build: ## Compilar el contrato
 test: ## Ejecutar tests
 	cargo test
 
+.PHONY: audit
+audit: ## Ejecutar cargo-scout-audit (analisis de seguridad)
+	cargo scout-audit
+
 .PHONY: test-integration
 test-integration: ## Ejecutar tests de integracion en testnet (setup + deploy + flujos)
 	@bash test-integration.sh
@@ -166,9 +170,29 @@ withdraw: ## Retirarse del viaje (TRIP_ID, PARTICIPANT)
 		--participant $$(soroban keys address $(PARTICIPANT))
 	@echo "Retiro completado"
 
+.PHONY: confirm-release
+confirm-release: ## Participante confirma pago (TRIP_ID, PARTICIPANT)
+	@echo "Confirmando release de $(PARTICIPANT) en viaje $(TRIP_ID)..."
+	@soroban contract invoke \
+		--id $$(cat $(CONTRACT_FILE)) \
+		--source $(PARTICIPANT) \
+		--network $(NETWORK) \
+		-- confirm_release \
+		--trip_id $(TRIP_ID) \
+		--participant $$(soroban keys address $(PARTICIPANT))
+	@echo "Confirmacion registrada"
+
+.PHONY: confirm-p1
+confirm-p1: ## Participante 1 confirma pago (TRIP_ID)
+	@$(MAKE) confirm-release PARTICIPANT=$(PARTICIPANT1) TRIP_ID=$(TRIP_ID)
+
+.PHONY: confirm-p2
+confirm-p2: ## Participante 2 confirma pago (TRIP_ID)
+	@$(MAKE) confirm-release PARTICIPANT=$(PARTICIPANT2) TRIP_ID=$(TRIP_ID)
+
 .PHONY: release
-release: ## Liberar fondos al organizador (TRIP_ID)
-	@echo "Liberando fondos del viaje $(TRIP_ID)..."
+release: ## Escape hatch: organizador fuerza pago (TRIP_ID)
+	@echo "Liberando fondos del viaje $(TRIP_ID) (organizer escape hatch)..."
 	@soroban contract invoke \
 		--id $$(cat $(CONTRACT_FILE)) \
 		--source $(ORGANIZER) \
@@ -187,6 +211,17 @@ cancel: ## Cancelar y reembolsar a todos (TRIP_ID)
 		-- cancel \
 		--trip_id $(TRIP_ID)
 	@echo "Viaje cancelado, fondos reembolsados"
+
+.PHONY: claim-deadline
+claim-deadline: ## Reclamar deadline: refund si paso la fecha (TRIP_ID)
+	@echo "Reclamando deadline del viaje $(TRIP_ID)..."
+	@soroban contract invoke \
+		--id $$(cat $(CONTRACT_FILE)) \
+		--source $(ADMIN) \
+		--network $(NETWORK) \
+		-- claim_deadline \
+		--trip_id $(TRIP_ID)
+	@echo "Deadline reclamado, fondos reembolsados"
 
 # ============================================================================
 # CONSULTAS - CONTRATO
@@ -280,6 +315,41 @@ balance-p1: ## Ver balance de participante 1 (TRIP_ID)
 balance-p2: ## Ver balance de participante 2 (TRIP_ID)
 	@$(MAKE) balance PARTICIPANT=$(PARTICIPANT2) TRIP_ID=$(TRIP_ID)
 
+.PHONY: recipients
+recipients: ## Ver destinatarios de la factura (TRIP_ID)
+	@echo "Destinatarios del viaje $(TRIP_ID):"
+	@soroban contract invoke \
+		--id $$(cat $(CONTRACT_FILE)) \
+		--source $(ADMIN) \
+		--network $(NETWORK) \
+		--send=no \
+		-- get_recipients \
+		--trip_id $(TRIP_ID)
+
+.PHONY: penalty
+penalty: ## Ver penalty acumulada de un participante (TRIP_ID, PARTICIPANT)
+	@echo "Penalty de $(PARTICIPANT) en viaje $(TRIP_ID):"
+	@soroban contract invoke \
+		--id $$(cat $(CONTRACT_FILE)) \
+		--source $(ADMIN) \
+		--network $(NETWORK) \
+		--send=no \
+		-- get_penalty \
+		--trip_id $(TRIP_ID) \
+		--participant $$(soroban keys address $(PARTICIPANT))
+
+.PHONY: confirmation
+confirmation: ## Ver si un participante confirmo release (TRIP_ID, PARTICIPANT)
+	@echo "Confirmacion de $(PARTICIPANT) en viaje $(TRIP_ID):"
+	@soroban contract invoke \
+		--id $$(cat $(CONTRACT_FILE)) \
+		--source $(ADMIN) \
+		--network $(NETWORK) \
+		--send=no \
+		-- get_confirmation \
+		--trip_id $(TRIP_ID) \
+		--participant $$(soroban keys address $(PARTICIPANT))
+
 # ============================================================================
 # INFO
 # ============================================================================
@@ -308,9 +378,10 @@ demo: setup deploy create-trip ## Demo: setup + deploy + crear viaje
 	@echo "Demo listo. Viaje ID: $$(cat $(TRIP_FILE))"
 	@echo "Proximos pasos:"
 	@echo "  make contribute-p1 AMOUNT=5000000000"
-	@echo "  make contribute-p2 AMOUNT=6000000000"
+	@echo "  make contribute-p2 AMOUNT=5000000000"
 	@echo "  make state"
-	@echo "  make release"
+	@echo "  make confirm-p1   # participante 1 confirma"
+	@echo "  make confirm-p2   # participante 2 confirma → auto-pago"
 	@echo "======================================"
 
 .PHONY: demo-full
@@ -318,10 +389,10 @@ demo-full: demo ## Demo completo con contribuciones y release
 	@echo ""
 	@echo "Ejecutando flujo completo..."
 	@$(MAKE) contribute-p1 AMOUNT=5000000000
-	@$(MAKE) contribute-p2 AMOUNT=6000000000
+	@$(MAKE) contribute-p2 AMOUNT=5000000000
 	@$(MAKE) state
 	@echo ""
-	@echo "Escrow completado. Liberando fondos..."
+	@echo "Escrow completado. Liberando fondos (organizer escape hatch)..."
 	@$(MAKE) release
 	@$(MAKE) state
 
