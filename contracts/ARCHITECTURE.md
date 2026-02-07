@@ -491,12 +491,18 @@ graph TB
     end
 ```
 
-### Integracion (testnet, 30 assertions)
+### Integracion (testnet, 64 assertions)
 
-1. **Happy path**: crear pool → aportes → auto-complete → pagar factura
-2. **Withdraw**: penalizacion 10%, penalty queda en pool
-3. **Cancel**: reembolso completo + devolucion de penalties
-4. **Aislamiento**: multiples pools independientes
+1. **Happy path**: crear pool → aportes → auto-complete → release (organizer escape hatch)
+2. **Withdraw**: penalizacion 10%, penalty queda en PenaltyPool (no redistribuye)
+3. **Cancel**: reembolso completo a participantes activos
+4. **Aislamiento**: multiples pools independientes, verificacion cruzada de estados
+5. **Multi-wallet + confirm_release**: create_invoice con recipients → contribuir → confirmar → auto-pago unanime
+6. **Overfunding**: contribucion que excede target rechazada, estado no cambia
+7. **Auto-release**: create_invoice auto_release=true → contribuir → pago inmediato sin confirm
+8. **Consent**: contribute → update_recipients → withdraw sin penalty (opt-out gratis)
+9. **Cancel + penalties**: withdraw con penalty → cancel → penalty devuelta al retirado
+10. **Deadline**: pool en Funding → esperar deadline → claim_deadline → refund completo
 
 ---
 

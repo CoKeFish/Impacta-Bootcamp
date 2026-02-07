@@ -49,7 +49,7 @@ contracts/
 │       ├── lib.rs              # Contrato (~870 lineas)
 │       └── test.rs             # 23 tests unitarios
 ├── Makefile                    # Build, test, deploy, demos
-├── test-integration.sh         # 30 assertions en testnet
+├── test-integration.sh         # 64 assertions en testnet
 ├── ARCHITECTURE.md             # Arquitectura detallada + diagramas
 ├── SECURITY_AUDIT.md           # Hallazgos del auditor y medidas
 ├── Dockerfile.dev              # Contenedor de desarrollo
@@ -105,10 +105,10 @@ completo.
 
 ## Testing
 
-| Tipo        | Comando                 | Cobertura                                                                                                                                                    |
-|-------------|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Unitarios   | `make test`             | 23 tests: pools, contribuciones, retiros, pagos, cancelacion, recipients, consentimiento, overfunding, auto-release, penalty pool, confirm_release, deadline |
-| Integracion | `make test-integration` | 30 assertions en testnet: happy path, withdraw, cancel, aislamiento multi-pool                                                                               |
+| Tipo        | Comando                 | Cobertura                                                                                                                                                           |
+|-------------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Unitarios   | `make test`             | 23 tests: pools, contribuciones, retiros, pagos, cancelacion, recipients, consentimiento, overfunding, auto-release, penalty pool, confirm_release, deadline        |
+| Integracion | `make test-integration` | 64 assertions en testnet: happy path, withdraw, cancel, aislamiento, multi-wallet + confirm_release, overfunding, auto-release, consent, cancel+penalties, deadline |
 
 ## Quick Start
 
@@ -144,5 +144,5 @@ Explorer: https://stellar.expert/explorer/testnet/contract/{CONTRACT_ID}
 
 - [x] Migrar eventos a `#[contractevent]` (SDK v25 / Protocol 23)
 - [x] Auditoria con `soroban-auditor`: 0 Critical, mitigaciones documentadas
+- [x] Instalar herramienta de auditoria permanente en `Dockerfile.dev` (`cargo-scout-audit`)
 - [ ] Agregar tests de flujos negativos (operaciones invalidas, permisos, limites)
-- [ ] Instalar herramienta de auditoria permanente en `Dockerfile.dev`
