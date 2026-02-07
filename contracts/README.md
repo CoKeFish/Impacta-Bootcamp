@@ -138,11 +138,13 @@ Explorer: https://stellar.expert/explorer/testnet/contract/{CONTRACT_ID}
 ## Documentacion relacionada
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** — Arquitectura, storage, estados, diagramas Mermaid
-- **[SECURITY_AUDIT.md](./SECURITY_AUDIT.md)** — Hallazgos del auditor soroban-auditor y medidas aplicadas
 
 ## TODO
 
-- [x] Migrar eventos a `#[contractevent]` (SDK v25 / Protocol 23)
-- [x] Auditoria con `soroban-auditor`: 0 Critical, mitigaciones documentadas
-- [x] Instalar herramienta de auditoria permanente en `Dockerfile.dev` (`cargo-scout-audit`)
 - [ ] Agregar tests de flujos negativos (operaciones invalidas, permisos, limites)
+- [ ] Revisar patrones de [Trustless Work (EaaS en Soroban)](https://docs.trustlesswork.com/) para considerar:
+    - [ ] Milestones: release parcial por hitos (no todo-o-nada)
+    - [ ] Dispute resolution: mecanismo de disputa entre participantes
+    - [ ] Partial releases: liberar fondos parcialmente a recipients individuales
+    - [ ] Roles y permisos: signer roles mas granulares (approver, receiver, arbitro)
+    - [ ] Trustlines: manejo de trustlines para tokens custom (no solo XLM nativo)
