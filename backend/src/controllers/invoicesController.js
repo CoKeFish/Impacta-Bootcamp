@@ -221,8 +221,8 @@ module.exports = {
             }
 
             const invoice = req.invoice;
-            if (invoice.status !== 'funding') {
-                return res.status(400).json({error: 'Can only release invoices in funding status'});
+            if (!['funding', 'completed'].includes(invoice.status)) {
+                return res.status(400).json({error: 'Can only release invoices in funding or completed status'});
             }
 
             const result = await sorobanService.submitTx(signed_xdr);
@@ -253,8 +253,8 @@ module.exports = {
             }
 
             const invoice = req.invoice;
-            if (!['draft', 'funding'].includes(invoice.status)) {
-                return res.status(400).json({error: 'Can only cancel invoices in draft or funding status'});
+            if (!['draft', 'funding', 'completed'].includes(invoice.status)) {
+                return res.status(400).json({error: 'Can only cancel invoices in draft, funding, or completed status'});
             }
 
             const result = await sorobanService.submitTx(signed_xdr);
