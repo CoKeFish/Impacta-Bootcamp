@@ -2,10 +2,21 @@ import {BrowserRouter, Route, Routes} from 'react-router-dom';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {Layout} from '@/components/layout/Layout';
 import {Landing} from '@/pages/Landing';
-import {Dashboard} from '@/pages/Dashboard';
-import {TripDetail} from '@/pages/TripDetail';
-import {CreateTrip} from '@/pages/CreateTrip';
+import {InvoiceDashboard} from '@/pages/InvoiceDashboard';
+import {CreateInvoice} from '@/pages/CreateInvoice';
+import {InvoiceDetail} from '@/pages/InvoiceDetail';
+import {ServiceCatalog} from '@/pages/ServiceCatalog';
+import {MyBusinesses} from '@/pages/MyBusinesses';
+import {RegisterBusiness} from '@/pages/RegisterBusiness';
+import {BusinessProfile} from '@/pages/BusinessProfile';
+import {EditBusiness} from '@/pages/EditBusiness';
+import {AddService} from '@/pages/AddService';
+import {EditService} from '@/pages/EditService';
 import {Profile} from '@/pages/Profile';
+import {AdminDashboard} from '@/pages/admin/AdminDashboard';
+import {AdminUsers} from '@/pages/admin/AdminUsers';
+import {AdminBusinesses} from '@/pages/admin/AdminBusinesses';
+import {AdminInvoices} from '@/pages/admin/AdminInvoices';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -22,11 +33,33 @@ export default function App() {
             <BrowserRouter>
                 <Routes>
                     <Route element={<Layout/>}>
+                        {/* Public */}
                         <Route path="/" element={<Landing/>}/>
-                        <Route path="/trips" element={<Dashboard/>}/>
-                        <Route path="/trips/new" element={<CreateTrip/>}/>
-                        <Route path="/trips/:id" element={<TripDetail/>}/>
+                        <Route path="/services" element={<ServiceCatalog/>}/>
+                        <Route path="/businesses/:id" element={<BusinessProfile/>}/>
+
+                        {/* Invoices (auth required) */}
+                        <Route path="/invoices" element={<InvoiceDashboard/>}/>
+                        <Route path="/invoices/new" element={<CreateInvoice/>}/>
+                        <Route path="/invoices/:id" element={<InvoiceDetail/>}/>
+
+                        {/* Business management (auth required) */}
+                        <Route path="/businesses" element={<MyBusinesses/>}/>
+                        <Route path="/businesses/new" element={<RegisterBusiness/>}/>
+                        <Route path="/businesses/:id/edit" element={<EditBusiness/>}/>
+                        <Route path="/businesses/:id/services/new" element={<AddService/>}/>
+
+                        {/* Services (auth required for edit) */}
+                        <Route path="/services/:id/edit" element={<EditService/>}/>
+
+                        {/* Profile */}
                         <Route path="/profile" element={<Profile/>}/>
+
+                        {/* Admin (hidden, role=admin required) */}
+                        <Route path="/admin" element={<AdminDashboard/>}/>
+                        <Route path="/admin/users" element={<AdminUsers/>}/>
+                        <Route path="/admin/businesses" element={<AdminBusinesses/>}/>
+                        <Route path="/admin/invoices" element={<AdminInvoices/>}/>
                     </Route>
                 </Routes>
             </BrowserRouter>

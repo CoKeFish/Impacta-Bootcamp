@@ -2,17 +2,25 @@ import {useQuery} from '@tanstack/react-query';
 import {Calendar, Loader2, User} from 'lucide-react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {useAuth} from '@/hooks/useAuth';
-import {getTrips} from '@/services/api';
+import {getMyInvoices} from '@/services/api';
 import {truncateAddress} from '@/lib/utils';
 import {Link} from 'react-router-dom';
 import {Badge} from '@/components/ui/badge';
 
+const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destructive' | 'warning'> = {
+    draft: 'secondary',
+    funding: 'default',
+    completed: 'success',
+    released: 'success',
+    cancelled: 'destructive',
+};
+
 export function Profile() {
     const {isAuthenticated, user, address} = useAuth();
 
-    const {data: trips, isLoading} = useQuery({
-        queryKey: ['trips'],
-        queryFn: getTrips,
+    const {data: invoiceData, isLoading} = useQuery({
+        queryKey: ['myInvoices'],
+        queryFn: () => getMyInvoices(1, 100),
         enabled: isAuthenticated,
     });
 
@@ -25,13 +33,9 @@ export function Profile() {
         );
     }
 
-    const myTrips = trips?.filter(
-        (t) => t.organizer_wallet === address,
-    );
-
-    const participating = trips?.filter(
-        (t) => t.organizer_wallet !== address,
-    );
+    const invoices = invoiceData?.data ?? [];
+    const organized = invoices.filter((inv) => inv.organizer_wallet === address);
+    const participating = invoices.filter((inv) => inv.organizer_wallet !== address);
 
     return (
         <div className="container py-8 max-w-3xl space-y-6">
@@ -51,11 +55,15 @@ export function Profile() {
                         <span className="text-sm">{user.username ?? 'Not set'}</span>
                     </div>
                     <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Role</span>
+                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge>
+                    </div>
+                    <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Joined</span>
                         <span className="text-sm flex items-center gap-1">
-              <Calendar className="h-3 w-3"/>
+                            <Calendar className="h-3 w-3"/>
                             {new Date(user.created_at).toLocaleDateString()}
-            </span>
+                        </span>
                     </div>
                 </CardContent>
             </Card>
@@ -66,34 +74,40 @@ export function Profile() {
                 </div>
             )}
 
-            {myTrips && myTrips.length > 0 && (
+            {organized.length > 0 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">My trips (organizer)</CardTitle>
+                        <CardTitle className="text-lg">Invoices I organized</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        {myTrips.map((t) => (
-                            <Link key={t.id} to={`/trips/${t.id}`}
-                                  className="flex items-center justify-between py-2 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded">
-                                <span className="font-medium text-sm">{t.name}</span>
-                                <Badge variant="secondary">{t.status}</Badge>
+                        {organized.map((inv) => (
+                            <Link
+                                key={inv.id}
+                                to={`/invoices/${inv.id}`}
+                                className="flex items-center justify-between py-2 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded"
+                            >
+                                <span className="font-medium text-sm">{inv.name}</span>
+                                <Badge variant={statusVariant[inv.status] ?? 'secondary'}>{inv.status}</Badge>
                             </Link>
                         ))}
                     </CardContent>
                 </Card>
             )}
 
-            {participating && participating.length > 0 && (
+            {participating.length > 0 && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-lg">Participating in</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        {participating.map((t) => (
-                            <Link key={t.id} to={`/trips/${t.id}`}
-                                  className="flex items-center justify-between py-2 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded">
-                                <span className="font-medium text-sm">{t.name}</span>
-                                <Badge variant="secondary">{t.status}</Badge>
+                        {participating.map((inv) => (
+                            <Link
+                                key={inv.id}
+                                to={`/invoices/${inv.id}`}
+                                className="flex items-center justify-between py-2 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded"
+                            >
+                                <span className="font-medium text-sm">{inv.name}</span>
+                                <Badge variant={statusVariant[inv.status] ?? 'secondary'}>{inv.status}</Badge>
                             </Link>
                         ))}
                     </CardContent>

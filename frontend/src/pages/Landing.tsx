@@ -1,12 +1,12 @@
 import {Link} from 'react-router-dom';
-import {ArrowRight, Shield, Users, Wallet} from 'lucide-react';
+import {ArrowRight, FileText, Shield, Users, Wallet} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 
 const features = [
     {
         icon: Users,
         title: 'Group coordination',
-        description: 'Organize trips with friends, set budgets, and track contributions in real time.',
+        description: 'Organize group payments, set budgets, and track contributions in real time.',
     },
     {
         icon: Shield,
@@ -16,7 +16,7 @@ const features = [
     {
         icon: Wallet,
         title: 'Fair penalties',
-        description: 'If someone drops out, the penalty is automatically redistributed to the group.',
+        description: 'If someone drops out, the penalty is automatically handled by the smart contract.',
     },
 ];
 
@@ -27,11 +27,11 @@ export function Landing() {
             <section className="container flex flex-col items-center gap-8 pb-16 pt-20 text-center md:pt-32">
                 <div className="mx-auto max-w-3xl space-y-4">
                     <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-                        Travel together,{' '}
-                        <span className="text-primary">fund together</span>
+                        Group invoices,{' '}
+                        <span className="text-primary">funded together</span>
                     </h1>
                     <p className="mx-auto max-w-xl text-lg text-muted-foreground">
-                        CoTravel makes group travel budgets transparent and trustless.
+                        CoTravel makes group payments transparent and trustless.
                         Collect contributions, enforce fair rules, and release funds &mdash;
                         all secured by Stellar smart contracts.
                     </p>
@@ -39,12 +39,15 @@ export function Landing() {
 
                 <div className="flex flex-col sm:flex-row gap-4">
                     <Button asChild size="lg">
-                        <Link to="/trips">
-                            Browse trips <ArrowRight className="ml-2 h-4 w-4"/>
+                        <Link to="/invoices">
+                            <FileText className="mr-2 h-4 w-4"/>
+                            My invoices
                         </Link>
                     </Button>
                     <Button asChild variant="outline" size="lg">
-                        <Link to="/trips/new">Create a trip</Link>
+                        <Link to="/services">
+                            Browse services <ArrowRight className="ml-2 h-4 w-4"/>
+                        </Link>
                     </Button>
                 </div>
             </section>
