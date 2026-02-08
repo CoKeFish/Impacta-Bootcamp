@@ -142,9 +142,3 @@ Explorer: https://stellar.expert/explorer/testnet/contract/{CONTRACT_ID}
 ## TODO
 
 - [ ] Agregar tests de flujos negativos (operaciones invalidas, permisos, limites)
-- [ ] Revisar patrones de [Trustless Work (EaaS en Soroban)](https://docs.trustlesswork.com/) para considerar:
-    - [ ] Milestones: release parcial por hitos (no todo-o-nada)
-    - [ ] Dispute resolution: mecanismo de disputa entre participantes
-    - [ ] Partial releases: liberar fondos parcialmente a recipients individuales
-    - [ ] Roles y permisos: signer roles mas granulares (approver, receiver, arbitro)
-    - [ ] Trustlines: manejo de trustlines para tokens custom (no solo XLM nativo)
