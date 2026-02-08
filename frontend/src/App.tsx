@@ -18,6 +18,7 @@ import {AdminUsers} from '@/pages/admin/AdminUsers';
 import {AdminBusinesses} from '@/pages/admin/AdminBusinesses';
 import {AdminInvoices} from '@/pages/admin/AdminInvoices';
 import {JoinByInvite} from '@/pages/JoinByInvite';
+import {Toaster} from 'sonner';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -31,6 +32,7 @@ const queryClient = new QueryClient({
 export default function App() {
     return (
         <QueryClientProvider client={queryClient}>
+            <Toaster position="top-center" richColors/>
             <BrowserRouter>
                 <Routes>
                     <Route element={<Layout/>}>

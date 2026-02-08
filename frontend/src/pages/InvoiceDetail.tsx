@@ -1,6 +1,7 @@
-import {useState} from 'react';
-import {Link, useParams} from 'react-router-dom';
+import {useEffect, useState} from 'react';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
+import {toast} from 'sonner';
 import {
     AlertTriangle,
     ArrowLeft,
@@ -561,6 +562,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
 export function InvoiceDetail() {
     const {id} = useParams<{ id: string }>();
     const invoiceId = Number(id);
+    const navigate = useNavigate();
     const {address: userWallet, user, isAuthenticated} = useAuth();
 
     const {data: invoice, isLoading, error, refetch} = useQuery({
@@ -568,16 +570,24 @@ export function InvoiceDetail() {
         queryFn: () => getInvoice(invoiceId),
         enabled: !isNaN(invoiceId) && isAuthenticated,
         refetchInterval: 15_000, // Poll every 15s for live updates
+        retry: false,
     });
 
     const {data: participants = []} = useQuery({
         queryKey: ['invoiceParticipants', invoiceId],
         queryFn: () => getInvoiceParticipants(invoiceId),
-        enabled: !isNaN(invoiceId) && isAuthenticated,
+        enabled: !isNaN(invoiceId) && isAuthenticated && !error,
         refetchInterval: 15_000,
     });
 
     const [copied, setCopied] = useState(false);
+
+    useEffect(() => {
+        if (!error) return;
+        const msg = error.message || 'Invoice not found';
+        toast.error(msg);
+        navigate('/invoices', {replace: true});
+    }, [error, navigate]);
 
     if (!isAuthenticated) {
         return (
@@ -588,21 +598,10 @@ export function InvoiceDetail() {
         );
     }
 
-    if (isLoading) {
+    if (isLoading || !invoice) {
         return (
             <div className="container py-20 flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
-            </div>
-        );
-    }
-
-    if (error || !invoice) {
-        return (
-            <div className="container py-20 text-center">
-                <p className="text-destructive">{error?.message ?? 'Invoice not found'}</p>
-                <Button asChild variant="link" className="mt-4">
-                    <Link to="/invoices">Back to invoices</Link>
-                </Button>
             </div>
         );
     }
