@@ -111,6 +111,16 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
         handleAction('link', async () => {
             if (!userWallet || !invoice.items) return;
 
+            // Validate all recipient wallets before building the transaction
+            const invalidItems = invoice.items.filter((item) => {
+                if (!item.recipient_wallet) return false;
+                return !/^G[A-Z2-7]{55}$/.test(item.recipient_wallet);
+            });
+            if (invalidItems.length > 0) {
+                const names = invalidItems.map((i) => i.description).join(', ');
+                throw new Error(`Invalid Stellar wallet address in: ${names}`);
+            }
+
             const recipients = invoice.items
                 .filter((item) => item.recipient_wallet)
                 .map((item) => ({
@@ -230,8 +240,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
             const contractId = invoice.contract_invoice_id;
 
             if (invoice.status === 'draft') {
-                // Draft cancellation doesn't need blockchain
-                await cancelInvoice(invoice.id, '');
+                await cancelInvoice(invoice.id);
                 return;
             }
 

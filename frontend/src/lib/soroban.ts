@@ -4,20 +4,25 @@
  * Flow: build unsigned tx → simulate → assemble → sign with Freighter → return signed XDR.
  * The backend then submits the signed XDR to the Soroban RPC.
  */
-import {Address, Contract, nativeToScVal, Networks, SorobanRpc, TransactionBuilder, xdr,} from '@stellar/stellar-sdk';
+import {
+    Address,
+    Contract,
+    nativeToScVal,
+    Networks,
+    rpc as SorobanRpc,
+    TransactionBuilder,
+    xdr,
+} from '@stellar/stellar-sdk';
 import {signTransaction} from '@stellar/freighter-api';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
-const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
 const SOROBAN_RPC_URL =
     import.meta.env.VITE_SOROBAN_RPC_URL || 'https://soroban-testnet.stellar.org';
 const NETWORK_PASSPHRASE =
     import.meta.env.VITE_NETWORK_PASSPHRASE || Networks.TESTNET;
 const CONTRACT_ID = import.meta.env.VITE_CONTRACT_ID || '';
 const XLM_SAC_ADDRESS = import.meta.env.VITE_XLM_SAC_ADDRESS || '';
-
-const DEV_MOCK_XDR = 'AAAAAgAAAADEV_MOCK_SIGNED_XDR_FOR_TESTING_ONLY';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -58,12 +63,6 @@ async function buildContractTx(
     method: string,
     args: xdr.ScVal[],
 ): Promise<string> {
-    // Dev mode: return mock XDR without hitting Soroban RPC
-    if (DEV_MODE) {
-        console.info(`[DevMode] Mock buildContractTx: ${method}(${callerAddress.slice(0, 8)}...)`);
-        return DEV_MOCK_XDR;
-    }
-
     if (!CONTRACT_ID) {
         throw new Error(
             'Contract ID not configured. Set VITE_CONTRACT_ID in your environment.',
@@ -108,12 +107,6 @@ export async function signWithFreighter(
     unsignedXdr: string,
     walletAddress: string,
 ): Promise<string> {
-    // Dev mode: skip Freighter, return XDR as-is (mock signed)
-    if (DEV_MODE) {
-        console.info(`[DevMode] Mock signWithFreighter for ${walletAddress.slice(0, 8)}...`);
-        return unsignedXdr;
-    }
-
     const result = await signTransaction(unsignedXdr, {
         networkPassphrase: NETWORK_PASSPHRASE,
         address: walletAddress,

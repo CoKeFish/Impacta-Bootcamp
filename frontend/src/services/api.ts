@@ -235,10 +235,10 @@ export const releaseInvoice = (id: number, signed_xdr: string) =>
         body: JSON.stringify({signed_xdr}),
     });
 
-export const cancelInvoice = (id: number, signed_xdr: string) =>
-    request<Invoice & { tx_hash: string }>(`/api/invoices/${id}/cancel`, {
+export const cancelInvoice = (id: number, signed_xdr?: string) =>
+    request<Invoice & { tx_hash?: string }>(`/api/invoices/${id}/cancel`, {
         method: 'POST',
-        body: JSON.stringify({signed_xdr}),
+        body: JSON.stringify(signed_xdr ? {signed_xdr} : {}),
     });
 
 export const claimDeadline = (id: number, signed_xdr: string) =>
