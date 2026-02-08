@@ -32,6 +32,7 @@ CREATE TABLE users
     wallet_address VARCHAR(56) UNIQUE NOT NULL, -- Stellar public key (G...)
     username       VARCHAR(100),
     avatar_url     TEXT,
+    role VARCHAR(20) DEFAULT 'user',            -- user / admin
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
