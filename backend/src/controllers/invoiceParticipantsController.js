@@ -18,6 +18,11 @@ module.exports = {
 
             const existing = await invoiceParticipantModel.findByInvoiceAndUser(invoice.id, req.user.id);
             if (existing) {
+                if (existing.status === 'withdrawn') {
+                    const reactivated = await invoiceParticipantModel.reactivate(invoice.id, req.user.id);
+                    logger.info({invoiceId: invoice.id, userId: req.user.id}, 'Participant rejoined invoice');
+                    return res.json(reactivated);
+                }
                 return res.status(409).json({error: 'Already joined this invoice', participant: existing});
             }
 

@@ -31,6 +31,20 @@ module.exports = {
         return rows;
     },
 
+    async reactivate(invoiceId, userId) {
+        const {rows} = await pool.query(
+            `UPDATE invoice_participants
+             SET status = 'active',
+                 contributed_amount = 0,
+                 confirmed_release = false,
+                 joined_at = NOW()
+             WHERE invoice_id = $1
+               AND user_id = $2 RETURNING *`,
+            [invoiceId, userId]
+        );
+        return rows[0] || null;
+    },
+
     async updateAmount(invoiceId, userId, amount, version) {
         const {rows} = await pool.query(
             `UPDATE invoice_participants
