@@ -23,6 +23,7 @@ nul
 # Logs
 *.log
 npm-debug.log*
+logs/
 
 # Build outputs
 dist/
@@ -98,3 +99,4 @@ minio_data/
 /.agents/skills/vercel-react-best-practices/AGENTS.md
 /.agents/skills/vercel-react-best-practices/SKILL.md
 /.agents/skills/web-design-guidelines/SKILL.md
+/.agents/
