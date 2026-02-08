@@ -1,0 +1,28 @@
+{
+  "catalog": {
+    "title": "Service Catalog",
+    "subtitle": "Browse services offered by businesses",
+    "searchPlaceholder": "Search services or businesses...",
+    "noResults": "No services found"
+  },
+  "picker": {
+    "searchPlaceholder": "Search services...",
+    "noResults": "No services found"
+  },
+  "add": {
+    "title": "Add Service",
+    "subtitle": "Add a new service to <strong>{{name}}</strong>",
+    "nameLabel": "Service name *",
+    "namePlaceholder": "e.g. Airport Transfer",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What does this service include?",
+    "priceLabel": "Price (XLM) *",
+    "pricePlaceholder": "0.00",
+    "creating": "Creating...",
+    "createButton": "Create service"
+  },
+  "edit": {
+    "title": "Edit Service",
+    "subtitle": "Update service details."
+  }
+}

@@ -1,6 +1,7 @@
 import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {Loader2, Plus, Store} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
@@ -8,6 +9,8 @@ import {getMyBusinesses} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
 
 export function MyBusinesses() {
+    const {t} = useTranslation('businesses');
+    const {t: tc} = useTranslation();
     const {isAuthenticated} = useAuth();
 
     const {data: businesses, isLoading, error} = useQuery({
@@ -19,8 +22,8 @@ export function MyBusinesses() {
     if (!isAuthenticated) {
         return (
             <div className="container py-20 text-center">
-                <h2 className="text-2xl font-bold mb-2">Connect your wallet</h2>
-                <p className="text-muted-foreground">You need to be logged in to manage your businesses.</p>
+                <h2 className="text-2xl font-bold mb-2">{tc('auth.connectWallet')}</h2>
+                <p className="text-muted-foreground">{tc('auth.loginRequired', {action: t('myBusinesses.title').toLowerCase()})}</p>
             </div>
         );
     }
@@ -29,12 +32,12 @@ export function MyBusinesses() {
         <div className="container py-8 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">My Businesses</h1>
-                    <p className="text-muted-foreground">Manage your businesses and their services</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('myBusinesses.title')}</h1>
+                    <p className="text-muted-foreground">{t('myBusinesses.subtitle')}</p>
                 </div>
                 <Button asChild>
                     <Link to="/businesses/new">
-                        <Plus className="h-4 w-4 mr-1"/> Register business
+                        <Plus className="h-4 w-4 mr-1"/> {t('myBusinesses.register')}
                     </Link>
                 </Button>
             </div>
@@ -48,7 +51,10 @@ export function MyBusinesses() {
             {error && (
                 <div
                     className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center text-sm text-destructive">
-                    Failed to load businesses: {(error as Error).message}
+                    {tc('errors.failedToLoad', {
+                        resource: t('myBusinesses.title').toLowerCase(),
+                        message: (error as Error).message
+                    })}
                 </div>
             )}
 
@@ -56,9 +62,9 @@ export function MyBusinesses() {
                 <div className="text-center py-20 space-y-4">
                     <Store className="h-12 w-12 mx-auto text-muted-foreground"/>
                     <div>
-                        <p className="text-muted-foreground">You haven't registered any businesses yet.</p>
+                        <p className="text-muted-foreground">{t('myBusinesses.noBusiness')}</p>
                         <Button asChild className="mt-4">
-                            <Link to="/businesses/new">Register your first business</Link>
+                            <Link to="/businesses/new">{t('myBusinesses.registerFirst')}</Link>
                         </Button>
                     </div>
                 </div>
@@ -73,7 +79,7 @@ export function MyBusinesses() {
                                     <div className="flex items-start justify-between gap-2">
                                         <CardTitle className="text-lg line-clamp-1">{biz.name}</CardTitle>
                                         <Badge variant={biz.active ? 'success' : 'secondary'}>
-                                            {biz.active ? 'Active' : 'Inactive'}
+                                            {biz.active ? tc('status.active') : tc('status.inactive')}
                                         </Badge>
                                     </div>
                                     {biz.category && (

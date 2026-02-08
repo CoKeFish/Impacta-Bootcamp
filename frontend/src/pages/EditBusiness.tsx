@@ -2,12 +2,15 @@ import {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {Loader2} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {getBusiness, updateBusiness} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
 
 export function EditBusiness() {
+    const {t} = useTranslation('businesses');
+    const {t: tc} = useTranslation();
     const {id} = useParams<{ id: string }>();
     const businessId = Number(id);
     const navigate = useNavigate();
@@ -58,8 +61,8 @@ export function EditBusiness() {
     if (!isAuthenticated) {
         return (
             <div className="container py-20 text-center">
-                <h2 className="text-2xl font-bold mb-2">Connect your wallet</h2>
-                <p className="text-muted-foreground">You need to be logged in.</p>
+                <h2 className="text-2xl font-bold mb-2">{tc('auth.connectWallet')}</h2>
+                <p className="text-muted-foreground">{tc('auth.loginRequired', {action: t('edit.title').toLowerCase()})}</p>
             </div>
         );
     }
@@ -82,8 +85,8 @@ export function EditBusiness() {
         <div className="container py-8 max-w-2xl">
             <Card>
                 <CardHeader>
-                    <CardTitle>Edit Business</CardTitle>
-                    <CardDescription>Update your business information.</CardDescription>
+                    <CardTitle>{t('edit.title')}</CardTitle>
+                    <CardDescription>{t('edit.subtitle')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={(e) => {
@@ -91,29 +94,33 @@ export function EditBusiness() {
                         mutation.mutate();
                     }} className="space-y-4">
                         <div className="space-y-2">
-                            <label htmlFor="name" className="text-sm font-medium">Business name *</label>
+                            <label htmlFor="name" className="text-sm font-medium">{t('register.nameLabel')}</label>
                             <input id="name" name="name" required value={form.name} onChange={handleChange}
                                    className={inputClass}/>
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="category" className="text-sm font-medium">Category</label>
+                            <label htmlFor="category"
+                                   className="text-sm font-medium">{t('register.categoryLabel')}</label>
                             <input id="category" name="category" value={form.category} onChange={handleChange}
-                                   className={inputClass} placeholder="e.g. Travel, Food, Transport"/>
+                                   className={inputClass} placeholder={t('edit.categoryPlaceholder')}/>
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="description" className="text-sm font-medium">Description</label>
+                            <label htmlFor="description"
+                                   className="text-sm font-medium">{t('register.descriptionLabel')}</label>
                             <textarea id="description" name="description" value={form.description}
                                       onChange={handleChange} rows={3}
                                       className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"/>
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="wallet_address" className="text-sm font-medium">Payment wallet
-                                (Stellar)</label>
+                            <label htmlFor="wallet_address"
+                                   className="text-sm font-medium">{t('edit.paymentWalletLabel')}</label>
                             <input id="wallet_address" name="wallet_address" value={form.wallet_address}
-                                   onChange={handleChange} className={inputClass} placeholder="G..."/>
+                                   onChange={handleChange} className={inputClass}
+                                   placeholder={t('edit.walletPlaceholder')}/>
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="contact_email" className="text-sm font-medium">Contact email</label>
+                            <label htmlFor="contact_email"
+                                   className="text-sm font-medium">{t('register.emailLabel')}</label>
                             <input id="contact_email" name="contact_email" type="email" value={form.contact_email}
                                    onChange={handleChange} className={inputClass}/>
                         </div>
@@ -126,10 +133,11 @@ export function EditBusiness() {
                         )}
 
                         <div className="flex gap-3">
-                            <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
+                            <Button type="button" variant="outline"
+                                    onClick={() => navigate(-1)}>{tc('buttons.cancel')}</Button>
                             <Button type="submit" disabled={mutation.isPending}>
                                 {mutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1"/>}
-                                Save changes
+                                {tc('buttons.save')}
                             </Button>
                         </div>
                     </form>

@@ -1,4 +1,5 @@
 import {AlertTriangle} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 
 interface ModificationBannerProps {
@@ -16,6 +17,8 @@ export function ModificationBanner({
                                        onOptOut,
                                        isLoading,
                                    }: ModificationBannerProps) {
+    const {t} = useTranslation('invoices');
+
     if (version <= contributedAtVersion) return null;
 
     return (
@@ -24,21 +27,19 @@ export function ModificationBanner({
                 <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5"/>
                 <div>
                     <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                        Invoice has been modified
+                        {t('modification.title')}
                     </p>
                     <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                        The organizer has updated this invoice since your last contribution
-                        (v{contributedAtVersion} -{'>'} v{version}).
-                        You can confirm the changes or opt out with a full refund (no penalty).
+                        {t('modification.description', {from: contributedAtVersion, to: version})}
                     </p>
                 </div>
             </div>
             <div className="flex gap-2 ml-8">
                 <Button size="sm" onClick={onConfirm} disabled={isLoading}>
-                    Confirm changes
+                    {t('modification.confirmChanges')}
                 </Button>
                 <Button size="sm" variant="outline" onClick={onOptOut} disabled={isLoading}>
-                    Opt out (full refund)
+                    {t('modification.optOut')}
                 </Button>
             </div>
         </div>

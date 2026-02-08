@@ -1,11 +1,14 @@
 import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {BarChart3, FileText, Loader2, Store, Users} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {getAdminStats} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
 
 export function AdminDashboard() {
+    const {t} = useTranslation('admin');
+    const {t: tc} = useTranslation();
     const {isAuthenticated, user} = useAuth();
 
     const {data: stats, isLoading, error} = useQuery({
@@ -17,8 +20,8 @@ export function AdminDashboard() {
     if (!isAuthenticated || user?.role !== 'admin') {
         return (
             <div className="container py-20 text-center">
-                <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-                <p className="text-muted-foreground">This page requires admin privileges.</p>
+                <h2 className="text-2xl font-bold mb-2">{tc('auth.accessDenied')}</h2>
+                <p className="text-muted-foreground">{tc('auth.adminRequired')}</p>
             </div>
         );
     }
@@ -28,9 +31,9 @@ export function AdminDashboard() {
             <div>
                 <div className="flex items-center gap-2">
                     <BarChart3 className="h-6 w-6 text-primary"/>
-                    <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
                 </div>
-                <p className="text-muted-foreground">System overview and management</p>
+                <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
             </div>
 
             {isLoading && (
@@ -53,12 +56,12 @@ export function AdminDashboard() {
                             <CardHeader className="pb-2">
                                 <CardTitle
                                     className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                    <Users className="h-4 w-4"/> Users
+                                    <Users className="h-4 w-4"/> {t('dashboard.users')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold">{stats.users}</div>
-                                <p className="text-xs text-muted-foreground mt-1">Registered users</p>
+                                <p className="text-xs text-muted-foreground mt-1">{t('dashboard.registeredUsers')}</p>
                             </CardContent>
                         </Card>
                     </Link>
@@ -68,12 +71,12 @@ export function AdminDashboard() {
                             <CardHeader className="pb-2">
                                 <CardTitle
                                     className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                    <Store className="h-4 w-4"/> Businesses
+                                    <Store className="h-4 w-4"/> {t('dashboard.businesses')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold">{stats.businesses}</div>
-                                <p className="text-xs text-muted-foreground mt-1">Registered businesses</p>
+                                <p className="text-xs text-muted-foreground mt-1">{t('dashboard.registeredBusinesses')}</p>
                             </CardContent>
                         </Card>
                     </Link>
@@ -83,12 +86,12 @@ export function AdminDashboard() {
                             <CardHeader className="pb-2">
                                 <CardTitle
                                     className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                    <FileText className="h-4 w-4"/> Invoices
+                                    <FileText className="h-4 w-4"/> {t('dashboard.invoices')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold">{stats.invoices}</div>
-                                <p className="text-xs text-muted-foreground mt-1">Total invoices</p>
+                                <p className="text-xs text-muted-foreground mt-1">{t('dashboard.totalInvoices')}</p>
                             </CardContent>
                         </Card>
                     </Link>

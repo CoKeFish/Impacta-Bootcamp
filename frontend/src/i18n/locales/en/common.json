@@ -1,0 +1,53 @@
+{
+  "nav": {
+    "services": "Services",
+    "invoices": "Invoices",
+    "myBusinesses": "My Businesses",
+    "profile": "Profile"
+  },
+  "footer": {
+    "tagline": "CoTravel — Group travel powered by Stellar",
+    "testnet": "Testnet · Impacta Bootcamp 2026"
+  },
+  "wallet": {
+    "connect": "Connect Wallet",
+    "connecting": "Connecting...",
+    "disconnect": "Disconnect",
+    "connectionFailed": "Connection failed"
+  },
+  "auth": {
+    "connectWallet": "Connect your wallet",
+    "loginRequired": "You need to be logged in to {{action}}.",
+    "accessDenied": "Access Denied",
+    "adminRequired": "This page requires admin privileges."
+  },
+  "status": {
+    "draft": "draft",
+    "funding": "funding",
+    "completed": "completed",
+    "released": "released",
+    "cancelled": "cancelled",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "save": "Save changes",
+    "back": "Back",
+    "backToCatalog": "Back to catalog",
+    "backToInvoices": "Back to invoices"
+  },
+  "filters": {
+    "all": "All"
+  },
+  "errors": {
+    "failedToLoad": "Failed to load {{resource}}: {{message}}"
+  },
+  "language": {
+    "en": "EN",
+    "es": "ES"
+  },
+  "participants": "participants",
+  "collected": "Collected",
+  "noItems": "No items"
+}

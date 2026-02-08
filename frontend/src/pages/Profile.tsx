@@ -1,9 +1,10 @@
 import {useQuery} from '@tanstack/react-query';
 import {Calendar, Loader2, User} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {useAuth} from '@/hooks/useAuth';
 import {getMyInvoices} from '@/services/api';
-import {truncateAddress} from '@/lib/utils';
+import {formatDateFull, truncateAddress} from '@/lib/utils';
 import {Link} from 'react-router-dom';
 import {Badge} from '@/components/ui/badge';
 
@@ -16,6 +17,8 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destr
 };
 
 export function Profile() {
+    const {t} = useTranslation('profile');
+    const {t: tc} = useTranslation();
     const {isAuthenticated, user, address} = useAuth();
 
     const {data: invoiceData, isLoading} = useQuery({
@@ -27,8 +30,8 @@ export function Profile() {
     if (!isAuthenticated || !user) {
         return (
             <div className="container py-20 text-center">
-                <h2 className="text-2xl font-bold mb-2">Connect your wallet</h2>
-                <p className="text-muted-foreground">You need to be logged in to view your profile.</p>
+                <h2 className="text-2xl font-bold mb-2">{tc('auth.connectWallet')}</h2>
+                <p className="text-muted-foreground">{tc('auth.loginRequired', {action: t('title').toLowerCase()})}</p>
             </div>
         );
     }
@@ -42,27 +45,27 @@ export function Profile() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <User className="h-5 w-5"/> Profile
+                        <User className="h-5 w-5"/> {t('title')}
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                     <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Wallet</span>
+                        <span className="text-sm text-muted-foreground">{t('wallet')}</span>
                         <span className="text-sm font-mono">{address ? truncateAddress(address, 8) : '-'}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Username</span>
-                        <span className="text-sm">{user.username ?? 'Not set'}</span>
+                        <span className="text-sm text-muted-foreground">{t('username')}</span>
+                        <span className="text-sm">{user.username ?? t('notSet')}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Role</span>
+                        <span className="text-sm text-muted-foreground">{t('role')}</span>
                         <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Joined</span>
+                        <span className="text-sm text-muted-foreground">{t('joined')}</span>
                         <span className="text-sm flex items-center gap-1">
                             <Calendar className="h-3 w-3"/>
-                            {new Date(user.created_at).toLocaleDateString()}
+                            {formatDateFull(user.created_at)}
                         </span>
                     </div>
                 </CardContent>
@@ -77,7 +80,7 @@ export function Profile() {
             {organized.length > 0 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Invoices I organized</CardTitle>
+                        <CardTitle className="text-lg">{t('organized')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         {organized.map((inv) => (
@@ -87,7 +90,8 @@ export function Profile() {
                                 className="flex items-center justify-between py-2 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded"
                             >
                                 <span className="font-medium text-sm">{inv.name}</span>
-                                <Badge variant={statusVariant[inv.status] ?? 'secondary'}>{inv.status}</Badge>
+                                <Badge
+                                    variant={statusVariant[inv.status] ?? 'secondary'}>{tc(`status.${inv.status}`)}</Badge>
                             </Link>
                         ))}
                     </CardContent>
@@ -97,7 +101,7 @@ export function Profile() {
             {participating.length > 0 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Participating in</CardTitle>
+                        <CardTitle className="text-lg">{t('participating')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         {participating.map((inv) => (
@@ -107,7 +111,8 @@ export function Profile() {
                                 className="flex items-center justify-between py-2 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded"
                             >
                                 <span className="font-medium text-sm">{inv.name}</span>
-                                <Badge variant={statusVariant[inv.status] ?? 'secondary'}>{inv.status}</Badge>
+                                <Badge
+                                    variant={statusVariant[inv.status] ?? 'secondary'}>{tc(`status.${inv.status}`)}</Badge>
                             </Link>
                         ))}
                     </CardContent>

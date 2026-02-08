@@ -2,11 +2,14 @@ import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {Loader2, Search, Store} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {getServices} from '@/services/api';
 import {formatXLM} from '@/lib/utils';
 
 export function ServiceCatalog() {
+    const {t} = useTranslation('services');
+    const {t: tc} = useTranslation();
     const [search, setSearch] = useState('');
 
     const {data: services, isLoading, error} = useQuery({
@@ -17,15 +20,15 @@ export function ServiceCatalog() {
     return (
         <div className="container py-8 space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Service Catalog</h1>
-                <p className="text-muted-foreground">Browse services offered by businesses</p>
+                <h1 className="text-3xl font-bold tracking-tight">{t('catalog.title')}</h1>
+                <p className="text-muted-foreground">{t('catalog.subtitle')}</p>
             </div>
 
             <div className="relative max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
                 <input
                     type="text"
-                    placeholder="Search services or businesses..."
+                    placeholder={t('catalog.searchPlaceholder')}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -41,13 +44,13 @@ export function ServiceCatalog() {
             {error && (
                 <div
                     className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center text-sm text-destructive">
-                    Failed to load services: {error.message}
+                    {tc('errors.failedToLoad', {resource: t('catalog.title').toLowerCase(), message: error.message})}
                 </div>
             )}
 
             {services && services.length === 0 && (
                 <div className="text-center py-20 text-muted-foreground">
-                    No services found
+                    {t('catalog.noResults')}
                 </div>
             )}
 

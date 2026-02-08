@@ -1,0 +1,46 @@
+{
+  "myBusinesses": {
+    "title": "Mis Negocios",
+    "subtitle": "Administra tus negocios y sus servicios",
+    "register": "Registrar negocio",
+    "noBusiness": "Aún no has registrado ningún negocio.",
+    "registerFirst": "Registra tu primer negocio"
+  },
+  "register": {
+    "title": "Registra tu negocio",
+    "subtitle": "Lista tu negocio en CoTravel para que los organizadores puedan incluir tus servicios en facturas grupales.",
+    "nameLabel": "Nombre del negocio *",
+    "namePlaceholder": "Mi Hotel Increíble",
+    "categoryLabel": "Categoría",
+    "categoryPlaceholder": "Selecciona una categoría",
+    "categoryHotel": "Hotel",
+    "categoryTransport": "Transporte",
+    "categoryRestaurant": "Restaurante",
+    "categoryExperience": "Experiencia",
+    "categoryOther": "Otro",
+    "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "Cuéntale a los organizadores sobre tu negocio...",
+    "walletLabel": "Dirección wallet Stellar",
+    "walletPlaceholder": "G... (donde recibirás pagos)",
+    "useThisWallet": "Usar este wallet",
+    "emailLabel": "Email de contacto",
+    "emailPlaceholder": "contacto@negocio.com",
+    "registering": "Registrando...",
+    "registerButton": "Registrar negocio"
+  },
+  "profile": {
+    "services": "Servicios",
+    "addService": "Agregar servicio",
+    "noServices": "Aún no hay servicios listados.",
+    "noServicesOwner": " Agrega tu primer servicio para empezar a recibir pagos.",
+    "edit": "Editar",
+    "owner": "Dueño: {{name}}"
+  },
+  "edit": {
+    "title": "Editar Negocio",
+    "subtitle": "Actualiza la información de tu negocio.",
+    "paymentWalletLabel": "Wallet de pago (Stellar)",
+    "walletPlaceholder": "G...",
+    "categoryPlaceholder": "ej. Viajes, Comida, Transporte"
+  }
+}

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import {formatXLM, truncateAddress} from '@/lib/utils';
 import type {InvoiceItem} from '@/types';
 
@@ -6,8 +7,10 @@ interface InvoiceItemsListProps {
 }
 
 export function InvoiceItemsList({items}: InvoiceItemsListProps) {
+    const {t} = useTranslation();
+
     if (!items.length) {
-        return <p className="text-sm text-muted-foreground">No items</p>;
+        return <p className="text-sm text-muted-foreground">{t('noItems')}</p>;
     }
 
     return (

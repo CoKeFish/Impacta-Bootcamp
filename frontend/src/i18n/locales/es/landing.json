@@ -1,0 +1,23 @@
+{
+  "hero": {
+    "title": "Facturas grupales,",
+    "titleHighlight": "financiadas juntos",
+    "subtitle": "CoTravel hace que los pagos grupales sean transparentes y sin intermediarios. Recauda contribuciones, aplica reglas justas y libera fondos — todo asegurado por contratos inteligentes de Stellar.",
+    "ctaInvoices": "Mis facturas",
+    "ctaServices": "Ver servicios"
+  },
+  "features": {
+    "coordination": {
+      "title": "Coordinación grupal",
+      "description": "Organiza pagos grupales, establece presupuestos y rastrea contribuciones en tiempo real."
+    },
+    "escrow": {
+      "title": "Escrow on-chain",
+      "description": "Los fondos se mantienen en un contrato inteligente Soroban. Nadie puede mal utilizar el presupuesto."
+    },
+    "penalties": {
+      "title": "Penalidades justas",
+      "description": "Si alguien se retira, la penalidad es manejada automáticamente por el contrato inteligente."
+    }
+  }
+}

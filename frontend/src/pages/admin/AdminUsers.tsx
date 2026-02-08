@@ -2,6 +2,7 @@ import {useState} from 'react';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {ArrowLeft, Loader2, Shield, ShieldOff} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
@@ -10,6 +11,8 @@ import {truncateAddress} from '@/lib/utils';
 import {useAuth} from '@/hooks/useAuth';
 
 export function AdminUsers() {
+    const {t} = useTranslation('admin');
+    const {t: tc} = useTranslation();
     const {isAuthenticated, user: currentUser} = useAuth();
     const queryClient = useQueryClient();
     const [page] = useState(1);
@@ -31,8 +34,8 @@ export function AdminUsers() {
     if (!isAuthenticated || currentUser?.role !== 'admin') {
         return (
             <div className="container py-20 text-center">
-                <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-                <p className="text-muted-foreground">This page requires admin privileges.</p>
+                <h2 className="text-2xl font-bold mb-2">{tc('auth.accessDenied')}</h2>
+                <p className="text-muted-foreground">{tc('auth.adminRequired')}</p>
             </div>
         );
     }
@@ -41,14 +44,14 @@ export function AdminUsers() {
         <div className="container py-8 space-y-6">
             <Button asChild variant="ghost" size="sm">
                 <Link to="/admin">
-                    <ArrowLeft className="h-4 w-4 mr-1"/> Admin
+                    <ArrowLeft className="h-4 w-4 mr-1"/> {t('backToAdmin')}
                 </Link>
             </Button>
 
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t('users.title')}</h1>
                 <p className="text-muted-foreground">
-                    {data ? `${data.total} total users` : 'Loading...'}
+                    {data ? t('users.totalUsers', {count: data.total}) : t('loading')}
                 </p>
             </div>
 
@@ -68,7 +71,7 @@ export function AdminUsers() {
             {data && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Users</CardTitle>
+                        <CardTitle className="text-lg">{t('users.usersCard')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
@@ -99,9 +102,9 @@ export function AdminUsers() {
                                             })}
                                         >
                                             {u.role === 'admin' ? (
-                                                <><ShieldOff className="h-4 w-4 mr-1"/> Revoke admin</>
+                                                <><ShieldOff className="h-4 w-4 mr-1"/> {t('users.revokeAdmin')}</>
                                             ) : (
-                                                <><Shield className="h-4 w-4 mr-1"/> Make admin</>
+                                                <><Shield className="h-4 w-4 mr-1"/> {t('users.makeAdmin')}</>
                                             )}
                                         </Button>
                                     )}

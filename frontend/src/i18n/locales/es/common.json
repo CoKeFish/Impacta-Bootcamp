@@ -1,0 +1,53 @@
+{
+  "nav": {
+    "services": "Servicios",
+    "invoices": "Facturas",
+    "myBusinesses": "Mis Negocios",
+    "profile": "Perfil"
+  },
+  "footer": {
+    "tagline": "CoTravel — Viajes grupales impulsados por Stellar",
+    "testnet": "Testnet · Impacta Bootcamp 2026"
+  },
+  "wallet": {
+    "connect": "Conectar Wallet",
+    "connecting": "Conectando...",
+    "disconnect": "Desconectar",
+    "connectionFailed": "Error de conexión"
+  },
+  "auth": {
+    "connectWallet": "Conecta tu wallet",
+    "loginRequired": "Necesitas iniciar sesión para {{action}}.",
+    "accessDenied": "Acceso Denegado",
+    "adminRequired": "Esta página requiere privilegios de administrador."
+  },
+  "status": {
+    "draft": "borrador",
+    "funding": "financiando",
+    "completed": "completada",
+    "released": "liberada",
+    "cancelled": "cancelada",
+    "active": "Activo",
+    "inactive": "Inactivo"
+  },
+  "buttons": {
+    "cancel": "Cancelar",
+    "save": "Guardar cambios",
+    "back": "Volver",
+    "backToCatalog": "Volver al catálogo",
+    "backToInvoices": "Volver a facturas"
+  },
+  "filters": {
+    "all": "Todas"
+  },
+  "errors": {
+    "failedToLoad": "Error al cargar {{resource}}: {{message}}"
+  },
+  "language": {
+    "en": "EN",
+    "es": "ES"
+  },
+  "participants": "participantes",
+  "collected": "Recaudado",
+  "noItems": "Sin ítems"
+}

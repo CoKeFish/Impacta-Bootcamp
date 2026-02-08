@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {Loader2, Plus, Search} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {getServices} from '@/services/api';
 import {formatXLM} from '@/lib/utils';
@@ -12,6 +13,7 @@ interface ServicePickerProps {
 
 export function ServicePicker({onSelect}: ServicePickerProps) {
     const [search, setSearch] = useState('');
+    const {t} = useTranslation('services');
 
     const {data: services, isLoading} = useQuery({
         queryKey: ['services', search],
@@ -24,7 +26,7 @@ export function ServicePicker({onSelect}: ServicePickerProps) {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
                 <input
                     type="text"
-                    placeholder="Search services..."
+                    placeholder={t('picker.searchPlaceholder')}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -38,7 +40,7 @@ export function ServicePicker({onSelect}: ServicePickerProps) {
             )}
 
             {services && services.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">No services found</p>
+                <p className="text-sm text-muted-foreground text-center py-4">{t('picker.noResults')}</p>
             )}
 
             {services && services.length > 0 && (

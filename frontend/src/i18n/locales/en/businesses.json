@@ -1,0 +1,46 @@
+{
+  "myBusinesses": {
+    "title": "My Businesses",
+    "subtitle": "Manage your businesses and their services",
+    "register": "Register business",
+    "noBusiness": "You haven't registered any businesses yet.",
+    "registerFirst": "Register your first business"
+  },
+  "register": {
+    "title": "Register your business",
+    "subtitle": "List your business on CoTravel so organizers can include your services in group invoices.",
+    "nameLabel": "Business name *",
+    "namePlaceholder": "My Amazing Hotel",
+    "categoryLabel": "Category",
+    "categoryPlaceholder": "Select a category",
+    "categoryHotel": "Hotel",
+    "categoryTransport": "Transport",
+    "categoryRestaurant": "Restaurant",
+    "categoryExperience": "Experience",
+    "categoryOther": "Other",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Tell organizers about your business...",
+    "walletLabel": "Stellar wallet address",
+    "walletPlaceholder": "G... (where you'll receive payments)",
+    "useThisWallet": "Use this wallet",
+    "emailLabel": "Contact email",
+    "emailPlaceholder": "contact@business.com",
+    "registering": "Registering...",
+    "registerButton": "Register business"
+  },
+  "profile": {
+    "services": "Services",
+    "addService": "Add service",
+    "noServices": "No services listed yet.",
+    "noServicesOwner": " Add your first service to start receiving payments.",
+    "edit": "Edit",
+    "owner": "Owner: {{name}}"
+  },
+  "edit": {
+    "title": "Edit Business",
+    "subtitle": "Update your business information.",
+    "paymentWalletLabel": "Payment wallet (Stellar)",
+    "walletPlaceholder": "G...",
+    "categoryPlaceholder": "e.g. Travel, Food, Transport"
+  }
+}

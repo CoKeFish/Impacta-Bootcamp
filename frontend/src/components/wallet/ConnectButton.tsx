@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import {Loader2, LogOut, Wallet} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {useAuth} from '@/hooks/useAuth';
 import {truncateAddress} from '@/lib/utils';
@@ -8,6 +9,7 @@ export function ConnectButton() {
     const {address, isAuthenticated, connectWallet, disconnectWallet} = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const {t} = useTranslation();
 
     const handleConnect = async () => {
         setLoading(true);
@@ -15,7 +17,7 @@ export function ConnectButton() {
         try {
             await connectWallet();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Connection failed');
+            setError(err instanceof Error ? err.message : t('wallet.connectionFailed'));
         } finally {
             setLoading(false);
         }
@@ -29,7 +31,7 @@ export function ConnectButton() {
         </span>
                 <Button variant="outline" size="sm" onClick={disconnectWallet}>
                     <LogOut className="h-4 w-4"/>
-                    <span className="hidden sm:inline">Disconnect</span>
+                    <span className="hidden sm:inline">{t('wallet.disconnect')}</span>
                 </Button>
             </div>
         );
@@ -43,7 +45,7 @@ export function ConnectButton() {
                 ) : (
                     <Wallet className="h-4 w-4"/>
                 )}
-                {loading ? 'Connecting...' : 'Connect Wallet'}
+                {loading ? t('wallet.connecting') : t('wallet.connect')}
             </Button>
             {error && (
                 <span className="text-xs text-destructive max-w-[200px] text-right">{error}</span>

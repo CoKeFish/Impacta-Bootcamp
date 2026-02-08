@@ -1,0 +1,23 @@
+{
+  "hero": {
+    "title": "Group invoices,",
+    "titleHighlight": "funded together",
+    "subtitle": "CoTravel makes group payments transparent and trustless. Collect contributions, enforce fair rules, and release funds — all secured by Stellar smart contracts.",
+    "ctaInvoices": "My invoices",
+    "ctaServices": "Browse services"
+  },
+  "features": {
+    "coordination": {
+      "title": "Group coordination",
+      "description": "Organize group payments, set budgets, and track contributions in real time."
+    },
+    "escrow": {
+      "title": "Escrow on-chain",
+      "description": "Funds are held in a Soroban smart contract. No one can misuse the budget."
+    },
+    "penalties": {
+      "title": "Fair penalties",
+      "description": "If someone drops out, the penalty is automatically handled by the smart contract."
+    }
+  }
+}

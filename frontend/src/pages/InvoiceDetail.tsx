@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {toast} from 'sonner';
+import {useTranslation} from 'react-i18next';
 import {
     AlertTriangle,
     ArrowLeft,
@@ -33,7 +34,7 @@ import {
     releaseInvoice,
     withdrawFromInvoice,
 } from '@/services/api';
-import {formatXLM, truncateAddress} from '@/lib/utils';
+import {formatDateShort, formatXLM, truncateAddress} from '@/lib/utils';
 import {
     buildAndSign,
     buildCancelTx,
@@ -80,6 +81,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const queryClient = useQueryClient();
+    const {t} = useTranslation('invoices');
 
     const isOrganizer = userId === invoice.organizer_id;
     const myParticipation = participants.find((p) => p.user_id === userId);
@@ -101,7 +103,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
             queryClient.invalidateQueries({queryKey: ['myInvoices']});
             onActionComplete();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Operation failed');
+            setError(err instanceof Error ? err.message : t('actions.operationFailed'));
         } finally {
             setActionLoading(null);
         }
@@ -113,7 +115,6 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
         handleAction('link', async () => {
             if (!userWallet || !invoice.items) return;
 
-            // Validate all recipient wallets before building the transaction
             const invalidItems = invoice.items.filter((item) => {
                 if (!item.recipient_wallet) return false;
                 return !/^G[A-Z2-7]{55}$/.test(item.recipient_wallet);
@@ -284,7 +285,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
         return (
             <Card>
                 <CardContent className="py-6 text-center text-muted-foreground">
-                    Connect your wallet to interact with this invoice.
+                    {t('actions.connectToInteract')}
                 </CardContent>
             </Card>
         );
@@ -296,14 +297,14 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="text-lg">Actions</CardTitle>
+                <CardTitle className="text-lg">{t('detail.actions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
                 {/* ── DRAFT ────────────────────────────────────────────── */}
                 {invoice.status === 'draft' && isOrganizer && (
                     <>
                         <div className="p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
-                            This invoice is in draft. Link it to the blockchain to start accepting contributions.
+                            {t('actions.draftInfo')}
                         </div>
                         <Button
                             className="w-full"
@@ -315,7 +316,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                             ) : (
                                 <Send className="h-4 w-4 mr-1"/>
                             )}
-                            Link to blockchain
+                            {t('actions.linkToBlockchain')}
                         </Button>
                         <Button
                             variant="destructive"
@@ -324,7 +325,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                             disabled={!!actionLoading}
                         >
                             {isLoading('cancel') && <Loader2 className="h-4 w-4 animate-spin mr-1"/>}
-                            <X className="h-4 w-4 mr-1"/> Cancel invoice
+                            <X className="h-4 w-4 mr-1"/> {t('actions.cancelInvoice')}
                         </Button>
                     </>
                 )}
@@ -344,7 +345,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 ) : (
                                     <LogIn className="h-4 w-4 mr-1"/>
                                 )}
-                                Join this invoice
+                                {t('actions.joinInvoice')}
                             </Button>
                         )}
 
@@ -352,10 +353,10 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                         {isParticipant && isActive && (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">
-                                    Contribute
+                                    {t('actions.contribute')}
                                     {hasContributed && (
                                         <span className="text-muted-foreground font-normal ml-1">
-                                            (current: {formatXLM(myParticipation.contributed_amount)} XLM)
+                                            {t('actions.currentContribution', {amount: formatXLM(myParticipation.contributed_amount)})}
                                         </span>
                                     )}
                                 </label>
@@ -365,7 +366,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                         min="0"
                                         step="0.01"
                                         max={remaining}
-                                        placeholder={`Max ${formatXLM(remaining)} XLM`}
+                                        placeholder={t('actions.maxContribution', {amount: formatXLM(remaining)})}
                                         value={contributeAmount}
                                         onChange={(e) => setContributeAmount(e.target.value)}
                                         className={inputClass}
@@ -397,11 +398,11 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 ) : (
                                     <Undo2 className="h-4 w-4 mr-1"/>
                                 )}
-                                Withdraw
+                                {t('actions.withdraw')}
                                 {invoice.version > (myParticipation?.contributed_at_version ?? 0)
-                                    ? ' (no penalty - invoice modified)'
+                                    ? t('actions.withdrawNoPenalty')
                                     : invoice.penalty_percent > 0
-                                        ? ` (${invoice.penalty_percent}% penalty)`
+                                        ? t('actions.withdrawPenalty', {percent: invoice.penalty_percent})
                                         : ''}
                             </Button>
                         )}
@@ -418,7 +419,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 ) : (
                                     <Check className="h-4 w-4 mr-1"/>
                                 )}
-                                Release funds
+                                {t('actions.releaseFunds')}
                             </Button>
                         )}
 
@@ -431,7 +432,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 disabled={!!actionLoading}
                             >
                                 {isLoading('cancel') && <Loader2 className="h-4 w-4 animate-spin mr-1"/>}
-                                <X className="h-4 w-4 mr-1"/> Cancel & refund all
+                                <X className="h-4 w-4 mr-1"/> {t('actions.cancelRefund')}
                             </Button>
                         )}
 
@@ -448,7 +449,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 ) : (
                                     <Clock className="h-4 w-4 mr-1"/>
                                 )}
-                                Claim deadline (refund all)
+                                {t('actions.claimDeadline')}
                             </Button>
                         )}
                     </>
@@ -459,12 +460,14 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                     <>
                         <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/20 text-sm">
                             <div className="flex items-center gap-2 text-green-800 dark:text-green-200 font-medium">
-                                <Check className="h-4 w-4"/> Target reached!
+                                <Check className="h-4 w-4"/> {t('actions.targetReached')}
                             </div>
                             {!invoice.auto_release && (
                                 <p className="text-green-700 dark:text-green-300 mt-1">
-                                    Waiting for participant confirmations
-                                    ({invoice.confirmation_count}/{invoice.participant_count}).
+                                    {t('actions.waitingConfirmations', {
+                                        count: invoice.confirmation_count,
+                                        total: invoice.participant_count
+                                    })}
                                 </p>
                             )}
                         </div>
@@ -481,13 +484,13 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 ) : (
                                     <Check className="h-4 w-4 mr-1"/>
                                 )}
-                                Confirm release
+                                {t('actions.confirmRelease')}
                             </Button>
                         )}
 
                         {myParticipation?.confirmed_release && (
                             <div className="text-sm text-muted-foreground text-center">
-                                You've already confirmed the release.
+                                {t('actions.alreadyConfirmed')}
                             </div>
                         )}
 
@@ -504,7 +507,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 ) : (
                                     <Undo2 className="h-4 w-4 mr-1"/>
                                 )}
-                                Withdraw ({invoice.penalty_percent}% penalty)
+                                {t('actions.withdrawPenaltyShort', {percent: invoice.penalty_percent})}
                             </Button>
                         )}
 
@@ -520,7 +523,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 ) : (
                                     <Send className="h-4 w-4 mr-1"/>
                                 )}
-                                Release funds (organizer override)
+                                {t('actions.releaseOrganizer')}
                             </Button>
                         )}
                     </>
@@ -531,7 +534,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                     <div
                         className="p-3 rounded-lg bg-green-50 dark:bg-green-950/20 text-sm text-green-800 dark:text-green-200 text-center">
                         <Check className="h-5 w-5 mx-auto mb-1"/>
-                        Funds have been released to the recipients.
+                        {t('actions.fundsReleased')}
                     </div>
                 )}
 
@@ -540,7 +543,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                     <div
                         className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20 text-sm text-red-800 dark:text-red-200 text-center">
                         <X className="h-5 w-5 mx-auto mb-1"/>
-                        This invoice has been cancelled. All funds were refunded.
+                        {t('actions.invoiceCancelled')}
                     </div>
                 )}
 
@@ -564,12 +567,14 @@ export function InvoiceDetail() {
     const invoiceId = Number(id);
     const navigate = useNavigate();
     const {address: userWallet, user, isAuthenticated} = useAuth();
+    const {t} = useTranslation('invoices');
+    const {t: tc} = useTranslation();
 
     const {data: invoice, isLoading, error, refetch} = useQuery({
         queryKey: ['invoice', invoiceId],
         queryFn: () => getInvoice(invoiceId),
         enabled: !isNaN(invoiceId) && isAuthenticated,
-        refetchInterval: 15_000, // Poll every 15s for live updates
+        refetchInterval: 15_000,
         retry: false,
     });
 
@@ -592,8 +597,8 @@ export function InvoiceDetail() {
     if (!isAuthenticated) {
         return (
             <div className="container py-20 text-center">
-                <h2 className="text-2xl font-bold mb-2">Connect your wallet</h2>
-                <p className="text-muted-foreground">You need to be logged in to view invoice details.</p>
+                <h2 className="text-2xl font-bold mb-2">{tc('auth.connectWallet')}</h2>
+                <p className="text-muted-foreground">{tc('auth.loginRequired', {action: t('dashboard.title').toLowerCase()})}</p>
             </div>
         );
     }
@@ -625,7 +630,7 @@ export function InvoiceDetail() {
         <div className="container py-8 space-y-6 max-w-4xl">
             <Button asChild variant="ghost" size="sm">
                 <Link to="/invoices">
-                    <ArrowLeft className="h-4 w-4 mr-1"/> Back
+                    <ArrowLeft className="h-4 w-4 mr-1"/> {tc('buttons.back')}
                 </Link>
             </Button>
 
@@ -641,10 +646,10 @@ export function InvoiceDetail() {
                             <Badge variant="warning">v{invoice.version}</Badge>
                         )}
                         <Badge variant={statusVariant[invoice.status] ?? 'secondary'}>
-                            {invoice.status}
+                            {tc(`status.${invoice.status}`)}
                         </Badge>
                         {invoice.auto_release && (
-                            <Badge variant="outline">Auto-release</Badge>
+                            <Badge variant="outline">{t('detail.autoRelease')}</Badge>
                         )}
                     </div>
                 </div>
@@ -653,10 +658,10 @@ export function InvoiceDetail() {
                 )}
                 <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
-                        Organized by {invoice.organizer_name ?? truncateAddress(invoice.organizer_wallet)}
+                        {t('detail.organizedBy', {name: invoice.organizer_name ?? truncateAddress(invoice.organizer_wallet)})}
                         {invoice.contract_invoice_id != null && (
                             <span className="ml-2 text-xs font-mono opacity-60">
-                                (pool #{invoice.contract_invoice_id})
+                                ({t('detail.pool', {id: invoice.contract_invoice_id})})
                             </span>
                         )}
                     </p>
@@ -664,11 +669,11 @@ export function InvoiceDetail() {
                         <Button variant="outline" size="sm" onClick={handleCopyInviteLink}>
                             {copied ? (
                                 <>
-                                    <Check className="h-4 w-4 mr-1"/> Copied!
+                                    <Check className="h-4 w-4 mr-1"/> {t('detail.copied')}
                                 </>
                             ) : (
                                 <>
-                                    <Share2 className="h-4 w-4 mr-1"/> Copy invite link
+                                    <Share2 className="h-4 w-4 mr-1"/> {t('detail.copyInviteLink')}
                                 </>
                             )}
                         </Button>
@@ -684,10 +689,8 @@ export function InvoiceDetail() {
                         version={invoice.version}
                         contributedAtVersion={myParticipation.contributed_at_version}
                         onConfirm={() => {
-                            /* Confirm is handled via continue contributing */
                         }}
                         onOptOut={() => {
-                            /* Withdraw handles opt-out (penalty-free) */
                         }}
                     />
                 )}
@@ -697,12 +700,12 @@ export function InvoiceDetail() {
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                            <Target className="h-4 w-4"/> Budget
+                            <Target className="h-4 w-4"/> {t('detail.budget')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{formatXLM(collected)} XLM</div>
-                        <p className="text-xs text-muted-foreground">of {formatXLM(target)} XLM target</p>
+                        <p className="text-xs text-muted-foreground">{t('detail.ofTarget', {amount: formatXLM(target)})}</p>
                         <ProgressBar collected={collected} target={target} className="mt-2"/>
                     </CardContent>
                 </Card>
@@ -710,15 +713,18 @@ export function InvoiceDetail() {
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                            <Users className="h-4 w-4"/> Participants
+                            <Users className="h-4 w-4"/> {t('detail.participantsTitle')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{invoice.participant_count}</div>
-                        <p className="text-xs text-muted-foreground">min {invoice.min_participants} required</p>
+                        <p className="text-xs text-muted-foreground">{t('detail.minRequired', {count: invoice.min_participants})}</p>
                         {invoice.status === 'completed' && !invoice.auto_release && (
                             <p className="text-xs text-primary mt-1">
-                                {invoice.confirmation_count}/{invoice.participant_count} confirmed
+                                {t('detail.confirmed', {
+                                    count: invoice.confirmation_count,
+                                    total: invoice.participant_count
+                                })}
                             </p>
                         )}
                     </CardContent>
@@ -727,18 +733,15 @@ export function InvoiceDetail() {
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                            <Calendar className="h-4 w-4"/> Deadline
+                            <Calendar className="h-4 w-4"/> {t('detail.deadline')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">
-                            {new Date(invoice.deadline).toLocaleDateString('es', {
-                                day: 'numeric',
-                                month: 'short',
-                            })}
+                            {formatDateShort(invoice.deadline)}
                         </div>
                         <p className={`text-xs mt-0.5 ${deadlinePassed ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
-                            {deadlinePassed ? 'Deadline passed!' : `${invoice.penalty_percent}% withdrawal penalty`}
+                            {deadlinePassed ? t('detail.deadlinePassed') : t('detail.withdrawalPenalty', {percent: invoice.penalty_percent})}
                         </p>
                     </CardContent>
                 </Card>
@@ -757,14 +760,14 @@ export function InvoiceDetail() {
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
-                        <Receipt className="h-5 w-5"/> Items ({invoice.items?.length ?? 0})
+                        <Receipt className="h-5 w-5"/> {t('detail.items', {count: invoice.items?.length ?? 0})}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     {invoice.items ? (
                         <InvoiceItemsList items={invoice.items}/>
                     ) : (
-                        <p className="text-sm text-muted-foreground">No items</p>
+                        <p className="text-sm text-muted-foreground">{tc('noItems')}</p>
                     )}
                 </CardContent>
             </Card>
@@ -773,7 +776,7 @@ export function InvoiceDetail() {
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
-                        <Users className="h-5 w-5"/> Participants ({participants.length})
+                        <Users className="h-5 w-5"/> {t('detail.participantsList', {count: participants.length})}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -793,11 +796,12 @@ export function InvoiceDetail() {
                                         )}
                                         {p.confirmed_release && (
                                             <Badge variant="success" className="text-xs">
-                                                <Check className="h-3 w-3 mr-0.5"/> confirmed
+                                                <Check
+                                                    className="h-3 w-3 mr-0.5"/> {t('actions.confirmRelease').toLowerCase()}
                                             </Badge>
                                         )}
                                         {p.wallet_address === userWallet && (
-                                            <Badge variant="outline" className="text-xs">you</Badge>
+                                            <Badge variant="outline" className="text-xs">{t('detail.you')}</Badge>
                                         )}
                                     </div>
                                     <div className="text-right">
@@ -812,7 +816,7 @@ export function InvoiceDetail() {
                             ))}
                         </div>
                     ) : (
-                        <p className="text-sm text-muted-foreground">No participants yet</p>
+                        <p className="text-sm text-muted-foreground">{t('detail.noParticipants')}</p>
                     )}
                 </CardContent>
             </Card>

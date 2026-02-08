@@ -1,0 +1,32 @@
+{
+  "dashboard": {
+    "title": "Panel de Administración",
+    "subtitle": "Vista general del sistema y gestión",
+    "users": "Usuarios",
+    "registeredUsers": "Usuarios registrados",
+    "businesses": "Negocios",
+    "registeredBusinesses": "Negocios registrados",
+    "invoices": "Facturas",
+    "totalInvoices": "Total de facturas"
+  },
+  "users": {
+    "title": "Gestión de Usuarios",
+    "totalUsers": "{{count}} usuarios en total",
+    "usersCard": "Usuarios",
+    "revokeAdmin": "Revocar admin",
+    "makeAdmin": "Hacer admin"
+  },
+  "businesses": {
+    "title": "Todos los Negocios",
+    "totalBusinesses": "{{count}} negocios en total",
+    "businessesCard": "Negocios"
+  },
+  "invoices": {
+    "title": "Todas las Facturas",
+    "totalInvoices": "{{count}} facturas en total",
+    "invoicesCard": "Facturas",
+    "organizer": "Organizador: {{name}}"
+  },
+  "loading": "Cargando...",
+  "backToAdmin": "Admin"
+}

@@ -1,39 +1,40 @@
 import {Link} from 'react-router-dom';
 import {ArrowRight, FileText, Shield, Users, Wallet} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 
-const features = [
-    {
-        icon: Users,
-        title: 'Group coordination',
-        description: 'Organize group payments, set budgets, and track contributions in real time.',
-    },
-    {
-        icon: Shield,
-        title: 'Escrow on-chain',
-        description: 'Funds are held in a Soroban smart contract. No one can misuse the budget.',
-    },
-    {
-        icon: Wallet,
-        title: 'Fair penalties',
-        description: 'If someone drops out, the penalty is automatically handled by the smart contract.',
-    },
-];
-
 export function Landing() {
+    const {t} = useTranslation('landing');
+
+    const features = [
+        {
+            icon: Users,
+            title: t('features.coordination.title'),
+            description: t('features.coordination.description'),
+        },
+        {
+            icon: Shield,
+            title: t('features.escrow.title'),
+            description: t('features.escrow.description'),
+        },
+        {
+            icon: Wallet,
+            title: t('features.penalties.title'),
+            description: t('features.penalties.description'),
+        },
+    ];
+
     return (
         <div className="flex flex-col">
             {/* Hero */}
             <section className="container flex flex-col items-center gap-8 pb-16 pt-20 text-center md:pt-32">
                 <div className="mx-auto max-w-3xl space-y-4">
                     <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-                        Group invoices,{' '}
-                        <span className="text-primary">funded together</span>
+                        {t('hero.title')}{' '}
+                        <span className="text-primary">{t('hero.titleHighlight')}</span>
                     </h1>
                     <p className="mx-auto max-w-xl text-lg text-muted-foreground">
-                        CoTravel makes group payments transparent and trustless.
-                        Collect contributions, enforce fair rules, and release funds &mdash;
-                        all secured by Stellar smart contracts.
+                        {t('hero.subtitle')}
                     </p>
                 </div>
 
@@ -41,12 +42,12 @@ export function Landing() {
                     <Button asChild size="lg">
                         <Link to="/invoices">
                             <FileText className="mr-2 h-4 w-4"/>
-                            My invoices
+                            {t('hero.ctaInvoices')}
                         </Link>
                     </Button>
                     <Button asChild variant="outline" size="lg">
                         <Link to="/services">
-                            Browse services <ArrowRight className="ml-2 h-4 w-4"/>
+                            {t('hero.ctaServices')} <ArrowRight className="ml-2 h-4 w-4"/>
                         </Link>
                     </Button>
                 </div>

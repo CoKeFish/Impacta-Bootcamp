@@ -1,23 +1,50 @@
 import {useState} from 'react';
 import {Link, useLocation} from 'react-router-dom';
-import {FileText, Menu, Store, X} from 'lucide-react';
+import {FileText, Globe, Menu, Store, X} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {ConnectButton} from '@/components/wallet/ConnectButton';
 import {cn} from '@/lib/utils';
 import {useAuth} from '@/hooks/useAuth';
+import {type SupportedLanguage, supportedLanguages} from '@/i18n';
 
-const publicLinks = [
-    {href: '/services', label: 'Services', icon: Store},
-];
+function LanguageToggle() {
+    const {i18n} = useTranslation();
+    const currentLang = (supportedLanguages.includes(i18n.language as SupportedLanguage)
+        ? i18n.language
+        : 'en') as SupportedLanguage;
 
-const authLinks = [
-    {href: '/invoices', label: 'Invoices', icon: FileText},
-    {href: '/businesses', label: 'My Businesses', icon: Store},
-];
+    const toggle = () => {
+        const idx = supportedLanguages.indexOf(currentLang);
+        const next = supportedLanguages[(idx + 1) % supportedLanguages.length];
+        i18n.changeLanguage(next);
+    };
+
+    return (
+        <button
+            onClick={toggle}
+            className="flex items-center gap-1.5 px-2 py-1 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            title={currentLang === 'en' ? 'Cambiar a Español' : 'Switch to English'}
+        >
+            <Globe className="h-4 w-4"/>
+            <span>{currentLang.toUpperCase()}</span>
+        </button>
+    );
+}
 
 export function Header() {
     const location = useLocation();
     const {isAuthenticated} = useAuth();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const {t} = useTranslation();
+
+    const publicLinks = [
+        {href: '/services', label: t('nav.services'), icon: Store},
+    ];
+
+    const authLinks = [
+        {href: '/invoices', label: t('nav.invoices'), icon: FileText},
+        {href: '/businesses', label: t('nav.myBusinesses'), icon: Store},
+    ];
 
     const links = [
         ...publicLinks,
@@ -53,6 +80,9 @@ export function Header() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <div className="hidden md:block">
+                        <LanguageToggle/>
+                    </div>
                     <ConnectButton/>
                     <button
                         className="md:hidden p-2 rounded-md hover:bg-muted"
@@ -94,9 +124,12 @@ export function Header() {
                                         : 'text-muted-foreground',
                                 )}
                             >
-                                Profile
+                                {t('nav.profile')}
                             </Link>
                         )}
+                        <div className="border-t mt-2 pt-2">
+                            <LanguageToggle/>
+                        </div>
                     </nav>
                 </div>
             )}

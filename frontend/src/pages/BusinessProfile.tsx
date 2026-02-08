@@ -1,6 +1,7 @@
 import {Link, useParams} from 'react-router-dom';
 import {useQuery} from '@tanstack/react-query';
 import {ArrowLeft, Edit, Loader2, Mail, Plus, Store, Wallet} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
@@ -9,6 +10,8 @@ import {formatXLM, truncateAddress} from '@/lib/utils';
 import {useAuth} from '@/hooks/useAuth';
 
 export function BusinessProfile() {
+    const {t} = useTranslation('businesses');
+    const {t: tc} = useTranslation();
     const {id} = useParams<{ id: string }>();
     const businessId = Number(id);
     const {user} = useAuth();
@@ -40,7 +43,7 @@ export function BusinessProfile() {
             <div className="container py-20 text-center">
                 <p className="text-destructive">{error?.message ?? 'Business not found'}</p>
                 <Button asChild variant="link" className="mt-4">
-                    <Link to="/services">Back to catalog</Link>
+                    <Link to="/services">{tc('buttons.backToCatalog')}</Link>
                 </Button>
             </div>
         );
@@ -50,7 +53,7 @@ export function BusinessProfile() {
         <div className="container py-8 space-y-6 max-w-4xl">
             <Button asChild variant="ghost" size="sm">
                 <Link to="/services">
-                    <ArrowLeft className="h-4 w-4 mr-1"/> Back to catalog
+                    <ArrowLeft className="h-4 w-4 mr-1"/> {tc('buttons.backToCatalog')}
                 </Link>
             </Button>
 
@@ -71,7 +74,7 @@ export function BusinessProfile() {
                             <Badge variant="secondary">{business.category}</Badge>
                         )}
                         {!business.active && (
-                            <Badge variant="destructive">Inactive</Badge>
+                            <Badge variant="destructive">{tc('status.inactive')}</Badge>
                         )}
                     </div>
                     {business.description && (
@@ -95,7 +98,7 @@ export function BusinessProfile() {
                 {isOwner && (
                     <Button asChild variant="outline" size="sm">
                         <Link to={`/businesses/${businessId}/edit`}>
-                            <Edit className="h-4 w-4 mr-1"/> Edit
+                            <Edit className="h-4 w-4 mr-1"/> {t('profile.edit')}
                         </Link>
                     </Button>
                 )}
@@ -104,11 +107,11 @@ export function BusinessProfile() {
             {/* Services */}
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-lg">Services</CardTitle>
+                    <CardTitle className="text-lg">{t('profile.services')}</CardTitle>
                     {isOwner && (
                         <Button asChild size="sm">
                             <Link to={`/businesses/${businessId}/services/new`}>
-                                <Plus className="h-4 w-4 mr-1"/> Add service
+                                <Plus className="h-4 w-4 mr-1"/> {t('profile.addService')}
                             </Link>
                         </Button>
                     )}
@@ -123,7 +126,8 @@ export function BusinessProfile() {
                                         <div className="flex items-center gap-2">
                                             <p className="font-medium text-sm">{service.name}</p>
                                             {!service.active && (
-                                                <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                                                <Badge variant="secondary"
+                                                       className="text-xs">{tc('status.inactive')}</Badge>
                                             )}
                                         </div>
                                         {service.description && (
@@ -147,8 +151,8 @@ export function BusinessProfile() {
                         </div>
                     ) : (
                         <p className="text-sm text-muted-foreground">
-                            No services listed yet.
-                            {isOwner && ' Add your first service to start receiving payments.'}
+                            {t('profile.noServices')}
+                            {isOwner && t('profile.noServicesOwner')}
                         </p>
                     )}
                 </CardContent>

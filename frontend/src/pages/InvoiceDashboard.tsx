@@ -2,12 +2,14 @@ import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {Loader2, Plus} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {getMyInvoices} from '@/services/api';
 import {ProgressBar} from '@/components/invoice/ProgressBar';
 import {useAuth} from '@/hooks/useAuth';
+import {formatDateShort} from '@/lib/utils';
 import type {Invoice} from '@/types';
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destructive' | 'warning'> = {
@@ -21,6 +23,8 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destr
 const statusFilters = ['all', 'draft', 'funding', 'completed', 'released', 'cancelled'] as const;
 
 function InvoiceCard({invoice}: { invoice: Invoice }) {
+    const {t} = useTranslation('invoices');
+    const {t: tc} = useTranslation();
     const collected = parseFloat(invoice.total_collected);
     const target = parseFloat(invoice.total_amount);
 
@@ -34,7 +38,7 @@ function InvoiceCard({invoice}: { invoice: Invoice }) {
                             <CardTitle className="text-lg line-clamp-1">{invoice.name}</CardTitle>
                         </div>
                         <Badge variant={statusVariant[invoice.status] ?? 'secondary'}>
-                            {invoice.status}
+                            {tc(`status.${invoice.status}`)}
                         </Badge>
                     </div>
                     {invoice.description && (
@@ -45,10 +49,8 @@ function InvoiceCard({invoice}: { invoice: Invoice }) {
                     <ProgressBar collected={collected} target={target}/>
                 </CardContent>
                 <CardFooter className="text-xs text-muted-foreground justify-between">
-                    <span>{invoice.participant_count} participants</span>
-                    <span>
-                        {new Date(invoice.deadline).toLocaleDateString('es', {day: 'numeric', month: 'short'})}
-                    </span>
+                    <span>{t('dashboard.participants', {count: invoice.participant_count})}</span>
+                    <span>{formatDateShort(invoice.deadline)}</span>
                 </CardFooter>
             </Card>
         </Link>
@@ -58,6 +60,8 @@ function InvoiceCard({invoice}: { invoice: Invoice }) {
 export function InvoiceDashboard() {
     const {isAuthenticated} = useAuth();
     const [filter, setFilter] = useState<string>('all');
+    const {t} = useTranslation('invoices');
+    const {t: tc} = useTranslation();
 
     const {data, isLoading, error} = useQuery({
         queryKey: ['myInvoices'],
@@ -73,8 +77,8 @@ export function InvoiceDashboard() {
     if (!isAuthenticated) {
         return (
             <div className="container py-20 text-center">
-                <h2 className="text-2xl font-bold mb-2">Connect your wallet</h2>
-                <p className="text-muted-foreground">You need to be logged in to view your invoices.</p>
+                <h2 className="text-2xl font-bold mb-2">{tc('auth.connectWallet')}</h2>
+                <p className="text-muted-foreground">{tc('auth.loginRequired', {action: t('dashboard.title').toLowerCase()})}</p>
             </div>
         );
     }
@@ -83,12 +87,12 @@ export function InvoiceDashboard() {
         <div className="container py-8 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">My Invoices</h1>
-                    <p className="text-muted-foreground">Invoices you organize or participate in</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
+                    <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
                 </div>
                 <Button asChild>
                     <Link to="/invoices/new">
-                        <Plus className="h-4 w-4 mr-1"/> New invoice
+                        <Plus className="h-4 w-4 mr-1"/> {t('dashboard.newInvoice')}
                     </Link>
                 </Button>
             </div>
@@ -105,7 +109,7 @@ export function InvoiceDashboard() {
                                 : 'bg-background text-muted-foreground border-border hover:bg-muted'
                         }`}
                     >
-                        {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+                        {s === 'all' ? tc('filters.all') : tc(`status.${s}`)}
                         {s !== 'all' && (
                             <span className="ml-1 opacity-70">
                                 ({invoices.filter((inv) => inv.status === s).length})
@@ -124,15 +128,15 @@ export function InvoiceDashboard() {
             {error && (
                 <div
                     className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center text-sm text-destructive">
-                    Failed to load invoices: {error.message}
+                    {tc('errors.failedToLoad', {resource: t('dashboard.title').toLowerCase(), message: error.message})}
                 </div>
             )}
 
             {!isLoading && filtered.length === 0 && (
                 <div className="text-center py-20 text-muted-foreground">
                     {filter === 'all'
-                        ? 'No invoices yet. Create your first one!'
-                        : `No invoices with status "${filter}".`}
+                        ? t('dashboard.noInvoices')
+                        : t('dashboard.noInvoicesFiltered', {filter: tc(`status.${filter}`)})}
                 </div>
             )}
 

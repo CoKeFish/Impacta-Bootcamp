@@ -2,11 +2,12 @@ import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {ArrowLeft, Loader2} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {getAdminInvoices} from '@/services/api';
-import {formatXLM, truncateAddress} from '@/lib/utils';
+import {formatDateFull, formatXLM, truncateAddress} from '@/lib/utils';
 import {useAuth} from '@/hooks/useAuth';
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destructive' | 'warning'> = {
@@ -18,6 +19,8 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destr
 };
 
 export function AdminInvoices() {
+    const {t} = useTranslation('admin');
+    const {t: tc} = useTranslation();
     const {isAuthenticated, user} = useAuth();
     const [page] = useState(1);
 
@@ -30,8 +33,8 @@ export function AdminInvoices() {
     if (!isAuthenticated || user?.role !== 'admin') {
         return (
             <div className="container py-20 text-center">
-                <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-                <p className="text-muted-foreground">This page requires admin privileges.</p>
+                <h2 className="text-2xl font-bold mb-2">{tc('auth.accessDenied')}</h2>
+                <p className="text-muted-foreground">{tc('auth.adminRequired')}</p>
             </div>
         );
     }
@@ -40,14 +43,14 @@ export function AdminInvoices() {
         <div className="container py-8 space-y-6">
             <Button asChild variant="ghost" size="sm">
                 <Link to="/admin">
-                    <ArrowLeft className="h-4 w-4 mr-1"/> Admin
+                    <ArrowLeft className="h-4 w-4 mr-1"/> {t('backToAdmin')}
                 </Link>
             </Button>
 
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">All Invoices</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t('invoices.title')}</h1>
                 <p className="text-muted-foreground">
-                    {data ? `${data.total} total invoices` : 'Loading...'}
+                    {data ? t('invoices.totalInvoices', {count: data.total}) : t('loading')}
                 </p>
             </div>
 
@@ -67,7 +70,7 @@ export function AdminInvoices() {
             {data && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Invoices</CardTitle>
+                        <CardTitle className="text-lg">{t('invoices.invoicesCard')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
@@ -82,17 +85,17 @@ export function AdminInvoices() {
                                             {inv.icon && <span>{inv.icon}</span>}
                                             <span className="font-medium text-sm">{inv.name}</span>
                                             <Badge variant={statusVariant[inv.status] ?? 'secondary'}>
-                                                {inv.status}
+                                                {tc(`status.${inv.status}`)}
                                             </Badge>
                                         </div>
                                         <p className="text-xs text-muted-foreground mt-0.5">
-                                            Organizer: {inv.organizer_name ?? truncateAddress(inv.organizer_wallet)}
+                                            {t('invoices.organizer', {name: inv.organizer_name ?? truncateAddress(inv.organizer_wallet)})}
                                             {' '}&middot;{' '}
                                             {formatXLM(inv.total_collected)} / {formatXLM(inv.total_amount)} XLM
                                         </p>
                                     </div>
                                     <span className="text-xs text-muted-foreground">
-                                        {new Date(inv.created_at).toLocaleDateString()}
+                                        {formatDateFull(inv.created_at)}
                                     </span>
                                 </Link>
                             ))}

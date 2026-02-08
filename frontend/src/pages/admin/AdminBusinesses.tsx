@@ -2,14 +2,17 @@ import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {ArrowLeft, Loader2} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {getAdminBusinesses} from '@/services/api';
-import {truncateAddress} from '@/lib/utils';
+import {formatDateFull, truncateAddress} from '@/lib/utils';
 import {useAuth} from '@/hooks/useAuth';
 
 export function AdminBusinesses() {
+    const {t} = useTranslation('admin');
+    const {t: tc} = useTranslation();
     const {isAuthenticated, user} = useAuth();
     const [page] = useState(1);
 
@@ -22,8 +25,8 @@ export function AdminBusinesses() {
     if (!isAuthenticated || user?.role !== 'admin') {
         return (
             <div className="container py-20 text-center">
-                <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-                <p className="text-muted-foreground">This page requires admin privileges.</p>
+                <h2 className="text-2xl font-bold mb-2">{tc('auth.accessDenied')}</h2>
+                <p className="text-muted-foreground">{tc('auth.adminRequired')}</p>
             </div>
         );
     }
@@ -32,14 +35,14 @@ export function AdminBusinesses() {
         <div className="container py-8 space-y-6">
             <Button asChild variant="ghost" size="sm">
                 <Link to="/admin">
-                    <ArrowLeft className="h-4 w-4 mr-1"/> Admin
+                    <ArrowLeft className="h-4 w-4 mr-1"/> {t('backToAdmin')}
                 </Link>
             </Button>
 
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">All Businesses</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t('businesses.title')}</h1>
                 <p className="text-muted-foreground">
-                    {data ? `${data.total} total businesses` : 'Loading...'}
+                    {data ? t('businesses.totalBusinesses', {count: data.total}) : t('loading')}
                 </p>
             </div>
 
@@ -59,7 +62,7 @@ export function AdminBusinesses() {
             {data && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Businesses</CardTitle>
+                        <CardTitle className="text-lg">{t('businesses.businessesCard')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
@@ -74,7 +77,7 @@ export function AdminBusinesses() {
                                             <span className="font-medium text-sm">{biz.name}</span>
                                             {biz.category && <Badge variant="secondary">{biz.category}</Badge>}
                                             <Badge variant={biz.active ? 'success' : 'destructive'}>
-                                                {biz.active ? 'Active' : 'Inactive'}
+                                                {biz.active ? tc('status.active') : tc('status.inactive')}
                                             </Badge>
                                         </div>
                                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -82,7 +85,7 @@ export function AdminBusinesses() {
                                         </p>
                                     </div>
                                     <span className="text-xs text-muted-foreground">
-                                        {new Date(biz.created_at).toLocaleDateString()}
+                                        {formatDateFull(biz.created_at)}
                                     </span>
                                 </Link>
                             ))}

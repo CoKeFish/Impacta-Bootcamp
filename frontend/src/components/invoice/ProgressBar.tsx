@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import {formatXLM} from '@/lib/utils';
 
 interface ProgressBarProps {
@@ -7,12 +8,13 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({collected, target, className = ''}: ProgressBarProps) {
+    const {t} = useTranslation();
     const progress = target > 0 ? Math.min((collected / target) * 100, 100) : 0;
 
     return (
         <div className={`space-y-2 ${className}`}>
             <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Collected</span>
+                <span className="text-muted-foreground">{t('collected')}</span>
                 <span className="font-medium">
                     {formatXLM(collected)} / {formatXLM(target)} XLM
                 </span>

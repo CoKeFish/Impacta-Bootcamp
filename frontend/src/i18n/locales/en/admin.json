@@ -1,0 +1,32 @@
+{
+  "dashboard": {
+    "title": "Admin Dashboard",
+    "subtitle": "System overview and management",
+    "users": "Users",
+    "registeredUsers": "Registered users",
+    "businesses": "Businesses",
+    "registeredBusinesses": "Registered businesses",
+    "invoices": "Invoices",
+    "totalInvoices": "Total invoices"
+  },
+  "users": {
+    "title": "User Management",
+    "totalUsers": "{{count}} total users",
+    "usersCard": "Users",
+    "revokeAdmin": "Revoke admin",
+    "makeAdmin": "Make admin"
+  },
+  "businesses": {
+    "title": "All Businesses",
+    "totalBusinesses": "{{count}} total businesses",
+    "businessesCard": "Businesses"
+  },
+  "invoices": {
+    "title": "All Invoices",
+    "totalInvoices": "{{count}} total invoices",
+    "invoicesCard": "Invoices",
+    "organizer": "Organizer: {{name}}"
+  },
+  "loading": "Loading...",
+  "backToAdmin": "Admin"
+}
