@@ -1,15 +1,17 @@
 import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useMutation} from '@tanstack/react-query';
-import {Loader2} from 'lucide-react';
+import {Loader2, Wallet} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {createBusiness} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
+import {useWalletStore} from '@/stores/walletStore';
 
 export function RegisterBusiness() {
     const navigate = useNavigate();
     const {isAuthenticated} = useAuth();
+    const walletAddress = useWalletStore((s) => s.address);
     const [form, setForm] = useState({
         name: '',
         category: '',
@@ -92,8 +94,20 @@ export function RegisterBusiness() {
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="wallet_address" className="text-sm font-medium">Stellar wallet
-                                address</label>
+                            <div className="flex items-center justify-between">
+                                <label htmlFor="wallet_address" className="text-sm font-medium">Stellar wallet
+                                    address</label>
+                                {walletAddress && walletAddress !== form.wallet_address && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setForm((prev) => ({...prev, wallet_address: walletAddress}))}
+                                        className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                                    >
+                                        <Wallet className="h-3 w-3"/>
+                                        Use this wallet
+                                    </button>
+                                )}
+                            </div>
                             <input id="wallet_address" name="wallet_address" value={form.wallet_address}
                                    onChange={handleChange} className={inputClass}
                                    placeholder="G... (where you'll receive payments)"/>

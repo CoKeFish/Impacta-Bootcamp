@@ -16,39 +16,63 @@ Referencia rapida de comandos y flujos para trabajar con el proyecto en local.
 
 ### Levantar servicios
 
+Todos los servicios:
+
 ```bash
-# Todos los servicios
 docker compose up -d
+```
 
-# Solo backend + dependencias (postgres, minio)
+Solo backend + dependencias (postgres, minio):
+
+```bash
 docker compose up -d postgres minio backend
+```
 
-# Solo frontend (requiere backend corriendo)
+Solo frontend (requiere backend corriendo):
+
+```bash
 docker compose up -d frontend
+```
 
-# Servicios de Soroban (nodo local + CLI de desarrollo)
+Servicios de Soroban (nodo local + CLI de desarrollo):
+
+```bash
 docker compose up -d soroban soroban-dev
 ```
 
 ### Detener servicios
 
-```bash
-# Detener todo
-docker compose down
+Detener todo:
 
-# Detener todo y borrar volumenes (reset completo de datos)
+```bash
+docker compose down
+```
+
+Detener todo y borrar volumenes (reset completo de datos):
+
+```bash
 docker compose down -v
 ```
 
 ### Reconstruir imagenes
 
-```bash
-# Reconstruir un servicio especifico (despues de cambiar Dockerfile o package.json)
-docker compose build backend
-docker compose build frontend
-docker compose build soroban-dev
+Reconstruir un servicio especifico (despues de cambiar Dockerfile o package.json):
 
-# Reconstruir y levantar
+```bash
+docker compose build backend
+```
+
+```bash
+docker compose build frontend
+```
+
+```bash
+docker compose build soroban-dev
+```
+
+Reconstruir y levantar:
+
+```bash
 docker compose up -d --build backend
 ```
 
@@ -56,21 +80,37 @@ docker compose up -d --build backend
 
 ```bash
 docker compose restart backend
+```
+
+```bash
 docker compose restart frontend
 ```
 
 ### Ver logs
 
+Logs de un servicio (en vivo):
+
 ```bash
-# Logs de un servicio (en vivo)
 docker compose logs -f backend
+```
+
+```bash
 docker compose logs -f frontend
+```
+
+```bash
 docker compose logs -f postgres
+```
 
-# Logs de todos
+Logs de todos:
+
+```bash
 docker compose logs -f
+```
 
-# Ultimas 50 lineas
+Ultimas 50 lineas:
+
+```bash
 docker compose logs --tail=50 backend
 ```
 
@@ -84,33 +124,51 @@ docker compose ps
 
 ## Terminales Interactivas
 
-Abrir una terminal dentro de cada contenedor:
+### Backend (Node.js)
 
 ```bash
-# Backend (Node.js)
 docker exec -it impacta-backend sh
+```
 
-# Frontend (Node.js)
+### Frontend (Node.js)
+
+```bash
 docker exec -it impacta-frontend sh
+```
 
-# PostgreSQL (psql)
+### PostgreSQL (psql)
+
+```bash
 docker exec -it impacta-postgres psql -U impacta -d impacta_db
+```
 
-# MinIO (mc CLI)
+### MinIO (mc CLI)
+
+```bash
 docker exec -it impacta-minio sh
+```
 
-# Soroban Dev (Rust + Stellar CLI)
+### Soroban Dev (Rust + Stellar CLI)
+
+```bash
 docker exec -it impacta-soroban-dev bash
 ```
 
 ### Consultas rapidas a la base de datos
 
-```bash
-# Abrir psql directamente
-docker exec -it impacta-postgres psql -U impacta -d impacta_db
+Abrir psql directamente:
 
-# Ejecutar una query sin entrar al contenedor
+```bash
+docker exec -it impacta-postgres psql -U impacta -d impacta_db
+```
+
+Ejecutar una query sin entrar al contenedor:
+
+```bash
 docker exec -it impacta-postgres psql -U impacta -d impacta_db -c "SELECT * FROM users;"
+```
+
+```bash
 docker exec -it impacta-postgres psql -U impacta -d impacta_db -c "\dt"
 ```
 
@@ -133,18 +191,43 @@ Abrir en el navegador: http://localhost:9001
 Los tests de integracion usan PostgreSQL y MinIO reales (Docker). Cada test corre dentro de `BEGIN`/`ROLLBACK` para no
 contaminar datos.
 
-```bash
-# Ejecutar todos los tests (88 tests, 8 suites)
-docker compose exec backend npm test
+Ejecutar todos los tests (88 tests, 8 suites):
 
-# Ejecutar una suite especifica
+```bash
+docker compose exec backend npm test
+```
+
+Ejecutar una suite especifica:
+
+```bash
 docker compose exec backend npx jest tests/health.test.js --verbose
+```
+
+```bash
 docker compose exec backend npx jest tests/auth.test.js --verbose
+```
+
+```bash
 docker compose exec backend npx jest tests/users.test.js --verbose
+```
+
+```bash
 docker compose exec backend npx jest tests/businesses.test.js --verbose
+```
+
+```bash
 docker compose exec backend npx jest tests/services.test.js --verbose
+```
+
+```bash
 docker compose exec backend npx jest tests/invoices.test.js --verbose
+```
+
+```bash
 docker compose exec backend npx jest tests/invoiceParticipants.test.js --verbose
+```
+
+```bash
 docker compose exec backend npx jest tests/images.test.js --verbose
 ```
 
@@ -163,12 +246,19 @@ docker compose exec backend npx jest tests/images.test.js --verbose
 
 ### Smart Contract (Rust)
 
-```bash
-# Entrar al contenedor de desarrollo
-docker exec -it impacta-soroban-dev bash
+Entrar al contenedor de desarrollo:
 
-# Dentro del contenedor:
+```bash
+docker exec -it impacta-soroban-dev bash
+```
+
+Dentro del contenedor:
+
+```bash
 cd cotravel-escrow
+```
+
+```bash
 cargo test
 ```
 
@@ -177,60 +267,98 @@ cargo test
 ## Smart Contract (Makefile)
 
 El contrato tiene un Makefile con comandos para compilar, desplegar y operar. Todos se ejecutan **dentro del contenedor
-** `soroban-dev`:
+**
+`soroban-dev`:
 
 ```bash
-# Abrir terminal en el contenedor
 docker exec -it impacta-soroban-dev bash
+```
 
-# Ver todos los comandos disponibles
+Ver todos los comandos disponibles:
+
+```bash
 make help
 ```
 
 ### Comandos principales
 
+Compilar contrato (.rs -> .wasm):
+
 ```bash
-# Compilar contrato (.rs -> .wasm)
 make build
+```
 
-# Tests unitarios
+Tests unitarios:
+
+```bash
 make test
+```
 
-# Setup completo (red + identidades + token)
+Setup completo (red + identidades + token):
+
+```bash
 make setup
+```
 
-# Desplegar contrato en testnet
+Desplegar contrato en testnet:
+
+```bash
 make deploy
+```
 
-# Demo: setup + deploy + crear viaje
+Demo: setup + deploy + crear viaje:
+
+```bash
 make demo
+```
 
-# Demo completo: setup + deploy + contribuciones + release
+Demo completo: setup + deploy + contribuciones + release:
+
+```bash
 make demo-full
 ```
 
 ### Operaciones sobre viajes
 
+Crear viaje:
+
 ```bash
-# Crear viaje
 make create-trip TARGET_AMOUNT=10000000000 MIN_PARTICIPANTS=2 PENALTY_PERCENT=10
+```
 
-# Contribuir (participante 1)
+Contribuir (participante 1):
+
+```bash
 make contribute-p1 AMOUNT=5000000000
+```
 
-# Contribuir (participante 2)
+Contribuir (participante 2):
+
+```bash
 make contribute-p2 AMOUNT=6000000000
+```
 
-# Ver estado del viaje
+Ver estado del viaje:
+
+```bash
 make state TRIP_ID=0
+```
 
-# Ver participantes
+Ver participantes:
+
+```bash
 make participants TRIP_ID=0
+```
 
-# Liberar fondos (solo organizador, cuando esta Completed)
+Liberar fondos (solo organizador, cuando esta Completed):
+
+```bash
 make release TRIP_ID=0
+```
 
-# Cancelar viaje (reembolso total)
+Cancelar viaje (reembolso total):
+
+```bash
 make cancel TRIP_ID=0
 ```
 
@@ -244,11 +372,15 @@ make cancel TRIP_ID=0
 
 El frontend corre en Vite con hot-reload. Los cambios en archivos `.tsx`/`.ts`/`.css` se reflejan automaticamente.
 
-```bash
-# Levantar
-docker compose up -d frontend
+Levantar:
 
-# Ver logs
+```bash
+docker compose up -d frontend
+```
+
+Ver logs:
+
+```bash
 docker compose logs -f frontend
 ```
 
@@ -265,13 +397,17 @@ automaticamente a `http://backend:3000`.
 
 ```bash
 docker compose restart frontend
-# Luego Ctrl+Shift+R en el navegador (hard refresh)
 ```
+
+Luego `Ctrl+Shift+R` en el navegador (hard refresh).
 
 **Error de modulos despues de instalar dependencias**:
 
 ```bash
 docker compose build frontend
+```
+
+```bash
 docker compose up -d frontend
 ```
 
@@ -305,8 +441,10 @@ Las variables estan definidas directamente en `docker-compose.yml` para desarrol
 El schema se carga automaticamente al crear el contenedor de PostgreSQL desde `database/init.sql`. Para forzar un reset:
 
 ```bash
-# Eliminar volumen y recrear
 docker compose down -v
+```
+
+```bash
 docker compose up -d postgres
 ```
 
@@ -314,7 +452,13 @@ docker compose up -d postgres
 
 ```bash
 docker compose stop postgres
+```
+
+```bash
 docker volume rm impacta-bootcamp_postgres_data
+```
+
+```bash
 docker compose up -d postgres
 ```
 

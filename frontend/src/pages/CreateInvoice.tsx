@@ -27,7 +27,7 @@ export function CreateInvoice() {
         name: '',
         description: '',
         min_participants: '2',
-        penalty_percent: '10',
+        penalty_percent: '0',
         deadline: '',
         icon: '',
         auto_release: false,
@@ -244,6 +244,7 @@ export function CreateInvoice() {
                                         name="deadline"
                                         type="date"
                                         required
+                                        min={new Date().toISOString().split('T')[0]}
                                         value={form.deadline}
                                         onChange={handleChange}
                                         className={inputClass}
@@ -335,7 +336,8 @@ export function CreateInvoice() {
                                                 onChange={(e) =>
                                                     handleItemChange(item.key, 'recipient_wallet', e.target.value)
                                                 }
-                                                className={inputClass}
+                                                readOnly={!!item.service_id}
+                                                className={`${inputClass}${item.service_id ? ' opacity-50' : ''}`}
                                             />
                                         </div>
                                     </div>
