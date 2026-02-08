@@ -18,7 +18,6 @@ DROP TABLE IF EXISTS invoice_items CASCADE;
 DROP TABLE IF EXISTS invoices CASCADE;
 DROP TABLE IF EXISTS services CASCADE;
 DROP TABLE IF EXISTS businesses CASCADE;
-DROP TABLE IF EXISTS images CASCADE;
 DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
@@ -78,6 +77,7 @@ CREATE TABLE services
     name        VARCHAR(255)   NOT NULL,
     description TEXT,
     price       DECIMAL(20, 7) NOT NULL,
+    image_url TEXT,
     active      BOOLEAN   DEFAULT true,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -105,7 +105,7 @@ CREATE TABLE invoices
 
     name                VARCHAR(255)   NOT NULL,
     description         TEXT,
-    cover_image_url     TEXT,
+    icon VARCHAR(10),                                   -- Emoji/icono para identificación visual
 
     -- Config del contrato
     total_amount        DECIMAL(20, 7) NOT NULL,
@@ -245,21 +245,6 @@ COMMENT
 ON COLUMN transactions.type IS 'create/contribute/withdraw/release/cancel/confirm_release/update_recipients/claim_deadline';
 
 -- ============================================================================
--- IMÁGENES
--- ============================================================================
-
-CREATE TABLE images
-(
-    id          SERIAL PRIMARY KEY,
-    filename    VARCHAR(255) NOT NULL,
-    mimetype    VARCHAR(100) NOT NULL,
-    size       INTEGER NOT NULL,
-    invoice_id INTEGER REFERENCES invoices (id) ON DELETE SET NULL,
-    uploaded_by INTEGER REFERENCES users (id),
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- ============================================================================
 -- ÍNDICES
 -- ============================================================================
 
@@ -296,9 +281,6 @@ CREATE INDEX idx_tx_invoice ON transactions (invoice_id);
 CREATE INDEX idx_tx_user ON transactions (user_id);
 CREATE INDEX idx_tx_hash ON transactions (tx_hash);
 CREATE INDEX idx_tx_type ON transactions (type);
-
--- Images
-CREATE INDEX idx_images_invoice ON images (invoice_id);
 
 -- ============================================================================
 -- DATOS DE PRUEBA (opcional - comentar en producción)
