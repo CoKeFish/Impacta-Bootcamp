@@ -1,16 +1,13 @@
 const {
     Contract,
     TransactionBuilder,
-    SorobanRpc,
+    rpc: SorobanRpc,
     Address,
     nativeToScVal,
     scValToNative,
     Account,
 } = require('@stellar/stellar-sdk');
-const {server, CONTRACT_ID, NETWORK_PASSPHRASE} = require('../config/soroban');
-
-// Dummy source for read-only simulations (does not need to exist on-chain)
-const DUMMY_SOURCE = 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF';
+const {server, CONTRACT_ID, NETWORK_PASSPHRASE, SIMULATION_SOURCE} = require('../config/soroban');
 
 // Convert BigInt values to strings for JSON serialization
 function sanitize(obj) {
@@ -27,7 +24,7 @@ function sanitize(obj) {
 // Execute a read-only contract call via simulation
 async function callReadOnly(functionName, args = []) {
     const contract = new Contract(CONTRACT_ID);
-    const account = new Account(DUMMY_SOURCE, '0');
+    const account = new Account(SIMULATION_SOURCE, '0');
 
     const tx = new TransactionBuilder(account, {
         fee: '100',
@@ -86,13 +83,33 @@ async function submitTx(signedXdr) {
     };
 }
 
+// ─── Soroban enum helper ──────────────────────────────────────────────────────
+// Soroban unit-variant enums are encoded as ScVec: e.g. Status::Completed →
+//   { vec: [{ symbol: "Completed" }] } → scValToNative returns ["Completed"].
+// This helper normalises any representation to a lowercase string.
+
+function normalizeEnum(val) {
+    if (typeof val === 'string') return val.toLowerCase();
+    if (Array.isArray(val) && val.length > 0) return String(val[0]).toLowerCase();
+    if (typeof val === 'number') return String(val); // integer enum fallback
+    if (val && typeof val === 'object') {
+        const key = Object.keys(val)[0];
+        return key ? key.toLowerCase() : null;
+    }
+    return null;
+}
+
 module.exports = {
     // ─── Read-only contract queries ─────────────────────────────────────────
 
     async getTripState(poolId) {
-        return callReadOnly('get_state', [
+        const raw = await callReadOnly('get_state', [
             nativeToScVal(poolId, {type: 'u64'}),
         ]);
+        if (raw && raw.status !== undefined) {
+            raw.status = normalizeEnum(raw.status);
+        }
+        return raw;
     },
 
     async getPenalty(poolId, walletAddress) {
