@@ -53,7 +53,7 @@ services:
       MINIO_SECRET_KEY: minioadmin123
       SOROBAN_RPC_URL: https://soroban-testnet.stellar.org
       SOROBAN_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
-      CONTRACT_ID: CBZJNP3KVSWCTRQJNF6Y5P55WDIGZ5JSABKDZ4RBGLFUMFZQK5BKFBIC
+      CONTRACT_ID: ${CONTRACT_ID:?Run make deploy in soroban-dev to set CONTRACT_ID in .env}
       JWT_SECRET: cotravel-dev-secret-change-in-production
     volumes:
       - ./backend:/app
@@ -74,10 +74,8 @@ services:
     container_name: impacta-frontend
     environment:
       NODE_ENV: development
-      VITE_DEV_MODE: "true"
-      VITE_DEV_WALLET: "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI"
-      VITE_CONTRACT_ID: CBZJNP3KVSWCTRQJNF6Y5P55WDIGZ5JSABKDZ4RBGLFUMFZQK5BKFBIC
-      VITE_XLM_SAC_ADDRESS: CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
+      VITE_CONTRACT_ID: ${CONTRACT_ID:?Run make deploy in soroban-dev to set CONTRACT_ID in .env}
+      VITE_XLM_SAC_ADDRESS: ${XLM_SAC_ADDRESS:-CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC}
     volumes:
       - ./frontend:/app
       - /app/node_modules
