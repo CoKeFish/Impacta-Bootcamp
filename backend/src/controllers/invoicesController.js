@@ -37,9 +37,17 @@ module.exports = {
                 return res.status(400).json({error: 'Deadline must be in the future'});
             }
 
+            const STELLAR_ADDRESS_RE = /^G[A-Z2-7]{55}$/;
             for (const item of items) {
                 if (!item.description || parseAmount(item.amount) === null) {
                     return res.status(400).json({error: 'Each item must have a description and valid positive amount'});
+                }
+                if (item.recipient_wallet && !STELLAR_ADDRESS_RE.test(item.recipient_wallet)) {
+                    logger.warn({
+                        wallet: item.recipient_wallet,
+                        item: item.description
+                    }, 'Invalid Stellar address in invoice item');
+                    return res.status(400).json({error: `Invalid Stellar wallet address in item: ${item.description}`});
                 }
             }
 
@@ -126,9 +134,15 @@ module.exports = {
                 return res.status(409).json({error: 'Invoice already linked to contract'});
             }
 
-            const result = await sorobanService.submitTx(signed_xdr);
-            const contractInvoiceId = result.returnValue;
+            let result;
+            try {
+                result = await sorobanService.submitTx(signed_xdr);
+            } catch (txErr) {
+                logger.warn({invoiceId: invoice.id, err: txErr.message}, 'Failed to submit link-contract transaction');
+                return res.status(400).json({error: `Blockchain transaction failed: ${txErr.message}`});
+            }
 
+            const contractInvoiceId = result.returnValue;
             const updated = await invoiceModel.linkContract(invoice.id, contractInvoiceId);
 
             await transactionModel.create(
@@ -248,13 +262,21 @@ module.exports = {
     async cancel(req, res, next) {
         try {
             const {signed_xdr} = req.body;
-            if (!signed_xdr) {
-                return res.status(400).json({error: 'signed_xdr is required'});
-            }
-
             const invoice = req.invoice;
+
             if (!['draft', 'funding', 'completed'].includes(invoice.status)) {
                 return res.status(400).json({error: 'Can only cancel invoices in draft, funding, or completed status'});
+            }
+
+            // Draft invoices are not on-chain, no blockchain tx needed
+            if (invoice.status === 'draft') {
+                const updated = await invoiceModel.updateStatus(invoice.id, 'cancelled');
+                logger.info({invoiceId: invoice.id, previousStatus: 'draft'}, 'Draft invoice cancelled');
+                return res.json(updated);
+            }
+
+            if (!signed_xdr) {
+                return res.status(400).json({error: 'signed_xdr is required'});
             }
 
             const result = await sorobanService.submitTx(signed_xdr);
