@@ -1,220 +1,185 @@
 {
   "meta": {
-    "project": "CoTravel",
+    "project": "CoTravel Group Payment Platform",
     "date": "2026-02-06",
     "prepared_by": "Software Development Manager"
   },
-  "product_overview": "CoTravel is a web platform for group travel budgeting that integrates off-chain coordination with on-chain escrow using Stellar/Soroban smart contracts. It allows trip organizers to create transparent budgets, collect contributions securely, and enforce fair penalties automatically, ensuring a trustless and equitable group travel experience.",
+  "product_overview": "CoTravel is a blockchain-based group trip payment platform that simplifies organizing shared budgets, collecting contributions, and automating escrow payments via Soroban smart contracts on the Stellar network. It provides transparent workflows for trip organizers and participants with on-chain enforced rules, penalties, and automated payouts to service providers.",
   "core_goals": [
-    "Enable users to create and manage group travel budgets with clear rules and penalties.",
-    "Securely hold and manage contributions in a blockchain-based escrow contract rather than individual accounts.",
-    "Provide transparent tracking of contributions and participant status.",
-    "Offer robust authentication using Stellar wallet signatures and JWTs.",
-    "Allow organizers to manage the lifecycle of trips including fund release and cancellation with full refunds.",
-    "Ensure a user-friendly interface with accessible trip browsing and participation flows.",
-    "Maintain high security and performance standards with reliable backend services and blockchain integration."
+    "Enable secure and trustless group trip budget management using blockchain escrow.",
+    "Simplify the creation, funding, and management of group invoices with multiple recipients.",
+    "Provide real-time tracking of invoice payment progress and participant contributions.",
+    "Enforce penalty rules fairly when participants withdraw after modifications.",
+    "Allow immediate and automatic release of funds when group targets are met and confirmed.",
+    "Support CRUD operations for businesses and services associated with group payments.",
+    "Implement role-based access control including user and admin roles for platform management.",
+    "Provide seamless wallet authentication using Stellar's Freighter and SEP-0053 challenge-response.",
+    "Offer an admin dashboard for oversight of users, businesses, and invoices.",
+    "Maintain a scalable, robust backend with PostgreSQL caching and Soroban smart contract integration."
   ],
   "key_features": [
-    "Wallet based authentication via Freighter and challenge-response with JWT issuance.",
-    "Trip creation with configurable parameters like target amount, minimum participants, penalties, and deadlines.",
-    "Dashboard listing all trips with real-time progress, participant counts, and statuses.",
-    "Detailed trip pages showing budget progress, participant contributions, on-chain contract linkage, and controls for organizers.",
-    "Participant workflow including joining trips, contributing funds, and withdrawing with penalties enforced on-chain.",
-    "Image upload and management stored in MinIO with associations to trips.",
-    "User profile displaying wallet info, organized and participated trips.",
-    "Robust backend API with full CRUD for trips, participant management, user management, and blockchain transaction recording.",
-    "Integration with Soroban smart contracts for escrow, including signed transaction submissions and state synchronization.",
-    "Responsive layout with header, footer, and navigation optimized for desktop and mobile."
+    "Wallet authentication via Stellar Freighter with auto-login for development convenience.",
+    "Invoice Dashboard listing all invoices with status badges and navigation to details.",
+    "Invoice creation form supporting group invoices with customizable items and business services.",
+    "Invoice detail page with progress tracking, participant management, and on-chain action integration.",
+    "Soroban transaction builder that simulates and assembles blockchain transactions, supporting mock mode for development.",
+    "Public-facing Service Catalog displaying active services from registered businesses with search filtering.",
+    "Business and Service Management with full CRUD capabilities for authenticated owners.",
+    "User Profile viewing wallet address, username, role, and registration date.",
+    "Admin dashboard accessible only to admins providing user role management, business and invoice oversight, and platform statistics.",
+    "Responsive layout and navigation with dynamic header links based on authentication state and roles."
   ],
   "user_flow_summary": [
-    "User visits landing page and browses trips without authentication.",
-    "User connects a Stellar wallet using Freighter to authenticate.",
-    "Authenticated user creates a new trip draft specifying budget and rules.",
-    "User explores the dashboard to view all trips and selects a trip for details.",
-    "Participants join a trip and contribute funds by signing transactions via their wallet.",
-    "Organizers link the trip to the on-chain escrow contract by submitting a signed transaction.",
-    "Organizers can release funds to confirm a trip or cancel it to trigger refunds, both requiring signed transactions.",
-    "Participants can withdraw funds with penalties enforced automatically on-chain.",
-    "Users can upload images associated with trips to enhance trip presentation.",
-    "Users access their profile to view personal info and trips they are involved with."
+    "User authenticates by connecting wallet via Freighter, signs a backend challenge, and receives JWT for session.",
+    "Authenticated user creates a group invoice by filling a form with participants and line items from services or custom entries.",
+    "Invoice linked on-chain by building and signing a Soroban transaction to create a pool escrow representing the invoice.",
+    "Participants join the invoice funding pool, contribute funds, and may withdraw before completion adhering to penalty rules.",
+    "Organizer can modify invoice items requiring participant consent and withdrawal opt-outs without penalty.",
+    "Participants confirm readiness to release funds; if all confirm or auto-release enabled, funds are distributed on-chain automatically.",
+    "Invoice can be cancelled by organizer with full refund and penalty return mechanism triggered via smart contract.",
+    "Authenticated users manage their registered businesses and services through dedicated CRUD views.",
+    "Admin user accesses a protected admin panel to monitor and control users, businesses, and invoices across the platform.",
+    "Public visitors browse active services and business profiles without authentication."
   ],
   "validation_criteria": [
-    "Users must authenticate successfully using Stellar wallet challenge-response flow and receive JWT token.",
-    "Trip creation enforces required fields and proper validation, only available to authenticated users.",
-    "Trip lists and detail views correctly display both off-chain data and on-chain contract state.",
-    "Only organizers can perform sensitive operations like linking contracts, releasing funds, or cancelling trips, verified by middleware.",
-    "Participant contributions and withdrawals update on-chain state and reflect accurately in the UI.",
-    "Image uploads succeed with correct storage in MinIO and proper metadata in the database.",
-    "Frontend routes respect authentication status and restrict access accordingly.",
-    "Backend health endpoint confirms connectivity to PostgreSQL and MinIO storage.",
-    "All backend APIs return expected status codes and data shapes, validated by integration tests.",
-    "Soroban transaction submissions respond within 30 seconds and update trip lifecycle state appropriately."
+    "User authentication enforces SEP-0053 challenge-response and JWT authorization with 24-hour tokens.",
+    "Invoice creation validates required fields: name, future deadline, items with descriptions and positive amounts.",
+    "On-chain actions including create, contribute, withdraw, confirm, release, cancel, and claim deadline are correctly built, simulated, signed, and submitted with proper blockchain state synchronization.",
+    "Participant contributions must reject overfunding and respect min_participants and target rules.",
+    "Invoice lifecycle state transitions follow documented flows and are correctly reflected in UI and backend.",
+    "Admin and owner authorization enforced by middleware on all protected API endpoints and UI routes.",
+    "File uploads validated by MIME type and size limits; images stored securely in MinIO and accessible via API.",
+    "Frontend components and pages implement expected user flows and show appropriate status badges and error messages.",
+    "Automated backend tests cover API routes, business logic, and database transactions with isolation and rollback.",
+    "Smart contract unit and integration tests verify escrow logic, edge cases, penalties, and event handling on testnet."
   ],
   "code_summary": {
     "tech_stack": [
       "TypeScript",
       "React 19",
-      "Vite 6",
-      "Tailwind CSS 3",
-      "shadcn/ui",
-      "React Router 7",
-      "TanStack Query 5",
-      "Zustand 5",
-      "@stellar/freighter-api",
-      "@stellar/stellar-sdk",
-      "Node.js",
-      "Express.js",
+      "Vite",
+      "TailwindCSS",
+      "Zustand (state management)",
+      "React Router v7",
+      "TanStack React Query",
+      "Node.js / Express (backend)",
       "PostgreSQL 16",
-      "MinIO (S3-compatible)",
-      "Soroban (Stellar smart contracts)",
-      "Jest",
-      "Supertest",
-      "Docker Compose"
+      "MinIO (S3-compatible storage)",
+      "Stellar / Soroban (blockchain smart contracts)",
+      "Freighter Wallet (SEP-0053 auth)",
+      "JWT authentication",
+      "Docker Compose",
+      "Lucide React (icons)",
+      "shadcn/ui components"
     ],
     "features": [
       {
-        "name": "Landing Page",
-        "description": "Public landing page with hero section, feature highlights (group coordination, on-chain escrow, fair penalties), and CTAs to browse or create trips.",
-        "files": [
-          "frontend/src/pages/Landing.tsx"
-        ]
-      },
-      {
-        "name": "Trip Dashboard",
-        "description": "Lists all trips as cards with progress bars showing collected vs target XLM, participant count, status badges, and organizer info. Uses TanStack Query for data fetching.",
-        "files": [
-          "frontend/src/pages/Dashboard.tsx"
-        ]
-      },
-      {
-        "name": "Trip Detail",
-        "description": "Displays trip details including budget stats (collected/target with progress bar), participant count vs minimum, deadline, penalty percentage, and a list of participants with their contributions.",
-        "files": [
-          "frontend/src/pages/TripDetail.tsx"
-        ]
-      },
-      {
-        "name": "Create Trip",
-        "description": "Authenticated form to create a new trip draft with fields: name, description, target amount (XLM), min participants, penalty percent, and deadline. Requires wallet connection.",
-        "files": [
-          "frontend/src/pages/CreateTrip.tsx"
-        ]
-      },
-      {
-        "name": "User Profile",
-        "description": "Shows authenticated user's wallet address, username, join date, and lists trips they organize and participate in.",
-        "files": [
-          "frontend/src/pages/Profile.tsx"
-        ]
-      },
-      {
-        "name": "Wallet Connection (Freighter)",
-        "description": "Connect/disconnect Stellar wallet via Freighter browser extension. Shows truncated address when connected, loading and error states.",
-        "files": [
-          "frontend/src/components/wallet/ConnectButton.tsx",
-          "frontend/src/hooks/useAuth.ts",
-          "frontend/src/stores/walletStore.ts"
-        ]
-      },
-      {
-        "name": "Authentication (Challenge-Response)",
-        "description": "Wallet-based auth flow: request challenge from backend, sign with Freighter, submit signature to get JWT. Token persisted in localStorage and Zustand store.",
+        "name": "Wallet Authentication (Dev Mode)",
+        "description": "Auto-login via VITE_DEV_WALLET env var or ?dev_wallet= URL param. Uses devLogin API endpoint that issues JWT without Freighter signature. Supports manual disconnect without auto-reconnect.",
         "files": [
           "frontend/src/hooks/useAuth.ts",
           "frontend/src/stores/walletStore.ts",
+          "frontend/src/components/wallet/ConnectButton.tsx",
+          "frontend/src/services/api.ts",
           "backend/src/controllers/authController.js",
-          "backend/src/routes/auth.js",
-          "backend/src/middleware/auth.js"
+          "backend/src/routes/auth.js"
         ]
       },
       {
-        "name": "Layout (Header, Footer, Navigation)",
-        "description": "Responsive layout with sticky header containing logo, navigation links (Trips, Create, Profile), and wallet connect button. Footer with project info.",
+        "name": "Invoice Dashboard",
+        "description": "Lists all invoices for the authenticated user with status badges (draft, funding, completed, released, cancelled), amounts, participant counts, and navigation to detail pages.",
         "files": [
-          "frontend/src/components/layout/Layout.tsx",
-          "frontend/src/components/layout/Header.tsx",
-          "frontend/src/components/layout/Footer.tsx"
-        ]
-      },
-      {
-        "name": "API Client",
-        "description": "HTTP client service with typed functions for all 18 backend endpoints. Automatically attaches JWT from localStorage. Handles JSON and FormData requests.",
-        "files": [
+          "frontend/src/pages/InvoiceDashboard.tsx",
           "frontend/src/services/api.ts"
         ]
       },
       {
-        "name": "UI Components (shadcn/ui)",
-        "description": "Reusable UI components: Button (with asChild/Slot support), Card (Header/Title/Description/Content/Footer), Badge (with status variants including success/warning).",
+        "name": "Invoice Creation",
+        "description": "Form to create group invoices with name, description, deadline, penalty settings, auto-release toggle, and line items (from service catalog or custom). Frontend validation: name required, deadline required and in future, at least one item, items must have description and positive amount.",
         "files": [
-          "frontend/src/components/ui/button.tsx",
-          "frontend/src/components/ui/card.tsx",
-          "frontend/src/components/ui/badge.tsx"
+          "frontend/src/pages/CreateInvoice.tsx",
+          "frontend/src/components/invoice/ServicePicker.tsx",
+          "frontend/src/services/api.ts"
         ]
       },
       {
-        "name": "Backend Health Check",
-        "description": "GET /health endpoint that verifies connectivity to both PostgreSQL (SELECT 1) and MinIO (listBuckets). Returns status for each service.",
+        "name": "Invoice Detail & On-Chain Actions",
+        "description": "Shows invoice details with progress bar, participant list, and action panel. Actions vary by status: draft (link to blockchain, cancel), funding (join, contribute, withdraw, release, cancel, claim deadline), completed (confirm release, withdraw, organizer release), released/cancelled (read-only status messages). All on-chain actions build mock XDR in dev mode.",
         "files": [
-          "backend/src/routes/health.js"
+          "frontend/src/pages/InvoiceDetail.tsx",
+          "frontend/src/components/invoice/ProgressBar.tsx",
+          "frontend/src/components/invoice/InvoiceItemsList.tsx",
+          "frontend/src/components/invoice/ModificationBanner.tsx",
+          "frontend/src/lib/soroban.ts",
+          "frontend/src/services/api.ts"
         ]
       },
       {
-        "name": "User Management",
-        "description": "Create users with wallet address, lookup by wallet. Used internally by auth flow and directly via API.",
+        "name": "Soroban Transaction Builder (Mock)",
+        "description": "Builds, simulates, and signs Soroban smart contract transactions. In DEV_MODE, returns mock XDR without hitting Soroban RPC or Freighter. Backend accepts mock XDR and returns simulated results.",
         "files": [
-          "backend/src/controllers/usersController.js",
-          "backend/src/models/userModel.js",
-          "backend/src/routes/users.js"
+          "frontend/src/lib/soroban.ts",
+          "backend/src/services/sorobanService.js"
         ]
       },
       {
-        "name": "Trip Management",
-        "description": "Full CRUD for trips: create draft, list all, get by ID (with on-chain state refresh), link to Soroban contract, release funds, cancel trip. Organizer-only operations enforced via middleware.",
+        "name": "Service Catalog",
+        "description": "Public page displaying all active services from registered businesses. Each card shows service name, description, price, and business name. Supports keyword search filtering.",
         "files": [
-          "backend/src/controllers/tripsController.js",
-          "backend/src/models/tripModel.js",
-          "backend/src/routes/trips.js"
+          "frontend/src/pages/ServiceCatalog.tsx",
+          "frontend/src/services/api.ts"
         ]
       },
       {
-        "name": "Participant Management",
-        "description": "Join trips, record contributions (submit signed XDR to Soroban), record withdrawals, list participants. Auto-join on first contribution. Syncs on-chain state after operations.",
+        "name": "Business Management",
+        "description": "CRUD operations for businesses owned by the authenticated user. Create, edit, view, and manage businesses. Each business has services, wallet address, and contact info.",
         "files": [
-          "backend/src/controllers/participantsController.js",
-          "backend/src/models/participantModel.js"
+          "frontend/src/pages/MyBusinesses.tsx",
+          "frontend/src/pages/RegisterBusiness.tsx",
+          "frontend/src/pages/EditBusiness.tsx",
+          "frontend/src/pages/BusinessProfile.tsx",
+          "frontend/src/services/api.ts"
         ]
       },
       {
-        "name": "Soroban Integration",
-        "description": "Service for interacting with the multi-escrow Soroban smart contract. Read-only queries via simulation (get_trip, get_state, get_balance, get_participants). Write operations via signed XDR submission with 30s polling for confirmation.",
+        "name": "Service Management",
+        "description": "Add and edit services under a business. Each service has name, description, price, and optional image.",
         "files": [
-          "backend/src/services/sorobanService.js",
-          "backend/src/config/soroban.js"
+          "frontend/src/pages/AddService.tsx",
+          "frontend/src/pages/EditService.tsx",
+          "frontend/src/services/api.ts"
         ]
       },
       {
-        "name": "Image Management",
-        "description": "Upload images to MinIO object storage with metadata in PostgreSQL. Stream images back to client. List all images.",
+        "name": "User Profile",
+        "description": "Displays authenticated user's wallet address, username, role, and account creation date.",
         "files": [
-          "backend/src/controllers/imagesController.js",
-          "backend/src/models/imageModel.js",
-          "backend/src/routes/images.js",
-          "backend/src/config/minio.js"
+          "frontend/src/pages/Profile.tsx",
+          "frontend/src/services/api.ts"
         ]
       },
       {
-        "name": "Transaction Registry",
-        "description": "Records blockchain transactions (create_trip, contribution, withdrawal, release, cancel) with tx_hash, ledger sequence, and event data for off-chain indexing.",
+        "name": "Admin Dashboard",
+        "description": "Admin-only pages for platform management: user list with role modification, business overview, invoice management, and platform statistics.",
         "files": [
-          "backend/src/models/transactionModel.js"
+          "frontend/src/pages/admin/"
         ]
       },
       {
-        "name": "Database Schema",
-        "description": "PostgreSQL schema with 7 tables: users, trips, trip_participants, transactions, partners, trip_offers, images. Includes indexes for frequent queries and sample data.",
+        "name": "Layout & Navigation",
+        "description": "Header with navigation links that change based on auth state (public: Services; authenticated: Invoices, My Businesses; admin: Admin). Mobile hamburger menu. Landing page with hero section.",
         "files": [
-          "database/init.sql"
+          "frontend/src/components/layout/Header.tsx",
+          "frontend/src/components/layout/Layout.tsx",
+          "frontend/src/pages/Landing.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "name": "API Service Layer",
+        "description": "Centralized API client with axios. All endpoints prefixed with /api. Includes auth interceptor for JWT, invoice CRUD, business CRUD, service CRUD, participant management, and blockchain link operations.",
+        "files": [
+          "frontend/src/services/api.ts"
         ]
       }
     ]

@@ -2,167 +2,129 @@
   "tech_stack": [
     "TypeScript",
     "React 19",
-    "Vite 6",
-    "Tailwind CSS 3",
-    "shadcn/ui",
-    "React Router 7",
-    "TanStack Query 5",
-    "Zustand 5",
-    "@stellar/freighter-api",
-    "@stellar/stellar-sdk",
-    "Node.js",
-    "Express.js",
+    "Vite",
+    "TailwindCSS",
+    "Zustand (state management)",
+    "React Router v7",
+    "TanStack React Query",
+    "Node.js / Express (backend)",
     "PostgreSQL 16",
-    "MinIO (S3-compatible)",
-    "Soroban (Stellar smart contracts)",
-    "Jest",
-    "Supertest",
-    "Docker Compose"
+    "MinIO (S3-compatible storage)",
+    "Stellar / Soroban (blockchain smart contracts)",
+    "Freighter Wallet (SEP-0053 auth)",
+    "JWT authentication",
+    "Docker Compose",
+    "Lucide React (icons)",
+    "shadcn/ui components"
   ],
   "features": [
     {
-      "name": "Landing Page",
-      "description": "Public landing page with hero section, feature highlights (group coordination, on-chain escrow, fair penalties), and CTAs to browse or create trips.",
-      "files": [
-        "frontend/src/pages/Landing.tsx"
-      ]
-    },
-    {
-      "name": "Trip Dashboard",
-      "description": "Lists all trips as cards with progress bars showing collected vs target XLM, participant count, status badges, and organizer info. Uses TanStack Query for data fetching.",
-      "files": [
-        "frontend/src/pages/Dashboard.tsx"
-      ]
-    },
-    {
-      "name": "Trip Detail",
-      "description": "Displays trip details including budget stats (collected/target with progress bar), participant count vs minimum, deadline, penalty percentage, and a list of participants with their contributions.",
-      "files": [
-        "frontend/src/pages/TripDetail.tsx"
-      ]
-    },
-    {
-      "name": "Create Trip",
-      "description": "Authenticated form to create a new trip draft with fields: name, description, target amount (XLM), min participants, penalty percent, and deadline. Requires wallet connection.",
-      "files": [
-        "frontend/src/pages/CreateTrip.tsx"
-      ]
-    },
-    {
-      "name": "User Profile",
-      "description": "Shows authenticated user's wallet address, username, join date, and lists trips they organize and participate in.",
-      "files": [
-        "frontend/src/pages/Profile.tsx"
-      ]
-    },
-    {
-      "name": "Wallet Connection (Freighter)",
-      "description": "Connect/disconnect Stellar wallet via Freighter browser extension. Shows truncated address when connected, loading and error states.",
-      "files": [
-        "frontend/src/components/wallet/ConnectButton.tsx",
-        "frontend/src/hooks/useAuth.ts",
-        "frontend/src/stores/walletStore.ts"
-      ]
-    },
-    {
-      "name": "Authentication (Challenge-Response)",
-      "description": "Wallet-based auth flow: request challenge from backend, sign with Freighter, submit signature to get JWT. Token persisted in localStorage and Zustand store.",
+      "name": "Wallet Authentication (Dev Mode)",
+      "description": "Auto-login via VITE_DEV_WALLET env var or ?dev_wallet= URL param. Uses devLogin API endpoint that issues JWT without Freighter signature. Supports manual disconnect without auto-reconnect.",
       "files": [
         "frontend/src/hooks/useAuth.ts",
         "frontend/src/stores/walletStore.ts",
+        "frontend/src/components/wallet/ConnectButton.tsx",
+        "frontend/src/services/api.ts",
         "backend/src/controllers/authController.js",
-        "backend/src/routes/auth.js",
-        "backend/src/middleware/auth.js"
+        "backend/src/routes/auth.js"
       ]
     },
     {
-      "name": "Layout (Header, Footer, Navigation)",
-      "description": "Responsive layout with sticky header containing logo, navigation links (Trips, Create, Profile), and wallet connect button. Footer with project info.",
+      "name": "Invoice Dashboard",
+      "description": "Lists all invoices for the authenticated user with status badges (draft, funding, completed, released, cancelled), amounts, participant counts, and navigation to detail pages.",
       "files": [
-        "frontend/src/components/layout/Layout.tsx",
-        "frontend/src/components/layout/Header.tsx",
-        "frontend/src/components/layout/Footer.tsx"
-      ]
-    },
-    {
-      "name": "API Client",
-      "description": "HTTP client service with typed functions for all 18 backend endpoints. Automatically attaches JWT from localStorage. Handles JSON and FormData requests.",
-      "files": [
+        "frontend/src/pages/InvoiceDashboard.tsx",
         "frontend/src/services/api.ts"
       ]
     },
     {
-      "name": "UI Components (shadcn/ui)",
-      "description": "Reusable UI components: Button (with asChild/Slot support), Card (Header/Title/Description/Content/Footer), Badge (with status variants including success/warning).",
+      "name": "Invoice Creation",
+      "description": "Form to create group invoices with name, description, deadline, penalty settings, auto-release toggle, and line items (from service catalog or custom). Frontend validation: name required, deadline required and in future, at least one item, items must have description and positive amount.",
       "files": [
-        "frontend/src/components/ui/button.tsx",
-        "frontend/src/components/ui/card.tsx",
-        "frontend/src/components/ui/badge.tsx"
+        "frontend/src/pages/CreateInvoice.tsx",
+        "frontend/src/components/invoice/ServicePicker.tsx",
+        "frontend/src/services/api.ts"
       ]
     },
     {
-      "name": "Backend Health Check",
-      "description": "GET /health endpoint that verifies connectivity to both PostgreSQL (SELECT 1) and MinIO (listBuckets). Returns status for each service.",
+      "name": "Invoice Detail & On-Chain Actions",
+      "description": "Shows invoice details with progress bar, participant list, and action panel. Actions vary by status: draft (link to blockchain, cancel), funding (join, contribute, withdraw, release, cancel, claim deadline), completed (confirm release, withdraw, organizer release), released/cancelled (read-only status messages). All on-chain actions build mock XDR in dev mode.",
       "files": [
-        "backend/src/routes/health.js"
+        "frontend/src/pages/InvoiceDetail.tsx",
+        "frontend/src/components/invoice/ProgressBar.tsx",
+        "frontend/src/components/invoice/InvoiceItemsList.tsx",
+        "frontend/src/components/invoice/ModificationBanner.tsx",
+        "frontend/src/lib/soroban.ts",
+        "frontend/src/services/api.ts"
       ]
     },
     {
-      "name": "User Management",
-      "description": "Create users with wallet address, lookup by wallet. Used internally by auth flow and directly via API.",
+      "name": "Soroban Transaction Builder (Mock)",
+      "description": "Builds, simulates, and signs Soroban smart contract transactions. In DEV_MODE, returns mock XDR without hitting Soroban RPC or Freighter. Backend accepts mock XDR and returns simulated results.",
       "files": [
-        "backend/src/controllers/usersController.js",
-        "backend/src/models/userModel.js",
-        "backend/src/routes/users.js"
+        "frontend/src/lib/soroban.ts",
+        "backend/src/services/sorobanService.js"
       ]
     },
     {
-      "name": "Trip Management",
-      "description": "Full CRUD for trips: create draft, list all, get by ID (with on-chain state refresh), link to Soroban contract, release funds, cancel trip. Organizer-only operations enforced via middleware.",
+      "name": "Service Catalog",
+      "description": "Public page displaying all active services from registered businesses. Each card shows service name, description, price, and business name. Supports keyword search filtering.",
       "files": [
-        "backend/src/controllers/tripsController.js",
-        "backend/src/models/tripModel.js",
-        "backend/src/routes/trips.js"
+        "frontend/src/pages/ServiceCatalog.tsx",
+        "frontend/src/services/api.ts"
       ]
     },
     {
-      "name": "Participant Management",
-      "description": "Join trips, record contributions (submit signed XDR to Soroban), record withdrawals, list participants. Auto-join on first contribution. Syncs on-chain state after operations.",
+      "name": "Business Management",
+      "description": "CRUD operations for businesses owned by the authenticated user. Create, edit, view, and manage businesses. Each business has services, wallet address, and contact info.",
       "files": [
-        "backend/src/controllers/participantsController.js",
-        "backend/src/models/participantModel.js"
+        "frontend/src/pages/MyBusinesses.tsx",
+        "frontend/src/pages/RegisterBusiness.tsx",
+        "frontend/src/pages/EditBusiness.tsx",
+        "frontend/src/pages/BusinessProfile.tsx",
+        "frontend/src/services/api.ts"
       ]
     },
     {
-      "name": "Soroban Integration",
-      "description": "Service for interacting with the multi-escrow Soroban smart contract. Read-only queries via simulation (get_trip, get_state, get_balance, get_participants). Write operations via signed XDR submission with 30s polling for confirmation.",
+      "name": "Service Management",
+      "description": "Add and edit services under a business. Each service has name, description, price, and optional image.",
       "files": [
-        "backend/src/services/sorobanService.js",
-        "backend/src/config/soroban.js"
+        "frontend/src/pages/AddService.tsx",
+        "frontend/src/pages/EditService.tsx",
+        "frontend/src/services/api.ts"
       ]
     },
     {
-      "name": "Image Management",
-      "description": "Upload images to MinIO object storage with metadata in PostgreSQL. Stream images back to client. List all images.",
+      "name": "User Profile",
+      "description": "Displays authenticated user's wallet address, username, role, and account creation date.",
       "files": [
-        "backend/src/controllers/imagesController.js",
-        "backend/src/models/imageModel.js",
-        "backend/src/routes/images.js",
-        "backend/src/config/minio.js"
+        "frontend/src/pages/Profile.tsx",
+        "frontend/src/services/api.ts"
       ]
     },
     {
-      "name": "Transaction Registry",
-      "description": "Records blockchain transactions (create_trip, contribution, withdrawal, release, cancel) with tx_hash, ledger sequence, and event data for off-chain indexing.",
+      "name": "Admin Dashboard",
+      "description": "Admin-only pages for platform management: user list with role modification, business overview, invoice management, and platform statistics.",
       "files": [
-        "backend/src/models/transactionModel.js"
+        "frontend/src/pages/admin/"
       ]
     },
     {
-      "name": "Database Schema",
-      "description": "PostgreSQL schema with 7 tables: users, trips, trip_participants, transactions, partners, trip_offers, images. Includes indexes for frequent queries and sample data.",
+      "name": "Layout & Navigation",
+      "description": "Header with navigation links that change based on auth state (public: Services; authenticated: Invoices, My Businesses; admin: Admin). Mobile hamburger menu. Landing page with hero section.",
       "files": [
-        "database/init.sql"
+        "frontend/src/components/layout/Header.tsx",
+        "frontend/src/components/layout/Layout.tsx",
+        "frontend/src/pages/Landing.tsx",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "name": "API Service Layer",
+      "description": "Centralized API client with axios. All endpoints prefixed with /api. Includes auth interceptor for JWT, invoice CRUD, business CRUD, service CRUD, participant management, and blockchain link operations.",
+      "files": [
+        "frontend/src/services/api.ts"
       ]
     }
   ]

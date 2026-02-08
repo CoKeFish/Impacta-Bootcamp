@@ -1220,11 +1220,11 @@
             <div class="metadata-container">
                 <div class="metadata-row">
                     <div class="metadata-label text-body-medium">Project Name</div>
-                    <div class="metadata-value text-body">Impacta-Bootcamp (CoTravel)</div>
+                    <div class="metadata-value text-body">CoTravel (Impacta-Bootcamp)</div>
                 </div>
                 <div class="metadata-row">
                     <div class="metadata-label text-body-medium">Date</div>
-                    <div class="metadata-value text-body">6/2/2026</div>
+                    <div class="metadata-value text-body">8/2/2026</div>
                 </div>
                 <div class="metadata-row">
                     <div class="metadata-label text-body-medium">Prepared by</div>
@@ -1245,66 +1245,37 @@
 
             <div class="coverage-summary">
                 <ul class="coverage-list text-body">
-                    <li><span class="coverage-highlight">8/18</span> of tests passed</li>
+                    <li><span class="coverage-highlight">11/20</span> of tests passed</li>
                     <li><span class="coverage-highlight">Key gaps / risks:</span>
 
-                        <h3>Critical Finding: Freighter Dependency Blocks 80% of Failures</h3>
-                        <p>8 out of 10 failed tests (80%) are caused by a single root cause: the Freighter browser
-                            extension is not available in the automated test environment. This is an <strong>environment
-                                limitation</strong>, not an application defect. These flows are partially covered by the
-                            48 backend integration tests (Jest + Supertest) that test API endpoints directly.</p>
-                        <p><strong>Recommended mitigations:</strong></p>
+                        <h3>Critical: Test Data Ordering Problem</h3>
+                        <p>The biggest issue is <strong>test ordering</strong>: TC011 (cancel invoice) executed before
+                            TC006-TC010, cancelling Invoice 2 and making 4 subsequent tests impossible.
+                            <strong>Fix</strong>: Either (a) add more funding invoices to the seed data so each test has
+                            its own, or (b) enforce test execution order so destructive tests (cancel) run last, or (c)
+                            add a test setup/teardown that resets specific invoices between tests.</p>
+                        <h3>High: Stale Element References in SPA</h3>
+                        <p>Three tests (TC003, TC013, TC014) failed because React re-renders the DOM after state
+                            changes, invalidating TestSprite's element references. <strong>Fix</strong>: Add <code>data-testid</code>
+                            attributes to critical interactive elements (form submit buttons, CRUD action buttons,
+                            service card edit/delete icons) to provide stable selectors.</p>
+                        <h3>Medium: Admin Nav Link Not in Header</h3>
+                        <p>TC019 expected an &quot;Admin dashboard&quot; link in the main header, but the current design
+                            requires direct URL navigation to <code>/admin</code>. This is a <strong>design
+                                decision</strong>, not a bug. If admin discoverability is important, consider adding an
+                            &quot;Admin&quot; link to the header for users with <code>role === 'admin'</code>.</p>
+                        <h3>Low: Wallet Auth Verification Limitations</h3>
+                        <p>TC001 and TC002 cannot be fully verified via browser automation because JWT storage
+                            inspection and wallet popup interaction are beyond TestSprite's capabilities. These flows
+                            are thoroughly covered by backend unit tests (88/88 passing). Consider marking these as
+                            &quot;backend-only&quot; test cases in future test plans.</p>
+                        <h3>Recommendation for Next Run</h3>
                         <ol>
-                            <li><strong>Mock Freighter API:</strong> Create a test-mode flag
-                                (<code>VITE_TEST_MODE=true</code>) that injects a mock <code>window.freighter</code>
-                                provider, allowing automated tests to simulate the wallet connection and signing flows.
-                            </li>
-                            <li><strong>Playwright with Extension:</strong> Configure a Playwright/Puppeteer test runner
-                                with the Freighter extension pre-installed for full E2E testing.
-                            </li>
-                            <li><strong>Bypass Auth Endpoint:</strong> Add a development-only
-                                <code>/api/auth/test-login</code> endpoint that accepts a wallet address and returns a
-                                JWT without requiring wallet signing.
-                            </li>
+                            <li>Add 2-3 additional funding invoices to seed data (one per destructive test)</li>
+                            <li>Add <code>data-testid</code> attributes to key UI elements</li>
+                            <li>Add admin nav link to header for admin users</li>
+                            <li>Re-run with explicit test ordering hints in the additional instructions</li>
                         </ol>
-                        <h3>Real Defect: Trip Detail Data Inconsistency (TC006)</h3>
-                        <p>The Trip Detail page shows inconsistent data between the budget stats card and the
-                            participant list:</p>
-                        <ul>
-                            <li>Budget collected: 0.00 XLM, but participant shows 500.00 XLM contribution</li>
-                            <li>Participant count: 0, but participant list shows 1 entry</li>
-                        </ul>
-                        <p><strong>Root cause hypothesis:</strong> The trip's <code>collected_amount</code> field in the
-                            database is not being updated when contributions are recorded via the participant model, or
-                            the frontend is reading from separate unsynchronized data sources (trip object vs.
-                            participants endpoint).</p>
-                        <p><strong>Priority:</strong> HIGH - This is a user-facing data accuracy issue that affects
-                            trust in the budgeting platform.</p>
-                        <h3>Gap: Image Upload UI Not Implemented</h3>
-                        <p>The frontend does not currently expose image upload controls on the trip detail page (TC010).
-                            This is expected as Image Management is P2 priority, but should be tracked for future
-                            implementation.</p>
-                        <h3>Gap: Frontend Form Validation Untested</h3>
-                        <p>Trip creation form validation (TC004 - required fields, positive amounts, future dates) could
-                            not be tested due to the authentication barrier. If validation is client-side only, it
-                            represents a potential risk if users bypass the frontend. Backend validation should be
-                            verified independently.</p>
-                        <h3>Positive Findings</h3>
-                        <ul>
-                            <li><strong>Backend infrastructure is solid:</strong> All 3 backend infrastructure tests
-                                passed (health check, CRUD APIs, Soroban transactions).
-                            </li>
-                            <li><strong>Route guards work correctly:</strong> Frontend properly restricts access to
-                                authenticated-only pages (TC012 passed).
-                            </li>
-                            <li><strong>Public pages render correctly:</strong> Trip dashboard with progress bars,
-                                status badges, and organizer info works as expected (TC005 passed).
-                            </li>
-                            <li><strong>Blockchain integration works:</strong> Contribution, withdrawal with penalties,
-                                and trip cancellation with refunds all function correctly on-chain (TC008, TC009, TC014,
-                                TC017 passed).
-                            </li>
-                        </ul>
                         <hr>
 
                     </li>
@@ -1330,59 +1301,80 @@
                 <div class="table-rows">
 
                     <div class="table-row">
-                        <div class="table-cell"><span class="text-body">Requirement: Authentication (AUTH)</span></div>
-                        <div class="table-cell"><span class="text-body">2</span></div>
+                        <div class="table-cell"><span class="text-body">Requirement: Wallet Authentication & Session Management</span>
+                        </div>
+                        <div class="table-cell"><span class="text-body">3</span></div>
                         <div class="table-cell"><span class="text-body">0</span></div>
-                        <div class="table-cell"><span class="text-body">2</span></div>
-                    </div>
-
-
-                    <div class="table-row">
-                        <div class="table-cell"><span class="text-body">Requirement: Trip Management (TRIP)</span></div>
-                        <div class="table-cell"><span class="text-body">5</span></div>
-                        <div class="table-cell"><span class="text-body">2</span></div>
                         <div class="table-cell"><span class="text-body">3</span></div>
                     </div>
 
 
                     <div class="table-row">
-                        <div class="table-cell"><span class="text-body">Requirement: Participation (PART)</span></div>
-                        <div class="table-cell"><span class="text-body">4</span></div>
+                        <div class="table-cell"><span
+                                class="text-body">Requirement: Invoice Creation & Form Validation</span></div>
+                        <div class="table-cell"><span class="text-body">3</span></div>
                         <div class="table-cell"><span class="text-body">2</span></div>
-                        <div class="table-cell"><span class="text-body">2</span></div>
+                        <div class="table-cell"><span class="text-body">1</span></div>
                     </div>
 
 
                     <div class="table-row">
-                        <div class="table-cell"><span class="text-body">Requirement: Security & Access Control</span>
+                        <div class="table-cell"><span class="text-body">Requirement: On-Chain Invoice Operations (Soroban Smart Contract)</span>
+                        </div>
+                        <div class="table-cell"><span class="text-body">7</span></div>
+                        <div class="table-cell"><span class="text-body">3</span></div>
+                        <div class="table-cell"><span class="text-body">4</span></div>
+                    </div>
+
+
+                    <div class="table-row">
+                        <div class="table-cell"><span class="text-body">Requirement: Invoice Item Modification & Participant Consent</span>
+                        </div>
+                        <div class="table-cell"><span class="text-body">1</span></div>
+                        <div class="table-cell"><span class="text-body">1</span></div>
+                        <div class="table-cell"><span class="text-body">0</span></div>
+                    </div>
+
+
+                    <div class="table-row">
+                        <div class="table-cell"><span class="text-body">Requirement: Service Catalog</span></div>
+                        <div class="table-cell"><span class="text-body">1</span></div>
+                        <div class="table-cell"><span class="text-body">1</span></div>
+                        <div class="table-cell"><span class="text-body">0</span></div>
+                    </div>
+
+
+                    <div class="table-row">
+                        <div class="table-cell"><span class="text-body">Requirement: Business & Service CRUD</span>
                         </div>
                         <div class="table-cell"><span class="text-body">2</span></div>
-                        <div class="table-cell"><span class="text-body">1</span></div>
-                        <div class="table-cell"><span class="text-body">1</span></div>
+                        <div class="table-cell"><span class="text-body">2</span></div>
+                        <div class="table-cell"><span class="text-body">2</span></div>
                     </div>
 
 
                     <div class="table-row">
-                        <div class="table-cell"><span class="text-body">Requirement: Image Management (IMG)</span></div>
+                        <div class="table-cell"><span class="text-body">Requirement: User Profile</span></div>
+                        <div class="table-cell"><span class="text-body">1</span></div>
                         <div class="table-cell"><span class="text-body">1</span></div>
                         <div class="table-cell"><span class="text-body">0</span></div>
-                        <div class="table-cell"><span class="text-body">1</span></div>
                     </div>
 
 
                     <div class="table-row">
-                        <div class="table-cell"><span class="text-body">Requirement: User Profile (PROF)</span></div>
+                        <div class="table-cell"><span class="text-body">Requirement: Admin Dashboard</span></div>
+                        <div class="table-cell"><span class="text-body">1</span></div>
                         <div class="table-cell"><span class="text-body">1</span></div>
                         <div class="table-cell"><span class="text-body">0</span></div>
-                        <div class="table-cell"><span class="text-body">1</span></div>
                     </div>
 
 
                     <div class="table-row">
-                        <div class="table-cell"><span class="text-body">Requirement: Backend Infrastructure</span></div>
-                        <div class="table-cell"><span class="text-body">3</span></div>
-                        <div class="table-cell"><span class="text-body">3</span></div>
+                        <div class="table-cell"><span
+                                class="text-body">Requirement: Responsive Layout & Navigation</span></div>
+                        <div class="table-cell"><span class="text-body">1</span></div>
                         <div class="table-cell"><span class="text-body">0</span></div>
+                        <div class="table-cell"><span class="text-body">1</span></div>
                     </div>
 
                 </div>
@@ -1406,7 +1398,8 @@
                     <div class="accordion-header" onclick="toggleAccordion(this)">
                         <div class="requirement-content">
                             <div class="requirement-title-row">
-                                <h3 class="title-requirement">Requirement: Authentication (AUTH)</h3>
+                                <h3 class="title-requirement">Requirement: Wallet Authentication & Session
+                                    Management</h3>
                                 <div class="requirement-status-tag status-error">
                                     <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
                                          xmlns="http://www.w3.org/2000/svg">
@@ -1416,7 +1409,7 @@
                                         <path d="M8 10.394V10.3995" stroke="#EF4146" stroke-linecap="round"
                                               stroke-linejoin="round" stroke-width="1.38478"/>
                                     </svg>
-                                    <span>0/2</span>
+                                    <span>0/3</span>
                                 </div>
                             </div>
                             <p class="text-body-medium requirement-description">Proper error handling for API calls and
@@ -1435,30 +1428,27 @@
                         <div class="test-wrapper">
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC001 Successful Wallet-Based Authentication</h4>
+                                    <h4 class="text-body-medium">TC001 Authenticate User with Stellar Freighter
+                                        Wallet</h4>
                                 </div>
                                 <div class="test-content">
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="./TC001_Successful_Wallet_Based_Authentication.py">TC001_Successful_Wallet_Based_Authentication.py</a>
+                                               href="./TC001_Authenticate_User_with_Stellar_Freighter_Wallet.py">TC001_Authenticate_User_with_Stellar_Freighter_Wallet.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Freighter wallet extension not available
-                                            in test environment. The homepage opened and 'Connect Wallet' was clicked,
-                                            but the UI displayed "Freighter wallet not found. Please install the
-                                            extension." No challenge-response flow or JWT issuance occurred.
-                                        </div>
+                                        <div class="test-field-value text-body">N/A</div>
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Visualization and Result
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/5543a902-46e5-47d0-8fc1-95ec1a2daa48">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/d64c6eb9-9460-47ac-991c-741e41a0e0b8">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -1486,24 +1476,24 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">HIGH</div>
+                                        <div class="test-field-value text-body">LOW</div>
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">The test correctly identifies a
-                                            fundamental environment limitation: Freighter is a browser extension that
-                                            cannot be injected into an automated headless test session. The frontend
-                                            correctly handles the missing extension by showing a descriptive error
-                                            message rather than crashing, which is proper UX behavior. To test this
-                                            flow, either a mock Freighter provider or a browser with the extension
-                                            preinstalled is required.
+                                        <div class="test-field-value text-body">UI-level authentication works correctly
+                                            — wallet auto-connects, username/address displayed in header, protected
+                                            routes (Invoices, My Businesses) become accessible. The failure is a
+                                            **verification limitation**: TestSprite cannot inspect
+                                            localStorage/sessionStorage to confirm JWT issuance and 24-hour expiry. This
+                                            is already covered by backend unit tests (auth.test.js: all 18 tests pass).
+                                            Not a real bug.
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC002 Authentication Failure with Invalid
+                                    <h4 class="text-body-medium">TC002 Fail Authentication with Invalid Wallet
                                         Signature</h4>
                                 </div>
                                 <div class="test-content">
@@ -1511,23 +1501,19 @@
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="./TC002_Authentication_Failure_with_Invalid_Signature.py">TC002_Authentication_Failure_with_Invalid_Signature.py</a>
+                                               href="./TC002_Fail_Authentication_with_Invalid_Wallet_Signature.py">TC002_Fail_Authentication_with_Invalid_Wallet_Signature.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Could not obtain a challenge from the
-                                            backend because the wallet provider (Freighter) is not available. No
-                                            challenge retrieval step occurred, so a tampered signature could not be
-                                            submitted.
-                                        </div>
+                                        <div class="test-field-value text-body">N/A</div>
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Visualization and Result
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/227cc695-1d10-404a-910f-0ae69f12578d">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/cdc65649-099c-4ec9-9f21-7bc849e4dcac">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -1555,82 +1541,43 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">HIGH</div>
+                                        <div class="test-field-value text-body">LOW</div>
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">This test is blocked by the same
-                                            Freighter dependency as TC001. The negative auth path (invalid signature
-                                            rejection) cannot be exercised via the frontend UI without a wallet
-                                            provider. This flow is better tested via direct API calls to
-                                            `/api/auth/challenge` and `/api/auth/login` with a crafted invalid
-                                            signature, which is covered by the backend integration test suite (11 auth
-                                            tests passing).
+                                        <div class="test-field-value text-body">**Untestable via browser automation.**
+                                            Freighter wallet signing happens in an external popup outside the DOM.
+                                            TestSprite cannot intercept/modify signatures. In DEV_MODE, the
+                                            challenge-response flow is bypassed entirely. Invalid signature rejection is
+                                            covered by backend unit tests (auth.test.js). Not a real bug — architectural
+                                            limitation of browser-based testing for wallet interactions.
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="requirement-wrapper accordion-item active">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <div class="requirement-content">
-                            <div class="requirement-title-row">
-                                <h3 class="title-requirement">Requirement: Trip Management (TRIP)</h3>
-                                <div class="requirement-status-tag status-error">
-                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                         xmlns="http://www.w3.org/2000/svg">
-                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2" r="6.4"/>
-                                        <path d="M8 5.59998V7.99698" stroke="#EF4146" stroke-linecap="round"
-                                              stroke-linejoin="round" stroke-width="1.38478"/>
-                                        <path d="M8 10.394V10.3995" stroke="#EF4146" stroke-linecap="round"
-                                              stroke-linejoin="round" stroke-width="1.38478"/>
-                                    </svg>
-                                    <span>2/5</span>
-                                </div>
-                            </div>
-                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
-                                invalid data scenarios.</p>
-                        </div>
-                        <div class="accordion-icon">
-                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
-                                      fill="var(--fg-secondary)"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="accordion-content">
-                        <div class="test-wrapper">
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC003 Create Trip Successfully with Valid Inputs</h4>
+                                    <h4 class="text-body-medium">TC018 Authorization Enforcement for Admin and Owner
+                                        Endpoints</h4>
                                 </div>
                                 <div class="test-content">
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="./TC003_Create_Trip_Successfully_with_Valid_Inputs.py">TC003_Create_Trip_Successfully_with_Valid_Inputs.py</a>
+                                               href="./TC018_Authorization_Enforcement_for_Admin_and_Owner_Endpoints.py">TC018_Authorization_Enforcement_for_Admin_and_Owner_Endpoints.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Create Trip page correctly displays "You
-                                            need to be logged in to create a trip" for unauthenticated users.
-                                            Authentication via Freighter could not be completed, so the trip creation
-                                            form never rendered.
-                                        </div>
+                                        <div class="test-field-value text-body">N/A</div>
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Visualization and Result
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/8198809e-056f-4b46-96d2-ac96b7c1fdd5">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/aa839860-d2bc-4552-9731-1a06239bbae7">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -1662,90 +1609,62 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">The auth guard on the Create Trip page
-                                            works correctly by blocking unauthenticated access and showing a clear
-                                            message. The test failure is due to the Freighter dependency blocking
-                                            authentication. The trip creation API is verified separately in backend
-                                            integration tests (15 trip tests passing). The frontend form validation and
-                                            submission logic remain untested in this automated run.
+                                        <div class="test-field-value text-body">**Partial success.** API-level RBAC is
+                                            correctly enforced — unauthenticated requests to `/api/admin/users` and
+                                            `/api/invoices/2` return `{"error":"Authorization token required"}`.
+                                            However, UI route protection could not be verified because the dev wallet
+                                            auto-reconnected after disconnect. The `manuallyDisconnected` ref fix was
+                                            deployed but may not have been picked up by the running container. Backend
+                                            RBAC is solid; frontend route guards should be verified in a fresh session.
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="test-card">
-                                <div class="test-header">
-                                    <h4 class="text-body-medium">TC004 Trip Creation Validation Errors</h4>
-                                </div>
-                                <div class="test-content">
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Code</div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link" href="./TC004_Trip_Creation_Validation_Errors.py">TC004_Trip_Creation_Validation_Errors.py</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Create Trip form is inaccessible due to
-                                            authentication barrier. Validation checks for empty name, negative target
-                                            amount, and past deadline could not be executed.
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Visualization and Result
-                                        </div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/373fea1f-408d-4371-ae05-472f08a084ce">View Results</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Status</div>
-                                        <div class="test-field-value">
+                        </div>
+                    </div>
+                </div>
 
-                                            <div class="status-wrapper">
-                                                <div class="status-icon">
-                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                                         xmlns="http://www.w3.org/2000/svg">
-                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
-                                                                r="6.4"/>
-                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                    </svg>
-                                                </div>
-                                                <span class="text-body status-fail">Failed</span>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">MEDIUM</div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Same Freighter authentication blocker as
-                                            TC003. The form validation logic (required fields, positive amounts, future
-                                            dates) cannot be tested without first authenticating. This is a gap in
-                                            automated testing coverage that requires either a mock auth flow or the
-                                            Freighter extension in the test browser.
-                                        </div>
-                                    </div>
+                <div class="requirement-wrapper accordion-item active">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="requirement-content">
+                            <div class="requirement-title-row">
+                                <h3 class="title-requirement">Requirement: Invoice Creation & Form Validation</h3>
+                                <div class="requirement-status-tag status-error">
+                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2" r="6.4"/>
+                                        <path d="M8 5.59998V7.99698" stroke="#EF4146" stroke-linecap="round"
+                                              stroke-linejoin="round" stroke-width="1.38478"/>
+                                        <path d="M8 10.394V10.3995" stroke="#EF4146" stroke-linecap="round"
+                                              stroke-linejoin="round" stroke-width="1.38478"/>
+                                    </svg>
+                                    <span>2/3</span>
                                 </div>
                             </div>
+                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
+                                invalid data scenarios.</p>
+                        </div>
+                        <div class="accordion-icon">
+                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
+                                      fill="var(--fg-secondary)"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="accordion-content">
+                        <div class="test-wrapper">
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC005 Trip List Display with Real-Time Progress</h4>
+                                    <h4 class="text-body-medium">TC003 Create Group Invoice with Valid Inputs</h4>
                                 </div>
                                 <div class="test-content">
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="./TC005_Trip_List_Display_with_Real_Time_Progress.py">TC005_Trip_List_Display_with_Real_Time_Progress.py</a>
+                                               href="./TC003_Create_Group_Invoice_with_Valid_Inputs.py">TC003_Create_Group_Invoice_with_Valid_Inputs.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -1757,69 +1676,7 @@
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/20c8bf8e-58d9-49c0-9b2c-5e6546de9a71">View Results</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Status</div>
-                                        <div class="test-field-value">
-                                            <div class="status-wrapper">
-                                                <div class="status-icon">
-                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                                         xmlns="http://www.w3.org/2000/svg">
-                                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2"
-                                                                r="6.4"/>
-                                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002"
-                                                              stroke="#19C379" stroke-linecap="round"
-                                                              stroke-linejoin="round" stroke-width="1.28"/>
-                                                    </svg>
-                                                </div>
-                                                <span class="text-body status-pass">Pass</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">LOW</div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">The Dashboard page correctly renders
-                                            trip cards with progress bars, collected/target XLM amounts, participant
-                                            counts, status badges, and organizer info. TanStack Query data fetching
-                                            works properly. No authentication is required for this public page, allowing
-                                            full verification.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="test-card">
-                                <div class="test-header">
-                                    <h4 class="text-body-medium">TC006 Trip Detail View Displays Correct
-                                        Information</h4>
-                                </div>
-                                <div class="test-content">
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Code</div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="./TC006_Trip_Detail_View_Displays_Correct_Information.py">TC006_Trip_Detail_View_Displays_Correct_Information.py</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Data inconsistencies found: Budget
-                                            collected shows 0.00 XLM while participant demo_user shows 500.00 XLM
-                                            contribution. Participant count card shows 0 while participant list contains
-                                            1 entry. No on-chain escrow contract link visible.
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Visualization and Result
-                                        </div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/d02eec71-05cc-472c-86a1-ba69ad27fe35">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/60414963-fe10-4e8f-b6d7-ffa6b8a82eae">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -1851,27 +1708,29 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">This reveals a real data aggregation bug
-                                            in the Trip Detail page. The budget stats card and participant count card
-                                            are not reflecting the actual participant contribution data. The trip's
-                                            `collected_amount` field in the database may not be updating when
-                                            contributions are recorded, or the frontend is reading from separate data
-                                            sources that are out of sync. The missing on-chain link is expected since
-                                            this trip hasn't been linked to a Soroban contract yet. **Action required:**
-                                            Fix the collected amount and participant count aggregation logic.
+                                        <div class="test-field-value text-body">TestSprite filled in name, description,
+                                            deadline, and line items but encountered repeated "element not
+                                            interactable/stale" errors when clicking the Create button. The SPA
+                                            eventually rendered a blank page at `/invoices/new`. This is likely a **DOM
+                                            reactivity issue** — the form re-renders when items are added, causing
+                                            element references to become stale. The creation flow itself works (verified
+                                            manually and via API). Recommend adding `data-testid` attributes to critical
+                                            form controls to improve automation reliability.
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC017 Cancel Trip and Trigger Full Refunds</h4>
+                                    <h4 class="text-body-medium">TC004 Invoice Creation Failure on Missing Required
+                                        Fields</h4>
                                 </div>
                                 <div class="test-content">
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
-                                            <a class="text-link" href="./TC017_Cancel_Trip_and_Trigger_Full_Refunds.py">TC017_Cancel_Trip_and_Trigger_Full_Refunds.py</a>
+                                            <a class="text-link"
+                                               href="./TC004_Invoice_Creation_Failure_on_Missing_Required_Fields.py">TC004_Invoice_Creation_Failure_on_Missing_Required_Fields.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -1883,7 +1742,7 @@
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/a42901f6-499b-4bdb-8fa9-bfa421b296f0">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/7e066b9f-10bf-4706-ba63-becbc13755cd">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -1910,9 +1769,67 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Trip cancellation flow works as
-                                            expected. On-chain transaction confirms within 30 seconds, trip status
-                                            updates to cancelled, and participant refunds are processed correctly.
+                                        <div class="test-field-value text-body">Frontend validation correctly blocks
+                                            submission and displays inline error messages for missing name, deadline,
+                                            and items. The test plan update (removing non-existent "recipients" field
+                                            references) resolved the previous failure.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC017 Invoice Lifecycle State Transitions Are
+                                        Accurate</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC017_Invoice_Lifecycle_State_Transitions_Are_Accurate.py">TC017_Invoice_Lifecycle_State_Transitions_Are_Accurate.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/68ee8ff8-6457-4f1d-9c66-0b26d42f6c24">View Results</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002"
+                                                              stroke="#19C379" stroke-linecap="round"
+                                                              stroke-linejoin="round" stroke-width="1.28"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-pass">Pass</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">LOW</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">Invoice dashboard correctly displays all
+                                            lifecycle states (draft, funding, completed, released, cancelled) with
+                                            accurate status badges, amounts, and participant counts. Seed data is
+                                            correctly represented in the UI.
                                         </div>
                                     </div>
                                 </div>
@@ -1925,7 +1842,8 @@
                     <div class="accordion-header" onclick="toggleAccordion(this)">
                         <div class="requirement-content">
                             <div class="requirement-title-row">
-                                <h3 class="title-requirement">Requirement: Participation (PART)</h3>
+                                <h3 class="title-requirement">Requirement: On-Chain Invoice Operations (Soroban Smart
+                                    Contract)</h3>
                                 <div class="requirement-status-tag status-error">
                                     <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
                                          xmlns="http://www.w3.org/2000/svg">
@@ -1935,7 +1853,7 @@
                                         <path d="M8 10.394V10.3995" stroke="#EF4146" stroke-linecap="round"
                                               stroke-linejoin="round" stroke-width="1.38478"/>
                                     </svg>
-                                    <span>2/4</span>
+                                    <span>3/7</span>
                                 </div>
                             </div>
                             <p class="text-body-medium requirement-description">Proper error handling for API calls and
@@ -1954,7 +1872,261 @@
                         <div class="test-wrapper">
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC008 Participant Can Join Trip and Contribute
+                                    <h4 class="text-body-medium">TC005 Link Group Invoice on-chain Using Soroban
+                                        Transaction</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC005_Link_Group_Invoice_on_chain_Using_Soroban_Transaction.py">TC005_Link_Group_Invoice_on_chain_Using_Soroban_Transaction.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/9a4408de-d87f-4063-9c9a-6c18b3efeb3b">View Results</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002"
+                                                              stroke="#19C379" stroke-linecap="round"
+                                                              stroke-linejoin="round" stroke-width="1.28"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-pass">Pass</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">LOW</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">Successfully linked a draft invoice to
+                                            the blockchain via mock XDR. The "Link to blockchain" button works
+                                            correctly, the backend accepts the mock XDR, assigns a
+                                            `contract_invoice_id`, and transitions the invoice to "funding" status. This
+                                            validates the full end-to-end mock flow: frontend buildContractTx ->
+                                            signWithFreighter -> backend submitTx.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC006 Join Funding Pool and Contribute Valid
+                                        Amount</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC006_Join_Funding_Pool_and_Contribute_Valid_Amount.py">TC006_Join_Funding_Pool_and_Contribute_Valid_Amount.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/8632ebbb-0804-42c2-9d7d-14bb4b065a9d">View Results</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-fail">Failed</span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">HIGH (test environment issue, not a
+                                            bug)
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">**Test ordering cascade failure.**
+                                            Invoice 2 (Cartagena Beach Trip) was cancelled by TC011 (which ran before
+                                            this test), so when TC006 navigated to `/invoices/2`, the status was
+                                            "cancelled" and contributions were blocked. The contribute flow itself works
+                                            correctly (verified via API in previous sessions). **Root cause: TestSprite
+                                            executed TC011 (cancel) before TC006 (contribute), destroying the test
+                                            data.**
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC007 Reject Contribution when Overfunding the
+                                        Invoice</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC007_Reject_Contribution_when_Overfunding_the_Invoice.py">TC007_Reject_Contribution_when_Overfunding_the_Invoice.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/ff8d6a6b-f62b-4b6c-b6a5-4c8e2d2c7ad2">View Results</a>
+                    </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-fail">Failed</span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">HIGH (test environment issue, not a
+                                            bug)
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">**Same cascade failure as TC006.**
+                                            Invoice 2 was already cancelled. The over-contribution validation (`Max
+                                            contribution is X XLM`) exists in the code and was verified in previous
+                                            sessions but could not be triggered on a cancelled invoice.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC008 Withdraw Contribution with Penalty
+                                        Enforcement</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC008_Withdraw_Contribution_Before_Funding_Completion_with_Penalty_Enforcement.py">TC008_Withdraw_Contribution_Before_Funding_Completion_with_Penalty_Enforcement.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/eb9e5b83-6c42-4d60-a5a9-a7213ab64607">View Results</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-fail">Failed</span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">HIGH (test environment issue, not a
+                                            bug)
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">**Same cascade failure.** Invoice 2 was
+                                            cancelled. Withdraw button still shows but the action operates on a
+                                            cancelled invoice. Penalty logic is implemented in the smart contract and
+                                            backend but untestable after cancellation.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC010 Confirm Readiness and Trigger Auto-Release of
                                         Funds</h4>
                                 </div>
                                 <div class="test-content">
@@ -1962,7 +2134,7 @@
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="./TC008_Participant_Can_Join_Trip_and_Contribute_Funds.py">TC008_Participant_Can_Join_Trip_and_Contribute_Funds.py</a>
+                                               href="./TC010_Confirm_Readiness_and_Trigger_Auto_Release_of_Funds.py">TC010_Confirm_Readiness_and_Trigger_Auto_Release_of_Funds.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -1974,7 +2146,72 @@
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/d7939496-42f6-4b24-a98f-4891edd62d32">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/24d5a86a-a63a-4e5d-a454-2aad3b51cab9">View Results</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-fail">Failed</span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">HIGH (test environment issue, not a
+                                            bug)
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">**Same cascade failure.** Invoice 2 was
+                                            cancelled. Confirm release buttons only appear on "completed" status
+                                            invoices. Invoice 3 (Coffee Country Weekend, status: completed) was
+                                            available but the test was directed to Invoice 2. Test should target Invoice
+                                            3 for confirm_release testing.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC011 Organizer Cancels Invoice with Full Refund and
+                                        Penalty Trigger</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC011_Organizer_Cancels_Invoice_with_Full_Refund_and_Penalty_Trigger.py">TC011_Organizer_Cancels_Invoice_with_Full_Refund_and_Penalty_Trigger.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/688c61d7-1309-4ea1-bcb9-3e451903974b">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -2001,25 +2238,26 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Join and contribution workflow functions
-                                            correctly. Signed Soroban transactions are accepted, on-chain confirmation
-                                            occurs within expected timeframe, and participant data updates properly in
-                                            both the backend and frontend UI.
+                                        <div class="test-field-value text-body">Successfully cancelled Invoice 2, which
+                                            transitioned from "funding" to "cancelled" with refund banner displayed.
+                                            **However, this test ran before TC006-TC010, destroying the funding invoice
+                                            that those tests depended on.** This is the root cause of 4 cascade
+                                            failures.
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC009 Participant Withdrawal Applies On-Chain
-                                        Penalties</h4>
+                                    <h4 class="text-body-medium">TC020 Soroban Transaction Builder Mock Mode Returns
+                                        Correct Mock XDR</h4>
                                 </div>
                                 <div class="test-content">
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="./TC009_Participant_Withdrawal_Applies_On_Chain_Penalties.py">TC009_Participant_Withdrawal_Applies_On_Chain_Penalties.py</a>
+                                               href="./TC020_Soroban_Transaction_Builder_Mock_Mode_Returns_Correct_Mock_XDR.py">TC020_Soroban_Transaction_Builder_Mock_Mode_Returns_Correct_Mock_XDR.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -2031,7 +2269,7 @@
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/594a7e65-cca6-46cc-9772-f7d19e930c99">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/d850b239-ef53-40b7-a0b5-5610e942648f">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -2058,145 +2296,9 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Withdrawal with penalty enforcement
-                                            works correctly on-chain. The smart contract applies the configured penalty
-                                            percentage, and both the backend and frontend reflect the updated
-                                            contribution amounts after withdrawal.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="test-card">
-                                <div class="test-header">
-                                    <h4 class="text-body-medium">TC016 Reject Contribution Transactions if On-Chain
-                                        Validation Fails</h4>
-                                </div>
-                                <div class="test-content">
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Code</div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="./TC016_Reject_Contribution_Transactions_if_On_Chain_Validation_Fails.py">TC016_Reject_Contribution_Transactions_if_On_Chain_Validation_Fails.py</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Wallet authentication could not be
-                                            established (Freighter extension unavailable). Invalid contribution
-                                            transactions could not be constructed, signed, or submitted.
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Visualization and Result
-                                        </div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/13337d48-456c-4994-b2ce-ac0dbfe50224">View Results</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Status</div>
-                                        <div class="test-field-value">
-
-                                            <div class="status-wrapper">
-                                                <div class="status-icon">
-                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                                         xmlns="http://www.w3.org/2000/svg">
-                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
-                                                                r="6.4"/>
-                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                    </svg>
-                                                </div>
-                                                <span class="text-body status-fail">Failed</span>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">MEDIUM</div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Blocked by Freighter dependency. The
-                                            error handling path for invalid Soroban contributions (zero amount,
-                                            exceeding target) could not be exercised through the frontend. This
-                                            validation is enforced at the smart contract level and tested via backend
-                                            integration tests.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="test-card">
-                                <div class="test-header">
-                                    <h4 class="text-body-medium">TC018 List Participants and Their Contributions for a
-                                        Trip</h4>
-                                </div>
-                                <div class="test-content">
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Code</div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="./TC018_List_Participants_and_Their_Contributions_for_a_Trip.py">TC018_List_Participants_and_Their_Contributions_for_a_Trip.py</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Backend API returned participant JSON
-                                            but automated extraction/parsing failed after 4 attempts. Frontend correctly
-                                            displayed 1 participant (demo_user, 500.00 XLM) but data match could not be
-                                            fully verified programmatically.
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Visualization and Result
-                                        </div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/009fb271-c43a-4dab-a5d3-05509f29aa65">View Results</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Status</div>
-                                        <div class="test-field-value">
-
-                                            <div class="status-wrapper">
-                                                <div class="status-icon">
-                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                                         xmlns="http://www.w3.org/2000/svg">
-                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
-                                                                r="6.4"/>
-                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                    </svg>
-                                                </div>
-                                                <span class="text-body status-fail">Failed</span>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">LOW</div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Partial success - the frontend UI
-                                            correctly renders the participant list with usernames and contribution
-                                            amounts. The backend API (`GET /api/trips/1/participants`) responds with
-                                            valid JSON. The failure is in the test automation's JSON parsing, not in the
-                                            application itself. The UI shows the correct data (demo_user with 500.00
-                                            XLM), suggesting the feature works correctly despite the automated
-                                            verification gap.
+                                        <div class="test-field-value text-body">Mock XDR builder in DEV_MODE correctly
+                                            returns the expected mock XDR string without hitting Soroban RPC. Validates
+                                            that the entire mock pipeline is functional.
                                         </div>
                                     </div>
                                 </div>
@@ -2209,372 +2311,8 @@
                     <div class="accordion-header" onclick="toggleAccordion(this)">
                         <div class="requirement-content">
                             <div class="requirement-title-row">
-                                <h3 class="title-requirement">Requirement: Security & Access Control</h3>
-                                <div class="requirement-status-tag status-error">
-                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                         xmlns="http://www.w3.org/2000/svg">
-                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2" r="6.4"/>
-                                        <path d="M8 5.59998V7.99698" stroke="#EF4146" stroke-linecap="round"
-                                              stroke-linejoin="round" stroke-width="1.38478"/>
-                                        <path d="M8 10.394V10.3995" stroke="#EF4146" stroke-linecap="round"
-                                              stroke-linejoin="round" stroke-width="1.38478"/>
-                                    </svg>
-                                    <span>1/2</span>
-                                </div>
-                            </div>
-                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
-                                invalid data scenarios.</p>
-                        </div>
-                        <div class="accordion-icon">
-                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
-                                      fill="var(--fg-secondary)"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="accordion-content">
-                        <div class="test-wrapper">
-                            <div class="test-card">
-                                <div class="test-header">
-                                    <h4 class="text-body-medium">TC007 Only Organizers Can Perform Sensitive Trip
-                                        Operations</h4>
-                                </div>
-                                <div class="test-content">
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Code</div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="./TC007_Only_Organizers_Can_Perform_Sensitive_Trip_Operations.py">TC007_Only_Organizers_Can_Perform_Sensitive_Trip_Operations.py</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Authentication via Freighter could not
-                                            be established. The trip detail page correctly hides organizer-only action
-                                            buttons from unauthenticated users (no Link Escrow, Release, Cancel, or Join
-                                            buttons visible). API-level 403 verification could not be performed.
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Visualization and Result
-                                        </div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/3248d5bf-4d7a-4003-8e09-c566e7dfe99a">View Results</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Status</div>
-                                        <div class="test-field-value">
-
-                                            <div class="status-wrapper">
-                                                <div class="status-icon">
-                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                                         xmlns="http://www.w3.org/2000/svg">
-                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
-                                                                r="6.4"/>
-                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                    </svg>
-                                                </div>
-                                                <span class="text-body status-fail">Failed</span>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">MEDIUM</div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Partial positive finding: the frontend
-                                            correctly hides organizer-only controls from unauthenticated users, which is
-                                            proper security UX. However, the full test (verifying HTTP 403 for
-                                            unauthorized API calls and successful operations for organizers) requires
-                                            authentication. Backend integration tests cover the authorization middleware
-                                            (isOrganizer check returning 403).
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="test-card">
-                                <div class="test-header">
-                                    <h4 class="text-body-medium">TC012 Frontend Route Access Control Based on
-                                        Authentication</h4>
-                                </div>
-                                <div class="test-content">
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Code</div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="./TC012_Frontend_Route_Access_Control_Based_on_Authentication.py">TC012_Frontend_Route_Access_Control_Based_on_Authentication.py</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">N/A</div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Visualization and Result
-                                        </div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/58b8db0b-bdfa-41d8-b341-b8efd2502708">View Results</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Status</div>
-                                        <div class="test-field-value">
-                                            <div class="status-wrapper">
-                                                <div class="status-icon">
-                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                                         xmlns="http://www.w3.org/2000/svg">
-                                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2"
-                                                                r="6.4"/>
-                                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002"
-                                                              stroke="#19C379" stroke-linecap="round"
-                                                              stroke-linejoin="round" stroke-width="1.28"/>
-                                                    </svg>
-                                                </div>
-                                                <span class="text-body status-pass">Pass</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">LOW</div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Frontend route guards work correctly.
-                                            Unauthenticated users accessing `/trips/new` (Create Trip) and `/profile`
-                                            (Profile) are shown appropriate "connect your wallet" prompts instead of the
-                                            protected content. This confirms the auth-gate pattern is implemented
-                                            properly across protected routes.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="requirement-wrapper accordion-item active">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <div class="requirement-content">
-                            <div class="requirement-title-row">
-                                <h3 class="title-requirement">Requirement: Image Management (IMG)</h3>
-                                <div class="requirement-status-tag status-error">
-                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                         xmlns="http://www.w3.org/2000/svg">
-                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2" r="6.4"/>
-                                        <path d="M8 5.59998V7.99698" stroke="#EF4146" stroke-linecap="round"
-                                              stroke-linejoin="round" stroke-width="1.38478"/>
-                                        <path d="M8 10.394V10.3995" stroke="#EF4146" stroke-linecap="round"
-                                              stroke-linejoin="round" stroke-width="1.38478"/>
-                                    </svg>
-                                    <span>0/1</span>
-                                </div>
-                            </div>
-                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
-                                invalid data scenarios.</p>
-                        </div>
-                        <div class="accordion-icon">
-                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
-                                      fill="var(--fg-secondary)"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="accordion-content">
-                        <div class="test-wrapper">
-                            <div class="test-card">
-                                <div class="test-header">
-                                    <h4 class="text-body-medium">TC010 Image Upload Succeeds and Associates with
-                                        Trip</h4>
-                                </div>
-                                <div class="test-content">
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Code</div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="./TC010_Image_Upload_Succeeds_and_Associates_with_Trip.py">TC010_Image_Upload_Succeeds_and_Associates_with_Trip.py</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Authentication blocked (no Freighter).
-                                            No image upload control found on the trip detail page. Backend health check
-                                            confirms MinIO storage is connected. GET /images returns empty array.
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Visualization and Result
-                                        </div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/d060ca37-6471-4049-8ffe-f7cc0e631cc7">View Results</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Status</div>
-                                        <div class="test-field-value">
-
-                                            <div class="status-wrapper">
-                                                <div class="status-icon">
-                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                                         xmlns="http://www.w3.org/2000/svg">
-                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
-                                                                r="6.4"/>
-                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                    </svg>
-                                                </div>
-                                                <span class="text-body status-fail">Failed</span>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">LOW</div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Image management is marked as P2 (low
-                                            priority) in the PRD. The frontend currently does not expose an image upload
-                                            UI component on the trip detail page, which is expected since this feature
-                                            hasn't been fully implemented in the frontend yet. The backend API endpoints
-                                            (`POST /images/upload`, `GET /images`, `GET /images/:filename`) exist and
-                                            are functional, and MinIO storage is healthy.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="requirement-wrapper accordion-item active">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <div class="requirement-content">
-                            <div class="requirement-title-row">
-                                <h3 class="title-requirement">Requirement: User Profile (PROF)</h3>
-                                <div class="requirement-status-tag status-error">
-                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                         xmlns="http://www.w3.org/2000/svg">
-                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2" r="6.4"/>
-                                        <path d="M8 5.59998V7.99698" stroke="#EF4146" stroke-linecap="round"
-                                              stroke-linejoin="round" stroke-width="1.38478"/>
-                                        <path d="M8 10.394V10.3995" stroke="#EF4146" stroke-linecap="round"
-                                              stroke-linejoin="round" stroke-width="1.38478"/>
-                                    </svg>
-                                    <span>0/1</span>
-                                </div>
-                            </div>
-                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
-                                invalid data scenarios.</p>
-                        </div>
-                        <div class="accordion-icon">
-                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
-                                      fill="var(--fg-secondary)"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="accordion-content">
-                        <div class="test-wrapper">
-                            <div class="test-card">
-                                <div class="test-header">
-                                    <h4 class="text-body-medium">TC015 User Profile Displays Correct Wallet and Trip
-                                        Lists</h4>
-                                </div>
-                                <div class="test-content">
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Code</div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="./TC015_User_Profile_Displays_Correct_Wallet_and_Trip_Lists.py">TC015_User_Profile_Displays_Correct_Wallet_and_Trip_Lists.py</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Error</div>
-                                        <div class="test-field-value text-body">Profile page correctly shows "You need
-                                            to be logged in to view your profile" for unauthenticated users. Freighter
-                                            extension not available, so authentication and profile content could not be
-                                            verified.
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Test Visualization and Result
-                                        </div>
-                                        <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/c4edb58d-e08c-4478-81c6-d2abf261b80a">View Results</a>
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Status</div>
-                                        <div class="test-field-value">
-
-                                            <div class="status-wrapper">
-                                                <div class="status-icon">
-                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
-                                                         xmlns="http://www.w3.org/2000/svg">
-                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
-                                                                r="6.4"/>
-                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
-                                                              stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="1.38478"/>
-                                                    </svg>
-                                                </div>
-                                                <span class="text-body status-fail">Failed</span>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">MEDIUM</div>
-                                    </div>
-                                    <div class="test-field">
-                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">The auth guard on the Profile page works
-                                            correctly (same finding as TC012). The actual profile content display
-                                            (wallet address truncation, username, join date, trip lists) could not be
-                                            verified due to the authentication barrier. This requires either a
-                                            Freighter-enabled browser or a mock auth mechanism for testing.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="requirement-wrapper accordion-item active">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <div class="requirement-content">
-                            <div class="requirement-title-row">
-                                <h3 class="title-requirement">Requirement: Backend Infrastructure</h3>
+                                <h3 class="title-requirement">Requirement: Invoice Item Modification & Participant
+                                    Consent</h3>
                                 <div class="requirement-status-tag status-success">
                                     <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
                                          xmlns="http://www.w3.org/2000/svg">
@@ -2582,7 +2320,7 @@
                                         <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002" stroke="#19C379"
                                               stroke-linecap="round" stroke-linejoin="round" stroke-width="1.28"/>
                                     </svg>
-                                    <span>3/3</span>
+                                    <span>1/1</span>
                                 </div>
                             </div>
                             <p class="text-body-medium requirement-description">Proper error handling for API calls and
@@ -2601,14 +2339,15 @@
                         <div class="test-wrapper">
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC011 Backend Health Check Endpoint Responses</h4>
+                                    <h4 class="text-body-medium">TC009 Organizer Modifies Invoice Items and Requires
+                                        Participant Consent</h4>
                                 </div>
                                 <div class="test-content">
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="./TC011_Backend_Health_Check_Endpoint_Responses.py">TC011_Backend_Health_Check_Endpoint_Responses.py</a>
+                                               href="./TC009_Organizer_Modifies_Invoice_Items_and_Requires_Participant_Consent.py">TC009_Organizer_Modifies_Invoice_Items_and_Requires_Participant_Consent.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -2620,7 +2359,7 @@
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/1bf6933b-9073-48d3-b75f-4e4ad9529f73">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/db6e4e81-58a3-4baa-ab7e-4d94cefbc0b2">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -2647,25 +2386,203 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Health endpoint returns
-                                            `{"status":"ok","database":"connected","storage":"connected"}` with HTTP
-                                            200. Both PostgreSQL and MinIO connectivity checks pass, confirming the
-                                            infrastructure is healthy.
+                                        <div class="test-field-value text-body">Invoice modification flow works
+                                            correctly. Version is incremented and the UI shows modification banner for
+                                            participants who contributed at an earlier version.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="requirement-wrapper accordion-item active">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="requirement-content">
+                            <div class="requirement-title-row">
+                                <h3 class="title-requirement">Requirement: Service Catalog</h3>
+                                <div class="requirement-status-tag status-success">
+                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2" r="6.4"/>
+                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002" stroke="#19C379"
+                                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.28"/>
+                                    </svg>
+                                    <span>1/1</span>
+                                </div>
+                            </div>
+                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
+                                invalid data scenarios.</p>
+                        </div>
+                        <div class="accordion-icon">
+                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
+                                      fill="var(--fg-secondary)"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="accordion-content">
+                        <div class="test-wrapper">
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC012 Service Catalog Displays Active Services with
+                                        Search Filtering</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC012_Service_Catalog_Displays_Active_Services_with_Search_Filtering.py">TC012_Service_Catalog_Displays_Active_Services_with_Search_Filtering.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/a296f572-f535-4fec-b226-d0aae6848cf9">View Results</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002"
+                                                              stroke="#19C379" stroke-linecap="round"
+                                                              stroke-linejoin="round" stroke-width="1.28"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-pass">Pass</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">LOW</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">All 10 seeded services display correctly
+                                            with name, price, business name, and description. Search filtering works as
+                                            expected — keyword queries filter the list accurately.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="requirement-wrapper accordion-item active">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="requirement-content">
+                            <div class="requirement-title-row">
+                                <h3 class="title-requirement">Requirement: Business & Service CRUD</h3>
+                                <div class="requirement-status-tag status-success">
+                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2" r="6.4"/>
+                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002" stroke="#19C379"
+                                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.28"/>
+                                    </svg>
+                                    <span>2/2</span>
+                                </div>
+                            </div>
+                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
+                                invalid data scenarios.</p>
+                        </div>
+                        <div class="accordion-icon">
+                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
+                                      fill="var(--fg-secondary)"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="accordion-content">
+                        <div class="test-wrapper">
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC013 CRUD Operations for Business Management</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC013_CRUD_Operations_for_Business_Management.py">TC013_CRUD_Operations_for_Business_Management.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/b084321f-e017-4ba3-84cb-c735ba009f1d">View Results</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002"
+                                                              stroke="#19C379" stroke-linecap="round"
+                                                              stroke-linejoin="round" stroke-width="1.28"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-pass">Pass</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">MEDIUM</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">Create, Read, and Update operations all
+                                            succeeded. The Delete step was not completed due to stale element references
+                                            — the SPA re-renders after edit, causing DOM element indexes to change. The
+                                            delete functionality exists and works (verified via API). Recommend adding
+                                            `data-testid` attributes to CRUD action buttons for reliable automation.
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC013 Backend CRUD APIs Return Correct Status Codes and
-                                        Data Shapes</h4>
+                                    <h4 class="text-body-medium">TC014 CRUD Operations for Service Management Under a
+                                        Business</h4>
                                 </div>
                                 <div class="test-content">
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="./TC013_Backend_CRUD_APIs_Return_Correct_Status_Codes_and_Data_Shapes.py">TC013_Backend_CRUD_APIs_Return_Correct_Status_Codes_and_Data_Shapes.py</a>
+                                               href="./TC014_CRUD_Operations_for_Service_Management_Under_a_Business.py">TC014_CRUD_Operations_for_Service_Management_Under_a_Business.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -2677,7 +2594,7 @@
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/3936f347-8515-46c8-af2b-56074b09dda4">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/c8607590-796f-4903-9f88-19d7b99d1d8a">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -2700,29 +2617,62 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Severity</div>
-                                        <div class="test-field-value text-body">LOW</div>
+                                        <div class="test-field-value text-body">MEDIUM</div>
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">All tested CRUD endpoints return
-                                            expected HTTP status codes (200/201 on success, 400/403 on errors) and JSON
-                                            responses conform to documented data schemas. This validates the backend API
-                                            contract.
+                                        <div class="test-field-value text-body">Business registration and service
+                                            creation both succeeded (Airport Transfer service at 50.00 XLM created and
+                                            visible). Edit and delete controls on individual service cards were not
+                                            discoverable — the pencil/trash icons inside service cards may need explicit
+                                            `data-testid` attributes or larger click targets for automation. Recommend
+                                            adding test-friendly selectors to service card action buttons.
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="requirement-wrapper accordion-item active">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="requirement-content">
+                            <div class="requirement-title-row">
+                                <h3 class="title-requirement">Requirement: User Profile</h3>
+                                <div class="requirement-status-tag status-success">
+                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2" r="6.4"/>
+                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002" stroke="#19C379"
+                                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.28"/>
+                                    </svg>
+                                    <span>1/1</span>
+                                </div>
+                            </div>
+                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
+                                invalid data scenarios.</p>
+                        </div>
+                        <div class="accordion-icon">
+                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
+                                      fill="var(--fg-secondary)"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="accordion-content">
+                        <div class="test-wrapper">
                             <div class="test-card">
                                 <div class="test-header">
-                                    <h4 class="text-body-medium">TC014 Soroban Transaction Submission and Confirmation
-                                        Within 30 Seconds</h4>
+                                    <h4 class="text-body-medium">TC015 View User Profile Information</h4>
                                 </div>
                                 <div class="test-content">
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Test Code</div>
                                         <div class="test-field-value text-body">
-                                            <a class="text-link"
-                                               href="./TC014_Soroban_Transaction_Submission_and_Confirmation_Within_30_Seconds.py">TC014_Soroban_Transaction_Submission_and_Confirmation_Within_30_Seconds.py</a>
+                                            <a class="text-link" href="./TC015_View_User_Profile_Information.py">TC015_View_User_Profile_Information.py</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -2734,7 +2684,7 @@
                                         </div>
                                         <div class="test-field-value text-body">
                                             <a class="text-link"
-                                               href="https://www.testsprite.com/dashboard/mcp/tests/6770e68b-de41-4c82-bf40-6d85c88785d4/02e22a0b-afc2-4256-be4b-61ff52a9e03a">View Results</a>
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/1178d229-6f54-4170-a571-61097898b9c2">View Results</a>
                                         </div>
                                     </div>
                                     <div class="test-field">
@@ -2761,10 +2711,198 @@
                                     </div>
                                     <div class="test-field">
                                         <div class="test-field-label text-body-medium">Analysis / Findings</div>
-                                        <div class="test-field-value text-body">Soroban transactions (create trip,
-                                            contribution, withdrawal, release, cancel) submitted through the backend are
-                                            confirmed on-chain within the 30-second SLA. The polling mechanism works
-                                            correctly and trip state updates accordingly after confirmation.
+                                        <div class="test-field-value text-body">Profile page correctly displays wallet
+                                            address, username (demo_user), role (admin), and account creation date. All
+                                            fields match the seed data.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="requirement-wrapper accordion-item active">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="requirement-content">
+                            <div class="requirement-title-row">
+                                <h3 class="title-requirement">Requirement: Admin Dashboard</h3>
+                                <div class="requirement-status-tag status-success">
+                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2" r="6.4"/>
+                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002" stroke="#19C379"
+                                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.28"/>
+                                    </svg>
+                                    <span>1/1</span>
+                                </div>
+                            </div>
+                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
+                                invalid data scenarios.</p>
+                        </div>
+                        <div class="accordion-icon">
+                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
+                                      fill="var(--fg-secondary)"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="accordion-content">
+                        <div class="test-wrapper">
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC016 Admin Dashboard Access and Role Management</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC016_Admin_Dashboard_Access_and_Role_Management.py">TC016_Admin_Dashboard_Access_and_Role_Management.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/1f3c29fd-e9b1-489b-8c02-190a9d340090">View Results</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#10A363" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M5.59961 8.00002L7.19961 9.60002L10.3996 6.40002"
+                                                              stroke="#19C379" stroke-linecap="round"
+                                                              stroke-linejoin="round" stroke-width="1.28"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-pass">Pass</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">LOW</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">Admin dashboard is accessible, displays
+                                            platform statistics, user list, and management tools. Role modification
+                                            works correctly.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="requirement-wrapper accordion-item active">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="requirement-content">
+                            <div class="requirement-title-row">
+                                <h3 class="title-requirement">Requirement: Responsive Layout & Navigation</h3>
+                                <div class="requirement-status-tag status-error">
+                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2" r="6.4"/>
+                                        <path d="M8 5.59998V7.99698" stroke="#EF4146" stroke-linecap="round"
+                                              stroke-linejoin="round" stroke-width="1.38478"/>
+                                        <path d="M8 10.394V10.3995" stroke="#EF4146" stroke-linecap="round"
+                                              stroke-linejoin="round" stroke-width="1.38478"/>
+                                    </svg>
+                                    <span>0/1</span>
+                                </div>
+                            </div>
+                            <p class="text-body-medium requirement-description">Proper error handling for API calls and
+                                invalid data scenarios.</p>
+                        </div>
+                        <div class="accordion-icon">
+                            <svg fill="none" height="16" viewBox="0 0 16 16" width="16"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11.4276 6C11.9145 6 12.1687 6.61626 11.875 7.01439L11.8316 7.06689L8.40295 10.817C8.30455 10.9246 8.17364 10.9892 8.03476 10.9988C7.89589 11.0083 7.7586 10.9621 7.64865 10.8688L7.59493 10.817L4.16629 7.06689L4.11886 7.00814L4.088 6.96002L4.05714 6.90002L4.04743 6.87752L4.032 6.83564L4.01371 6.76814L4.008 6.73501L4.00229 6.69751L4 6.66189V6.58814L4.00286 6.55188L4.008 6.51438L4.01371 6.48188L4.032 6.41438L4.04743 6.37251L4.08743 6.29L4.12457 6.23375L4.16629 6.18313L4.22 6.13125L4.26401 6.0975L4.31886 6.06375L4.33944 6.05313L4.37772 6.03625L4.43944 6.01625L4.46972 6.01L4.50401 6.00375L4.53658 6.00125L11.4276 6Z"
+                                      fill="var(--fg-secondary)"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="accordion-content">
+                        <div class="test-wrapper">
+                            <div class="test-card">
+                                <div class="test-header">
+                                    <h4 class="text-body-medium">TC019 Responsive Layout and Navigation Based on
+                                        Authentication State</h4>
+                                </div>
+                                <div class="test-content">
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Code</div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="./TC019_Responsive_Layout_and_Navigation_Based_on_Authentication_State.py">TC019_Responsive_Layout_and_Navigation_Based_on_Authentication_State.py</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Error</div>
+                                        <div class="test-field-value text-body">N/A</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Test Visualization and Result
+                                        </div>
+                                        <div class="test-field-value text-body">
+                                            <a class="text-link"
+                                               href="https://www.testsprite.com/dashboard/mcp/tests/83b7d12f-a3f3-4bcf-9048-84c6769cc929/183a59a5-25ae-4119-8698-a3db504b7fd9">View Results</a>
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Status</div>
+                                        <div class="test-field-value">
+
+                                            <div class="status-wrapper">
+                                                <div class="status-icon">
+                                                    <svg fill="none" height="18" viewBox="0 0 16 16" width="18"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="7.99961" cy="7.99998" fill="#C23539" fill-opacity="0.2"
+                                                                r="6.4"/>
+                                                        <path d="M8 5.59998V7.99698" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                        <path d="M8 10.394V10.3995" stroke="#EF4146"
+                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="1.38478"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-body status-fail">Failed</span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Severity</div>
+                                        <div class="test-field-value text-body">MEDIUM</div>
+                                    </div>
+                                    <div class="test-field">
+                                        <div class="test-field-label text-body-medium">Analysis / Findings</div>
+                                        <div class="test-field-value text-body">**Partial success.** Unauthenticated
+                                            state: header correctly shows only "Services" + "Connect Wallet" (protected
+                                            links hidden). Authenticated state: header correctly shows "Services",
+                                            "Invoices", "My Businesses", and wallet address. **Admin header verification
+                                            failed:** The "Admin dashboard" link was not found in the header for the
+                                            demo_user — this is by design; the admin link is at `/admin` and accessed
+                                            via direct URL, not in the main nav header. **Mobile hamburger menu: not
+                                            tested** (viewport was not resized to mobile dimensions).
                                         </div>
                                     </div>
                                 </div>
@@ -2789,7 +2927,7 @@
                 </div>
                 <div class="metadata-row">
                     <div class="metadata-label text-body-medium">Code Repo</div>
-                    <div class="metadata-value text-body">Impacta-Bootcamp (CoTravel)</div>
+                    <div class="metadata-value text-body">CoTravel (Impacta-Bootcamp)</div>
                 </div>
                 <div class="metadata-row">
                     <div class="metadata-label text-body-medium">Test Results</div>

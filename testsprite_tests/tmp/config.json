@@ -1,17 +1,17 @@
 {
-  "status": "init",
-  "scope": "codebase",
+  "status": "commited",
   "type": "frontend",
-  "localEndpoint": "http://localhost:5173/",
-  "serverPort": 56757,
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
   "executionArgs": {
     "projectName": "Impacta-Bootcamp",
-    "projectPath": "C:\\Users\\rrtc2\\WebstormProjects\\Impacta-Bootcamp",
+    "projectPath": "c:\\Users\\rrtc2\\WebstormProjects\\Impacta-Bootcamp",
     "testIds": [],
-    "additionalInstruction": "The frontend runs on localhost:5173 via Docker (Vite dev server). The backend runs on localhost:3000. The frontend proxies /api, /health, and /images to the backend. Tech stack: React 19 + Vite 6 + TypeScript, shadcn/ui + Tailwind CSS 3, React Router 7 (SPA), TanStack Query 5, Zustand 5, @stellar/freighter-api for wallet connection. The test plan file is at C:\\Users\\rrtc2\\WebstormProjects\\Impacta-Bootcamp\\testsprite_tests\\testsprite_frontend_test_plan.json",
+    "additionalInstruction": "This is a Stellar/Soroban blockchain app running in DEV_MODE. Authentication uses auto-login via VITE_DEV_WALLET environment variable (wallet: GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI). The app auto-connects on page load. All blockchain operations return mock results in dev mode. Seed data includes: 5 invoices (draft, funding with contract_invoice_id=100, completed with contract_invoice_id=200, released with contract_invoice_id=300, cancelled), 4 businesses, 10 services, and multiple participants. The demo_user (user ID 1) is an admin with role='admin'. Invoice 2 (Cartagena Beach Trip) is in funding status and suitable for contribute/withdraw testing. The frontend runs on port 5173 and the backend API is at port 3000.",
     "envs": {
-      "API_KEY": "sk-user-xVneq2Y7shr2ThjOr9QvZPE8EpcT3tJ8CnabtxXdiHc0vJmp--1ivBBUgmOwE_IgxRMh_jtIqJ3xStDZ4Z3PN9F-FpiAITvH9uKx3y7eK-MudDG9-3mHPikbaerBrAVmbVc"
+      "API_KEY": "sk-user-uhLxeqpRPLVeVbcT9gY99Gp4hj2a6XYPGwFnueO8pG3P8203bfvBbvWCSaPuKzbrbkdn6i9aH12ubC7ni1Am_96iOH2Sc2aC19WKscwYKp358zuptLxj9bmIj8sbU8nokPY"
     }
   },
-  "proxy": "http://59c7695e-61e3-4de5-bca3-cf0071c67f57:2mmsNZ0UwYoPHhenIZBaGXgfCkeniybf@tun.testsprite.com:8080"
+  "serverPort": 56217,
+  "proxy": "http://82985020-2d10-44d9-a21a-b92e53be0a63:EVeN049qlXOcerCbLr4jUAipMjcVPca4@tun.testsprite.com:8080"
 }

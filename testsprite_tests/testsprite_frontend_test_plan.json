@@ -1,587 +1,637 @@
 [
   {
     "id": "TC001",
-    "title": "Successful Wallet-Based Authentication",
-    "description": "Verify that a user can authenticate by connecting their Stellar wallet via Freighter, completing the challenge-response flow, and receiving a valid JWT that is persisted.",
-    "category": "security",
+    "title": "Authenticate User with Stellar Freighter Wallet",
+    "description": "Validate that users can authenticate successfully using Stellar Freighter wallet and receive a valid JWT token with 24-hour expiry.",
+    "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Open the application and navigate to the wallet connection component"
+        "description": "Navigate to login page"
       },
       {
         "type": "action",
-        "description": "Click to connect Stellar wallet via Freighter extension"
+        "description": "Connect a valid Stellar Freighter wallet"
       },
       {
         "type": "action",
-        "description": "Request authentication challenge from backend"
-      },
-      {
-        "type": "action",
-        "description": "Sign challenge using Freighter wallet"
-      },
-      {
-        "type": "action",
-        "description": "Submit signed challenge to backend and receive JWT"
+        "description": "Sign backend SEP-0053 challenge using the wallet"
       },
       {
         "type": "assertion",
-        "description": "Check that JWT token is returned and stored in localStorage and in Zustand store"
+        "description": "Verify JWT token is issued and stored for session with 24-hour validity"
       },
       {
         "type": "assertion",
-        "description": "Verify frontend shows connected wallet address truncated correctly"
+        "description": "Check UI reflects authenticated state with correct wallet address and roles"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "Authentication Failure with Invalid Signature",
-    "description": "Verify that authentication fails if the signed challenge is invalid or tampered, and no JWT is issued.",
-    "category": "security",
+    "title": "Fail Authentication with Invalid Wallet Signature",
+    "description": "Ensure authentication is rejected if wallet signature of SEP-0053 challenge is invalid or not signed.",
+    "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Start authentication flow and obtain challenge from backend"
+        "description": "Navigate to login page"
       },
       {
         "type": "action",
-        "description": "Submit tampered or invalid signature to backend"
+        "description": "Initiate wallet connection but submit invalid signature or refuse to sign challenge"
       },
       {
         "type": "assertion",
-        "description": "Verify backend rejects authentication and returns error status"
+        "description": "Verify authentication fails and no JWT token is issued"
       },
       {
         "type": "assertion",
-        "description": "Ensure frontend handles failure gracefully and does not store any JWT"
+        "description": "Check appropriate error message is displayed to user"
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "Create Trip Successfully with Valid Inputs",
-    "description": "Verify an authenticated user can create a new trip draft by submitting all required fields and that the trip is persisted correctly.",
+    "title": "Create Group Invoice with Valid Inputs",
+    "description": "Verify successful creation of group invoice with required fields and proper validation for line items and deadline.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Authenticate as a user with a connected wallet"
+        "description": "Navigate to invoice creation form after login"
       },
       {
         "type": "action",
-        "description": "Navigate to the Create Trip page"
+        "description": "Enter invoice name (non-empty string)"
       },
       {
         "type": "action",
-        "description": "Fill out the form with valid name, description, target amount (XLM), minimum participants, penalty percent, and deadline"
+        "description": "Enter a valid description"
       },
       {
         "type": "action",
-        "description": "Submit the form to create the trip"
+        "description": "Set deadline to a valid future date/time"
+      },
+      {
+        "type": "action",
+        "description": "Add at least one line item with description and positive amount"
+      },
+      {
+        "type": "action",
+        "description": "Select at least one participant"
+      },
+      {
+        "type": "action",
+        "description": "Submit the invoice creation form"
       },
       {
         "type": "assertion",
-        "description": "Verify backend responds with successful creation status and trip ID"
-      },
-      {
-        "type": "assertion",
-        "description": "Check the new trip appears in the Dashboard trip list"
+        "description": "Invoice is created and visible in invoice dashboard with draft status"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "Trip Creation Validation Errors",
-    "description": "Verify that creating a trip with missing required fields or invalid values is blocked with appropriate error messages.",
+    "title": "Invoice Creation Failure on Missing Required Fields",
+    "description": "Ensure invoice creation fails with proper validation messages when required fields are missing or invalid.",
     "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Authenticate as user and access Create Trip page"
+        "description": "Navigate to invoice creation form"
       },
       {
         "type": "action",
-        "description": "Attempt to submit trip creation with empty name field"
-      },
-      {
-        "type": "assertion",
-        "description": "Check validation error indicating 'name' is required"
+        "description": "Leave invoice name empty"
       },
       {
         "type": "action",
-        "description": "Attempt to submit trip creation with negative target amount"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify error indicating target amount must be positive"
+        "description": "Set deadline to a past date"
       },
       {
         "type": "action",
-        "description": "Attempt to submit trip creation with past deadline date"
+        "description": "Add line item with zero or negative amount"
+      },
+      {
+        "type": "action",
+        "description": "Try submitting the form"
       },
       {
         "type": "assertion",
-        "description": "Verify error indicating deadline must be a future date/time"
+        "description": "Validation errors are shown for name, deadline, and line item amount fields"
+      },
+      {
+        "type": "assertion",
+        "description": "Invoice creation is prevented"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Trip List Display with Real-Time Progress",
-    "description": "Verify that the Trip Dashboard correctly lists all trips with accurate progress bars, participant counts, statuses, and organizer info, reflecting both off-chain and on-chain states.",
-    "category": "functional",
+    "title": "Link Group Invoice on-chain Using Soroban Transaction",
+    "description": "Test successful build, simulation, signing, and submission of Soroban transaction that creates on-chain escrow for the invoice.",
+    "category": "integration",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Access the Dashboard page as an authenticated or anonymous user"
+        "description": "Select a draft invoice in detail view"
+      },
+      {
+        "type": "action",
+        "description": "Invoke 'Link on-chain' action"
       },
       {
         "type": "assertion",
-        "description": "Confirm all trips from backend are listed as cards"
+        "description": "Soroban transaction is built with correct invoice parameters"
       },
       {
         "type": "assertion",
-        "description": "Verify each trip card shows the correct collected and target XLM amounts"
+        "description": "Transaction simulation completes without errors"
+      },
+      {
+        "type": "action",
+        "description": "Sign and submit transaction via Freighter wallet"
       },
       {
         "type": "assertion",
-        "description": "Check that progress bars visually represent collected amount vs target"
-      },
-      {
-        "type": "assertion",
-        "description": "Ensure participant counts and status badges match backend data"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm organizer information is displayed on each trip card"
+        "description": "Invoice status changes to funding with on-chain escrow address linked"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "Trip Detail View Displays Correct Information",
-    "description": "Verify the Trip Detail page shows complete and accurate information including budget stats, participants list with contributions, penalty values, deadlines, and on-chain contract linkage.",
+    "title": "Join Funding Pool and Contribute Valid Amount",
+    "description": "Participants can join the invoice funding pool and contribute amounts that do not exceed remaining target.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to a specific trip's detail page from the dashboard"
+        "description": "Authenticate as a participant user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to funding invoice detail with funding status"
+      },
+      {
+        "type": "action",
+        "description": "Join the funding pool"
+      },
+      {
+        "type": "action",
+        "description": "Contribute an amount less than or equal to the remaining required amount"
       },
       {
         "type": "assertion",
-        "description": "Validate display of collected, target amounts and progress bar"
+        "description": "Contribution is accepted and recorded"
       },
       {
         "type": "assertion",
-        "description": "Verify display of participant count and minimum required participants"
-      },
-      {
-        "type": "assertion",
-        "description": "Check deadline and penalty percentage are visible and correct"
-      },
-      {
-        "type": "assertion",
-        "description": "Ensure participants list shows usernames and contribution amounts"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm on-chain escrow contract link or status is shown if linked"
+        "description": "Progress bar and participant contribution info updates accordingly"
       }
     ]
   },
   {
     "id": "TC007",
-    "title": "Only Organizers Can Perform Sensitive Trip Operations",
-    "description": "Verify that only users marked as organizers can link escrow contracts, release funds, or cancel the trip, and unauthorized attempts are blocked with proper error responses.",
-    "category": "security",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Authenticate as a user who is not an organizer for a given trip"
-      },
-      {
-        "type": "action",
-        "description": "Attempt to link an on-chain escrow contract to the trip"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify request is denied with 403 Forbidden status"
-      },
-      {
-        "type": "action",
-        "description": "Attempt to release funds for the trip"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify request is denied with 403 Forbidden status"
-      },
-      {
-        "type": "action",
-        "description": "Authenticate as the organizer user"
-      },
-      {
-        "type": "action",
-        "description": "Perform linking, release, and cancel operations successfully"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm operations are accepted and trip status updates accordingly"
-      }
-    ]
-  },
-  {
-    "id": "TC008",
-    "title": "Participant Can Join Trip and Contribute Funds",
-    "description": "Verify that a user can join a trip, submit a signed Soroban transaction to contribute funds, and that the contribution is reflected both on-chain and off-chain.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Authenticate as a user who is not a participant yet"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to trip detail page"
-      },
-      {
-        "type": "action",
-        "description": "Initiate join trip and contribution workflow"
-      },
-      {
-        "type": "action",
-        "description": "Sign contribution transaction with wallet via Freighter"
-      },
-      {
-        "type": "action",
-        "description": "Submit signed Soroban transaction to backend"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm backend accepts transaction and inclusion on-chain within 30 seconds"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify participant appears in trip participants list with correct contribution amount"
-      }
-    ]
-  },
-  {
-    "id": "TC009",
-    "title": "Participant Withdrawal Applies On-Chain Penalties",
-    "description": "Verify that when a participant withdraws funds, penalties are enforced automatically on-chain, the transaction is recorded, and participant data updates accordingly.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Authenticate as a participant with previously contributed funds"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to trip detail page"
-      },
-      {
-        "type": "action",
-        "description": "Initiate withdrawal and sign withdrawal transaction with Freighter"
-      },
-      {
-        "type": "action",
-        "description": "Submit signed withdrawal transaction to backend"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify backend confirms transaction inclusion on Soroban within time limits"
-      },
-      {
-        "type": "assertion",
-        "description": "Check that participant's contribution amount and trip budget reflect withdrawal, applying configured penalty"
-      }
-    ]
-  },
-  {
-    "id": "TC010",
-    "title": "Image Upload Succeeds and Associates with Trip",
-    "description": "Verify that authenticated users can upload images that are stored in MinIO with metadata saved, and associated images appear on respective trip pages.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Authenticate user"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to trip detail page with image upload capability"
-      },
-      {
-        "type": "action",
-        "description": "Upload a valid image file"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm backend responds with success and image metadata stored"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify image is stored correctly in MinIO and accessible via URL"
-      },
-      {
-        "type": "assertion",
-        "description": "Check uploaded image is displayed on the trip detail UI"
-      }
-    ]
-  },
-  {
-    "id": "TC011",
-    "title": "Backend Health Check Endpoint Responses",
-    "description": "Verify the /health endpoint correctly reports the connectivity status of PostgreSQL and MinIO storage components.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Send GET request to backend /health endpoint"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify response status is 200 OK"
-      },
-      {
-        "type": "assertion",
-        "description": "Check response JSON indicates success status for PostgreSQL connectivity (SELECT 1)"
-      },
-      {
-        "type": "assertion",
-        "description": "Check response JSON indicates success status for MinIO (listBuckets)"
-      }
-    ]
-  },
-  {
-    "id": "TC012",
-    "title": "Frontend Route Access Control Based on Authentication",
-    "description": "Verify frontend route guards correctly restrict access to pages requiring authentication such as Create Trip and Profile, redirecting or blocking unauthorized users.",
-    "category": "security",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Access Create Trip page without authentication"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify user is redirected to login or wallet connect prompt"
-      },
-      {
-        "type": "action",
-        "description": "Authenticate as user"
-      },
-      {
-        "type": "action",
-        "description": "Access Create Trip page again"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm access is granted and form is visible"
-      },
-      {
-        "type": "action",
-        "description": "Access Profile page without authentication"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm redirect or access denied"
-      }
-    ]
-  },
-  {
-    "id": "TC013",
-    "title": "Backend CRUD APIs Return Correct Status Codes and Data Shapes",
-    "description": "Verify that all backend RESTful APIs for trips, participants, users, images, and transactions return expected HTTP status codes and JSON data conforming to their schemas.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Perform GET, POST, PUT, DELETE requests on trips endpoints with valid and invalid data"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify 200 or 201 status on success, 400 or 403 on validation or authorization errors"
-      },
-      {
-        "type": "action",
-        "description": "Perform participant join and contribution operations with signed transactions"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm proper status codes and response data formats"
-      },
-      {
-        "type": "action",
-        "description": "Perform image upload and listing API calls"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify returned data includes metadata fields as expected"
-      }
-    ]
-  },
-  {
-    "id": "TC014",
-    "title": "Soroban Transaction Submission and Confirmation Within 30 Seconds",
-    "description": "Verify that signed Soroban transactions (create trip, contribution, withdrawal, release, cancel) submitted through the backend are confirmed on-chain within 30 seconds, and trip state updates accordingly.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Authenticate and create new trip with backend API"
-      },
-      {
-        "type": "action",
-        "description": "Submit signed Soroban transaction for trip creation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify backend polls for confirmation and responds successfully within 30 seconds"
-      },
-      {
-        "type": "action",
-        "description": "Submit participant contribution signed transaction"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm on-chain confirmation and UI updates within 30 seconds"
-      },
-      {
-        "type": "action",
-        "description": "Submit release funds signed transaction as organizer"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify trip lifecycle changes to released state on confirmation"
-      }
-    ]
-  },
-  {
-    "id": "TC015",
-    "title": "User Profile Displays Correct Wallet and Trip Lists",
-    "description": "Verify that the authenticated user's profile page correctly shows wallet address, username, join date, and lists organized and participated trips.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Authenticate as a user"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to Profile page"
-      },
-      {
-        "type": "assertion",
-        "description": "Check that wallet address is displayed and truncated correctly"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify username and join date are shown"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm lists of organized and participated trips are accurate and clickable"
-      }
-    ]
-  },
-  {
-    "id": "TC016",
-    "title": "Reject Contribution Transactions if On-Chain Validation Fails",
-    "description": "Verify that participant contribution attempts that fail Soroban smart contract validation are rejected with errors, and no off-chain state is updated.",
+    "title": "Reject Contribution when Overfunding the Invoice",
+    "description": "Reject participant contributions that would exceed the invoice target amount.",
     "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Authenticate as participant user"
+        "description": "Navigate to funding invoice detail as a participant"
       },
       {
         "type": "action",
-        "description": "Construct a contribution transaction with invalid parameters (e.g. amount zero or exceeding target)"
-      },
-      {
-        "type": "action",
-        "description": "Submit signed invalid transaction to backend"
+        "description": "Attempt to contribute amount exceeding the remaining unpaid amount"
       },
       {
         "type": "assertion",
-        "description": "Verify backend rejects with descriptive error"
+        "description": "Contribution is rejected with error message"
       },
       {
         "type": "assertion",
-        "description": "Confirm participant list and trip contribution amounts remain unchanged"
+        "description": "Invoice funding progress does not change"
       }
     ]
   },
   {
-    "id": "TC017",
-    "title": "Cancel Trip and Trigger Full Refunds",
-    "description": "Verify that organizers can cancel a trip, resulting in on-chain transaction triggering refunds to all participants, and trip status updates to cancelled with proper backend indexing.",
+    "id": "TC008",
+    "title": "Withdraw Contribution Before Funding Completion with Penalty Enforcement",
+    "description": "Participant withdraws from funding pool before invoice completion, penalty enforced according to rules.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Authenticate as trip organizer"
+        "description": "Join and contribute to an active funding invoice"
       },
       {
         "type": "action",
-        "description": "Initiate trip cancellation via backend API with signed Soroban transaction"
+        "description": "Withdraw contributed amount before invoice is marked completed"
       },
       {
         "type": "assertion",
-        "description": "Verify transaction confirms on-chain within 30 seconds"
+        "description": "Withdrawal processed successfully with penalty deducted as per rules"
       },
       {
         "type": "assertion",
-        "description": "Check that trip status updates to cancelled"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify participant contributions reset and refunds processed"
+        "description": "Invoice funding progress and participant list update correctly"
       }
     ]
   },
   {
-    "id": "TC018",
-    "title": "List Participants and Their Contributions for a Trip",
-    "description": "Verify that the participants API and UI correctly list all participants of a trip with their contributed amounts and statuses.",
+    "id": "TC009",
+    "title": "Organizer Modifies Invoice Items and Requires Participant Consent",
+    "description": "Verify that when invoice items are modified by organizer, participants are notified and may withdraw opting out of penalty.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Request participant list for a trip from backend"
+        "description": "Organizer modifies line items of a funding invoice"
       },
       {
         "type": "assertion",
-        "description": "Verify response includes all participants with wallet addresses and contributions"
+        "description": "Modification banner or notification appears for participants"
       },
       {
         "type": "action",
-        "description": "View participant list on trip detail UI"
+        "description": "Participants acknowledge modifications or choose to withdraw without penalty"
       },
       {
         "type": "assertion",
-        "description": "Confirm displayed data matches backend response"
+        "description": "System updates invoice participant status accordingly"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Confirm Readiness and Trigger Auto-Release of Funds",
+    "description": "All participants confirm readiness to release funds and invoice triggers automatic on-chain fund distribution when enabled.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Participants individually confirm readiness to release funds"
+      },
+      {
+        "type": "assertion",
+        "description": "All participants statuses reflect confirmation"
+      },
+      {
+        "type": "action",
+        "description": "System detects all confirmations and auto-release toggle is enabled"
+      },
+      {
+        "type": "assertion",
+        "description": "On-chain release transaction is built, signed and submitted successfully"
+      },
+      {
+        "type": "assertion",
+        "description": "Invoice status updates to released"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Organizer Cancels Invoice with Full Refund and Penalty Trigger",
+    "description": "Organizer cancels an invoice in funding mode, triggering refund and penalty return through smart contract logic.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Organizer selects an invoice in funding status"
+      },
+      {
+        "type": "action",
+        "description": "Trigger invoice cancellation action"
+      },
+      {
+        "type": "assertion",
+        "description": "Cancellation confirmation prompt shown"
+      },
+      {
+        "type": "action",
+        "description": "Confirm cancellation"
+      },
+      {
+        "type": "assertion",
+        "description": "Smart contract executes refund and penalty return correctly"
+      },
+      {
+        "type": "assertion",
+        "description": "Invoice status updates to cancelled"
+      },
+      {
+        "type": "assertion",
+        "description": "UI reflects cancelled state and disables further actions"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Service Catalog Displays Active Services with Search Filtering",
+    "description": "Verify public-facing service catalog lists all active services and supports keyword filtering.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to public service catalog page"
+      },
+      {
+        "type": "assertion",
+        "description": "List shows active services with name, description, price, and business name"
+      },
+      {
+        "type": "action",
+        "description": "Enter keyword into search filter input"
+      },
+      {
+        "type": "assertion",
+        "description": "Service catalog filters results and updates list accordingly"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "CRUD Operations for Business Management",
+    "description": "Authenticated business owners can create, read, update, and delete businesses with associated data.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to 'My Businesses' page"
+      },
+      {
+        "type": "action",
+        "description": "Create a new business with valid name, wallet address, and contact info"
+      },
+      {
+        "type": "assertion",
+        "description": "New business appears in business list"
+      },
+      {
+        "type": "action",
+        "description": "Edit existing business and change details"
+      },
+      {
+        "type": "assertion",
+        "description": "Business updates are saved and displayed"
+      },
+      {
+        "type": "action",
+        "description": "Delete a business"
+      },
+      {
+        "type": "assertion",
+        "description": "Deleted business no longer appears in list"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "CRUD Operations for Service Management Under a Business",
+    "description": "Authenticated users can add, edit, and remove services associated with their registered businesses.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Select a business from 'My Businesses'"
+      },
+      {
+        "type": "action",
+        "description": "Add new service with name, description, price, and optional image"
+      },
+      {
+        "type": "assertion",
+        "description": "New service appears under business service list"
+      },
+      {
+        "type": "action",
+        "description": "Edit existing service details"
+      },
+      {
+        "type": "assertion",
+        "description": "Service details update correctly in UI and backend"
+      },
+      {
+        "type": "action",
+        "description": "Remove a service"
+      },
+      {
+        "type": "assertion",
+        "description": "Service is deleted and no longer listed"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "View User Profile Information",
+    "description": "Verify authenticated users can view their wallet address, username, role, and registration date correctly.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in with a valid user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to user profile page"
+      },
+      {
+        "type": "assertion",
+        "description": "User wallet address, username, role, and registration date are displayed correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Admin Dashboard Access and Role Management",
+    "description": "Verify only admin users can access the admin dashboard; admins can view user list and modify user roles.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Authenticate as non-admin user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access admin dashboard URL"
+      },
+      {
+        "type": "assertion",
+        "description": "Access is denied or redirected for non-admin users"
+      },
+      {
+        "type": "action",
+        "description": "Authenticate as admin user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to admin dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Admin dashboard with user list, business overview, and invoice management is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Change role of a user through UI controls"
+      },
+      {
+        "type": "assertion",
+        "description": "User role updates are persisted and reflected in UI"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Invoice Lifecycle State Transitions Are Accurate",
+    "description": "Validate that invoice status transitions follow documented flows and match backend state and UI representation.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create a new invoice (status: draft)"
+      },
+      {
+        "type": "action",
+        "description": "Link invoice on-chain (status: funding)"
+      },
+      {
+        "type": "action",
+        "description": "Complete funding by participants (status: completed)"
+      },
+      {
+        "type": "action",
+        "description": "Release funds on-chain (status: released)"
+      },
+      {
+        "type": "assertion",
+        "description": "UI shows correct status badges and details at each stage"
+      },
+      {
+        "type": "assertion",
+        "description": "Backend invoice status matches UI"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Authorization Enforcement for Admin and Owner Endpoints",
+    "description": "Ensure backend API endpoints and UI routes are protected by middleware enforcing role-based access control.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt access to admin-only API endpoints as non-admin user"
+      },
+      {
+        "type": "assertion",
+        "description": "Access is denied with appropriate HTTP status code"
+      },
+      {
+        "type": "action",
+        "description": "Attempt access to business or invoice management endpoints as non-owner user"
+      },
+      {
+        "type": "assertion",
+        "description": "Access is denied"
+      },
+      {
+        "type": "action",
+        "description": "Access restricted UI pages without proper authentication or authorization"
+      },
+      {
+        "type": "assertion",
+        "description": "Pages redirect or display access denied messages"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Responsive Layout and Navigation Based on Authentication State",
+    "description": "Verify that the header navigation links dynamically update based on whether user is unauthenticated, authenticated, or admin.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Visit site as public visitor"
+      },
+      {
+        "type": "assertion",
+        "description": "Header shows link to public Services catalog only"
+      },
+      {
+        "type": "action",
+        "description": "Authenticate as regular user"
+      },
+      {
+        "type": "assertion",
+        "description": "Header includes links for Invoices and My Businesses"
+      },
+      {
+        "type": "action",
+        "description": "Authenticate as admin user"
+      },
+      {
+        "type": "assertion",
+        "description": "Header additionally shows Admin dashboard link"
+      },
+      {
+        "type": "action",
+        "description": "Test navigation menu on mobile viewport using hamburger menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Menu expands and links are accessible and correct"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Soroban Transaction Builder Mock Mode Returns Correct Mock XDR",
+    "description": "In development mode, Soroban transaction builder returns valid mock XDR without RPC call or Freighter signature, and backend accepts it.",
+    "category": "integration",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set environment to DEV_MODE"
+      },
+      {
+        "type": "action",
+        "description": "Trigger invoice on-chain action to build transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Frontend returns a mock XDR string"
+      },
+      {
+        "type": "action",
+        "description": "Submit mock XDR to backend transaction endpoint"
+      },
+      {
+        "type": "assertion",
+        "description": "Backend simulates transaction and returns successful result without error"
       }
     ]
   }
