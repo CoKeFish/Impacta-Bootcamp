@@ -28,9 +28,9 @@ and good booking deals.
 ## Solution
 
 CoTravel is a group trip planning platform that uses a **Soroban smart contract** to collect everyone's contributions
-toward a shared budget, track payment milestones transparently, and enforce fair rules if someone drops out. Once the
-group reaches the target amount and minimum participants, funds are held in escrow and can be used to pay travel
-services through partner discounts or withdrawn to external wallets.
+toward a shared budget, enforce fair rules if someone drops out, and pay invoices automatically when the group is
+ready. Once the group reaches the target amount and minimum participants, funds are released directly to the wallets
+defined in the invoice (hotels, transport, services) — or held until all participants confirm.
 
 ## Unique Value Proposition
 
@@ -51,7 +51,7 @@ budget is reached.
 
 ```
 CoTravel/
-├── contracts/escrow/     # Soroban smart contract (Rust) - Multi-escrow
+├── contracts/cotravel-escrow/  # Soroban smart contract (Rust) - Multi-escrow
 ├── backend/              # Node.js + Express API
 ├── frontend/             # React + Vite + TailwindCSS
 ├── database/             # PostgreSQL schema
@@ -61,9 +61,9 @@ CoTravel/
 | Component      | Technology              | Purpose                                       |
 |----------------|-------------------------|-----------------------------------------------|
 | Backend        | Node.js + Express       | REST API, business logic, partner integration |
-| Database       | PostgreSQL              | Users, groups, trips, transactions            |
+| Database       | PostgreSQL              | Users, businesses, invoices, services         |
 | Storage        | MinIO (S3 compatible)   | Profile images, trip photos                   |
-| Smart Contract | Soroban (Rust)          | Escrow, milestones, automated refunds         |
+| Smart Contract | Soroban (Rust)          | Escrow, invoice payment, automated refunds    |
 | Blockchain     | Stellar Network         | Transactions, group wallets                   |
 | Frontend       | React + Vite + Tailwind | User interface, wallet integration            |
 | Auth           | Freighter (SEP-0053)    | Challenge-response wallet authentication      |
@@ -77,17 +77,23 @@ Challenge-response with Stellar wallet signature (SEP-0053) + JWT:
 3. Backend verifies signature using SEP-0053 (prefix + SHA-256 + Ed25519)
 4. Backend returns JWT (24h) + user data
 
-### Smart Contract - Multi-Escrow
+### Smart Contract - Invoice Pool Escrow
 
-A single deployed contract manages N independent trips via `trip_id`:
+A single deployed contract manages N independent pools via `trip_id`. Each pool has an invoice (wallets + amounts) that
+gets paid when complete:
 
-| Function      | Description                                      |
-|---------------|--------------------------------------------------|
-| `create_trip` | Create trip, returns `trip_id`                   |
-| `contribute`  | Add funds (auto-completes if target reached)     |
-| `withdraw`    | Leave with penalty redistributed to group        |
-| `release`     | Release funds to organizer (only when Completed) |
-| `cancel`      | Cancel and refund all (no penalty)               |
+| Function            | Who              | Description                                                                        |
+|---------------------|------------------|------------------------------------------------------------------------------------|
+| `create_invoice`    | Organizer        | Open pool with invoice: target, recipient wallets, deadline, penalty, auto-release |
+| `contribute`        | Participant      | Add funds (rejects if exceeds target); auto-pays if configured                     |
+| `withdraw`          | Participant      | Leave pool (penalty stays in pool; free opt-out if invoice changed)                |
+| `confirm_release`   | Participant      | Consent to pay. When all confirm, contract pays automatically                      |
+| `release`           | Organizer        | Escape hatch: force payment (organizer-only, for edge cases)                       |
+| `update_recipients` | Organizer        | Modify invoice; participants can opt out penalty-free                              |
+| `cancel`            | Organizer        | Cancel and refund all + return accumulated penalties                               |
+| `claim_deadline`    | Anyone (no auth) | After deadline, trigger full refund to all participants                            |
+
+See [contracts/README.md](contracts/README.md) for full API (9 write + 10 read functions, 8 events).
 
 **Deployed on Testnet:**
 
@@ -108,16 +114,18 @@ A single deployed contract manages N independent trips via `trip_id`:
 # Start all services
 docker compose up -d
 
-# Run backend tests (49 tests, 6 suites)
+# Run backend tests (88 tests, 8 suites)
 docker compose exec backend npm test
 ```
 
-| Service    | Port        | Description         |
-|------------|-------------|---------------------|
-| Backend    | 3000        | REST API            |
-| Frontend   | 5173        | Vite dev server     |
-| PostgreSQL | 5432        | Relational database |
-| MinIO      | 9000 / 9001 | Object storage      |
+| Service     | Port        | Description                                     |
+|-------------|-------------|-------------------------------------------------|
+| Backend     | 3000        | REST API                                        |
+| Frontend    | 5173        | Vite dev server                                 |
+| PostgreSQL  | 5432        | Relational database                             |
+| MinIO       | 9000 / 9001 | Object storage                                  |
+| Soroban     | 8000 / 8080 | Stellar node (Horizon + Soroban RPC)            |
+| Soroban Dev | —           | Contract build environment (Rust + Stellar CLI) |
 
 ## Business Model
 
@@ -156,8 +164,10 @@ discounts to platforms that bring verified group demand.
 ## Documentation
 
 - [Technical Architecture](ARCHITECTURE.md) - Detailed system design, flows, and data model
+- [Development Guide](DEVELOPMENT.md) - Local setup, Docker commands, testing
 - [Backend API](backend/README.md) - API endpoints, setup, and testing
-- [Smart Contract](contracts/escrow/README.md) - Soroban contract documentation
+- [Smart Contract](contracts/README.md) - Soroban contract documentation
+- [Database Schema](database/README.md) - PostgreSQL tables, indexes, and queries
 
 ---
 
