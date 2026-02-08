@@ -1,24 +1,24 @@
 const pool = require('../config/db');
 
 module.exports = {
-    async create(tripId, userId, txHash, type, amount, ledgerSequence, eventData) {
+    async create(invoiceId, userId, txHash, type, amount, ledgerSequence, eventData) {
         const {rows} = await pool.query(
-            `INSERT INTO transactions (trip_id, user_id, tx_hash, type, amount, ledger_sequence, event_data)
+            `INSERT INTO transactions (invoice_id, user_id, tx_hash, type, amount, ledger_sequence, event_data)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            [tripId, userId, txHash, type, amount, ledgerSequence, eventData]
+            [invoiceId, userId, txHash, type, amount, ledgerSequence, eventData]
         );
         return rows[0];
     },
 
-    async findByTrip(tripId) {
+    async findByInvoice(invoiceId) {
         const {rows} = await pool.query(
             `SELECT tx.*, u.wallet_address, u.username
              FROM transactions tx
              JOIN users u ON tx.user_id = u.id
-             WHERE tx.trip_id = $1
+             WHERE tx.invoice_id = $1
              ORDER BY tx.created_at DESC`,
-            [tripId]
+            [invoiceId]
         );
         return rows;
     },

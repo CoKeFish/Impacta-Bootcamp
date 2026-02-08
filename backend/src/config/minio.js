@@ -1,4 +1,5 @@
 const Minio = require('minio');
+const logger = require('./logger');
 
 const minioClient = new Minio.Client({
     endPoint: process.env.MINIO_ENDPOINT || 'minio',
@@ -17,7 +18,7 @@ async function initBuckets() {
         const exists = await minioClient.bucketExists(bucket);
         if (!exists) {
             await minioClient.makeBucket(bucket);
-            console.log(`Bucket "${bucket}" created`);
+            logger.info({bucket}, 'Bucket created');
         }
     }
 }

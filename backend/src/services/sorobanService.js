@@ -87,41 +87,22 @@ async function submitTx(signedXdr) {
 }
 
 module.exports = {
-    // Read-only contract queries
-    async getTripCount() {
-        return callReadOnly('get_trip_count');
-    },
+    // ─── Read-only contract queries ─────────────────────────────────────────
 
-    async getAllTrips() {
-        return callReadOnly('get_trips');
-    },
-
-    async getTripInfo(tripId) {
-        return callReadOnly('get_trip', [
-            nativeToScVal(tripId, {type: 'u64'}),
-        ]);
-    },
-
-    async getTripState(tripId) {
+    async getTripState(poolId) {
         return callReadOnly('get_state', [
-            nativeToScVal(tripId, {type: 'u64'}),
+            nativeToScVal(poolId, {type: 'u64'}),
         ]);
     },
 
-    async getBalance(tripId, walletAddress) {
-        return callReadOnly('get_balance', [
-            nativeToScVal(tripId, {type: 'u64'}),
+    async getPenalty(poolId, walletAddress) {
+        return callReadOnly('get_penalty', [
+            nativeToScVal(poolId, {type: 'u64'}),
             new Address(walletAddress).toScVal(),
         ]);
     },
 
-    async getParticipants(tripId) {
-        return callReadOnly('get_participants', [
-            nativeToScVal(tripId, {type: 'u64'}),
-        ]);
-    },
-
-    // Submit signed XDR
+    // ─── Submit signed XDR ──────────────────────────────────────────────────
     submitTx,
     sanitize,
 };

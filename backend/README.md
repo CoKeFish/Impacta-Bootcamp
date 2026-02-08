@@ -1,104 +1,154 @@
 # Backend - CoTravel API
 
-## Que hace
+API REST que gestiona autenticacion, negocios, servicios, facturas grupales con escrow on-chain,
+almacenamiento de archivos e interaccion con contratos Soroban en la red Stellar.
 
-API REST centralizada que maneja autenticacion, logica de negocio, persistencia de datos, almacenamiento de archivos
-e interaccion con contratos Soroban para la plataforma CoTravel.
+## Funcionalidades
 
-### Funcionalidades actuales
+- **Autenticacion wallet**: Challenge-response con firma Stellar (SEP-0053) + JWT de 24h con issuer/audience
+- **Roles**: Sistema de roles (user/admin) con middleware de autorizacion por nivel de acceso
+- **Negocios**: CRUD de perfiles de negocios con verificacion de propietario
+- **Servicios**: Catalogo de servicios vinculados a negocios, con busqueda y control de acceso
+- **Facturas grupales**: Creacion, items detallados, vinculacion a contrato escrow, versionado, liberacion y cancelacion
+- **Participantes**: Join, contribucion, retiro, confirmacion de liberacion con penalizaciones
+- **Imagenes**: Upload autenticado y descarga publica via MinIO (S3-compatible)
+- **Blockchain**: Submit de transacciones firmadas (XDR) y queries read-only al contrato Soroban
+- **Panel admin**: Endpoints de administracion para gestionar usuarios, negocios y facturas
+- **Seguridad**: Helmet, CORS whitelist, rate limiting, validacion de inputs, body size limit
 
-- **Autenticacion wallet**: Challenge-response con firma Stellar + JWT (24h)
-- **Gestion de usuarios**: Registro y consulta por wallet address
-- **Gestion de viajes**: CRUD completo con estados (draft/funding/completed/cancelled/released)
-- **Participantes**: Join, contribucion y retiro con sincronizacion on-chain
-- **Integracion Soroban**: Submit de transacciones firmadas (XDR) y queries read-only al contrato
-- **Gestion de imagenes**: Upload a MinIO + metadata en PostgreSQL
-- **Health check**: Verificacion de conectividad con PostgreSQL y MinIO
-- **Registro de transacciones**: Historial de operaciones blockchain indexadas
+## Stack
 
-## Como lo hace
+| Componente     | Tecnologia                             |
+|----------------|----------------------------------------|
+| Runtime        | Node.js + Express                      |
+| Base de datos  | PostgreSQL                             |
+| Almacenamiento | MinIO (S3-compatible)                  |
+| Blockchain     | Stellar SDK + Soroban RPC              |
+| Autenticacion  | JWT (jsonwebtoken) con issuer/audience |
+| Seguridad      | helmet + express-rate-limit + CORS     |
+| Uploads        | multer (multipart/form-data)           |
+| Testing        | Jest + Supertest                       |
 
-### Stack tecnologico
+## Endpoints
 
-- **Runtime**: Node.js con Express.js
-- **Base de datos**: PostgreSQL (datos relacionales, cache off-chain)
-- **Almacenamiento**: MinIO (S3-compatible para archivos)
-- **Blockchain**: @stellar/stellar-sdk (Soroban RPC)
-- **Autenticacion**: jsonwebtoken (JWT) + firma Stellar
-- **Uploads**: multer (multipart/form-data)
-- **Testing**: Jest + Supertest
+### Health & Root
 
-### Endpoints
+| Metodo | Ruta      | Auth | Descripcion            |
+|--------|-----------|------|------------------------|
+| GET    | `/`       | No   | Version de la API      |
+| GET    | `/health` | No   | Estado de DB y storage |
 
-#### Health & Root
-
-| Metodo | Ruta      | Auth | Descripcion                    |
-|--------|-----------|------|--------------------------------|
-| GET    | `/`       | No   | Info de version de la API      |
-| GET    | `/health` | No   | Estado de DB y storage (MinIO) |
-
-#### Autenticacion (`/api/auth`)
+### Autenticacion (`/api/auth`)
 
 | Metodo | Ruta                          | Auth | Descripcion                           |
 |--------|-------------------------------|------|---------------------------------------|
 | GET    | `/api/auth/challenge?wallet=` | No   | Obtener challenge para firmar         |
 | POST   | `/api/auth/login`             | No   | Login con wallet + firma, retorna JWT |
-| GET    | `/api/auth/me`                | JWT  | Obtener usuario autenticado actual    |
+| GET    | `/api/auth/me`                | JWT  | Usuario autenticado actual            |
 
-#### Usuarios (`/api/users`)
+### Usuarios (`/api/users`)
 
 | Metodo | Ruta                 | Auth | Descripcion               |
 |--------|----------------------|------|---------------------------|
 | POST   | `/api/users`         | No   | Crear usuario             |
 | GET    | `/api/users/:wallet` | No   | Buscar usuario por wallet |
 
-#### Viajes (`/api/trips`)
+### Negocios (`/api/businesses`)
 
-| Metodo | Ruta                           | Auth      | Descripcion                          |
-|--------|--------------------------------|-----------|--------------------------------------|
-| GET    | `/api/trips`                   | No        | Listar todos los viajes              |
-| GET    | `/api/trips/:id`               | No        | Detalle de viaje (+ estado on-chain) |
-| POST   | `/api/trips`                   | JWT       | Crear borrador de viaje              |
-| GET    | `/api/trips/:id/participants`  | No        | Listar participantes del viaje       |
-| POST   | `/api/trips/:id/join`          | JWT       | Unirse a un viaje                    |
-| POST   | `/api/trips/:id/contribute`    | JWT       | Registrar contribucion (submit XDR)  |
-| POST   | `/api/trips/:id/withdraw`      | JWT       | Registrar retiro (submit XDR)        |
-| POST   | `/api/trips/:id/link-contract` | Organizer | Vincular viaje a contrato Soroban    |
-| POST   | `/api/trips/:id/release`       | Organizer | Liberar fondos al organizador        |
-| POST   | `/api/trips/:id/cancel`        | Organizer | Cancelar viaje y reembolsar          |
+| Metodo | Ruta                           | Auth        | Descripcion                        |
+|--------|--------------------------------|-------------|------------------------------------|
+| GET    | `/api/businesses`              | No          | Listar negocios activos (paginado) |
+| GET    | `/api/businesses/:id`          | No          | Detalle de negocio                 |
+| GET    | `/api/businesses/:id/services` | No          | Servicios del negocio              |
+| GET    | `/api/businesses/my/list`      | JWT         | Mis negocios (dashboard)           |
+| POST   | `/api/businesses`              | JWT         | Crear negocio                      |
+| PUT    | `/api/businesses/:id`          | Propietario | Actualizar negocio                 |
 
-#### Imagenes (`/images`)
+### Servicios (`/api/services`)
 
-| Metodo | Ruta                | Auth | Descripcion                                  |
-|--------|---------------------|------|----------------------------------------------|
-| POST   | `/images/upload`    | No   | Subir imagen a MinIO + metadata a PostgreSQL |
-| GET    | `/images/:filename` | No   | Obtener imagen especifica                    |
-| GET    | `/images`           | No   | Listar todas las imagenes                    |
+| Metodo | Ruta                | Auth | Descripcion                     |
+|--------|---------------------|------|---------------------------------|
+| GET    | `/api/services`     | No   | Listar (soporta `?q=` busqueda) |
+| GET    | `/api/services/:id` | No   | Detalle de servicio             |
+| POST   | `/api/services`     | JWT  | Crear servicio                  |
+| PUT    | `/api/services/:id` | JWT  | Actualizar servicio             |
 
-### Variables de entorno
+### Facturas (`/api/invoices`) -- Requiere autenticacion
 
-| Variable                     | Default                                    | Descripcion                     |
-|------------------------------|--------------------------------------------|---------------------------------|
-| `PORT`                       | `3000`                                     | Puerto del servidor             |
-| `DATABASE_URL`               | -                                          | Connection string de PostgreSQL |
-| `MINIO_ENDPOINT`             | `minio`                                    | Host de MinIO                   |
-| `MINIO_PORT`                 | `9000`                                     | Puerto de MinIO                 |
-| `MINIO_ACCESS_KEY`           | `minioadmin`                               | Access key de MinIO             |
-| `MINIO_SECRET_KEY`           | `minioadmin123`                            | Secret key de MinIO             |
-| `JWT_SECRET`                 | `cotravel-dev-secret-change-in-production` | Secreto para firmar JWT         |
-| `SOROBAN_RPC_URL`            | `https://soroban-testnet.stellar.org`      | Endpoint RPC de Soroban         |
-| `SOROBAN_NETWORK_PASSPHRASE` | `Test SDF Network ; September 2015`        | Network passphrase de Stellar   |
-| `CONTRACT_ID`                | -                                          | ID del contrato escrow          |
+| Metodo | Ruta                               | Auth             | Descripcion                               |
+|--------|------------------------------------|------------------|-------------------------------------------|
+| GET    | `/api/invoices/my`                 | JWT              | Mis facturas (organizador o participante) |
+| GET    | `/api/invoices/:id`                | Org/Participante | Detalle + items + estado on-chain         |
+| POST   | `/api/invoices`                    | JWT              | Crear factura con items                   |
+| POST   | `/api/invoices/:id/link-contract`  | Organizador      | Vincular a contrato Soroban               |
+| PUT    | `/api/invoices/:id/items`          | Organizador      | Actualizar items (+ XDR si vinculada)     |
+| POST   | `/api/invoices/:id/release`        | Organizador      | Liberar fondos (requiere status funding)  |
+| POST   | `/api/invoices/:id/cancel`         | Organizador      | Cancelar (requiere draft o funding)       |
+| POST   | `/api/invoices/:id/claim-deadline` | JWT              | Reclamar por deadline vencido             |
+| GET    | `/api/invoices/:id/participants`   | Org/Participante | Listar participantes                      |
+| POST   | `/api/invoices/:id/join`           | JWT              | Unirse a factura                          |
+| POST   | `/api/invoices/:id/contribute`     | JWT              | Contribuir (submit XDR)                   |
+| POST   | `/api/invoices/:id/withdraw`       | JWT              | Retirar contribucion (submit XDR)         |
+| POST   | `/api/invoices/:id/confirm`        | JWT              | Confirmar liberacion                      |
 
-### Ejecucion
+### Administracion (`/api/admin`) -- Requiere rol admin
+
+| Metodo | Ruta                        | Auth  | Descripcion               |
+|--------|-----------------------------|-------|---------------------------|
+| GET    | `/api/admin/stats`          | Admin | Contadores globales       |
+| GET    | `/api/admin/users`          | Admin | Listar todos los usuarios |
+| PUT    | `/api/admin/users/:id/role` | Admin | Cambiar rol de usuario    |
+| GET    | `/api/admin/businesses`     | Admin | Listar todos los negocios |
+| GET    | `/api/admin/invoices`       | Admin | Listar todas las facturas |
+
+### Imagenes (`/images`)
+
+| Metodo | Ruta                | Auth | Descripcion                               |
+|--------|---------------------|------|-------------------------------------------|
+| POST   | `/images/upload`    | JWT  | Subir imagen (JPEG/PNG/WebP/GIF, max 5MB) |
+| GET    | `/images/:filename` | No   | Obtener imagen                            |
+| GET    | `/images`           | No   | Listar imagenes                           |
+
+## Variables de entorno
+
+| Variable                     | Default                                       | Descripcion                     |
+|------------------------------|-----------------------------------------------|---------------------------------|
+| `PORT`                       | `3000`                                        | Puerto del servidor             |
+| `DATABASE_URL`               | -                                             | Connection string de PostgreSQL |
+| `MINIO_ENDPOINT`             | `minio`                                       | Host de MinIO                   |
+| `MINIO_PORT`                 | `9000`                                        | Puerto de MinIO                 |
+| `MINIO_ACCESS_KEY`           | `minioadmin`                                  | Access key de MinIO             |
+| `MINIO_SECRET_KEY`           | `minioadmin123`                               | Secret key de MinIO             |
+| `JWT_SECRET`                 | Requerido en produccion                       | Secreto para firmar JWT         |
+| `ALLOWED_ORIGINS`            | `http://localhost:5173,http://localhost:3000` | Origenes CORS permitidos        |
+| `SOROBAN_RPC_URL`            | `https://soroban-testnet.stellar.org`         | Endpoint RPC de Soroban         |
+| `SOROBAN_NETWORK_PASSPHRASE` | `Test SDF Network ; September 2015`           | Network passphrase de Stellar   |
+| `CONTRACT_ID`                | -                                             | ID del contrato escrow          |
+
+## Seguridad implementada
+
+- **Helmet**: Security headers automaticos (X-Content-Type-Options, X-Frame-Options, CSP, etc.)
+- **CORS whitelist**: Solo origenes configurados en `ALLOWED_ORIGINS`
+- **Rate limiting**: 100 req/min global, 15 req/min auth, 10 req/min uploads
+- **Body size limit**: 16KB max para JSON payloads
+- **JWT con issuer/audience**: Tokens firmados con claims estandar
+- **JWT_SECRET obligatorio**: Falla al iniciar si no esta definido en produccion
+- **Validacion de IDs**: Middleware `validateId` rechaza IDs no numericos
+- **Validacion de inputs**: Montos, deadlines, formatos de archivos
+- **Estado de maquina de estados**: Release solo desde funding, cancel desde draft/funding
+- **Acceso por scope**: Facturas solo accesibles por organizador o participante
+- **Upload seguro**: Auth obligatoria, validacion MIME type, limite de 5MB
+- **Error handler seguro**: No expone internals en errores 500
+
+## Ejecucion
 
 El backend corre dentro de Docker. Desde la raiz del proyecto:
 
 ```bash
-docker compose up -d              # Levantar todos los servicios
-docker compose up -d --build backend  # Reconstruir tras cambios de codigo
-docker exec impacta-backend npm test  # Ejecutar tests
-docker logs impacta-backend --tail 20 # Ver logs
+docker compose up -d                      # Levantar todos los servicios
+docker compose up -d --build backend      # Reconstruir tras cambios
+docker compose exec backend npm test      # Ejecutar tests
+docker logs impacta-backend --tail 20     # Ver logs
 ```
 
 Dentro del contenedor:
@@ -109,69 +159,13 @@ npm start     # Produccion
 npm test      # Tests con Jest
 ```
 
-**Puerto**: 3000
+## Tests
 
-### Tests
+88 tests de integracion en 8 suites. Aislamiento por transacciones `BEGIN`/`ROLLBACK`.
+Soroban es mockeado; PostgreSQL y MinIO usan instancias reales del docker compose.
 
-48 tests de integracion con aislamiento por transacciones (BEGIN/ROLLBACK):
+Ver [TESTS.md](TESTS.md) para detalle completo.
 
-| Suite                  | Tests | Cobertura                                  |
-|------------------------|-------|--------------------------------------------|
-| `health.test.js`       | 2     | Root y health check (DB + storage)         |
-| `auth.test.js`         | 11    | Challenge, login, firma, JWT, /me          |
-| `users.test.js`        | 5     | Crear, duplicado, buscar por wallet        |
-| `trips.test.js`        | 15    | CRUD, link-contract, release, cancel, auth |
-| `participants.test.js` | 10    | Join, contribute, withdraw, auto-join      |
-| `images.test.js`       | 5     | Upload, get, list, validaciones            |
+## Arquitectura
 
-Los tests usan la DB y MinIO reales (del docker compose), con rollback automatico para no contaminar datos.
-
-## Interaccion con otros componentes
-
-```
-Frontend ──HTTP──> Backend API
-                      |
-                      |---> PostgreSQL (usuarios, trips, participantes, transacciones, imagenes)
-                      |---> MinIO (archivos multimedia)
-                      |---> Soroban RPC (submit XDR, queries read-only al contrato)
-```
-
-- **Frontend**: Consume endpoints REST, firma transacciones con wallet del usuario
-- **PostgreSQL**: Persiste datos off-chain y cache de estado on-chain
-- **MinIO**: Almacena archivos multimedia (imagenes)
-- **Soroban**: El frontend construye y firma las transacciones (XDR), el backend las envia al RPC y registra resultados
-
-### Flujo de autenticacion
-
-1. Frontend solicita challenge: `GET /api/auth/challenge?wallet=GABCD...`
-2. Usuario firma el challenge con su wallet Stellar
-3. Frontend envia firma: `POST /api/auth/login { wallet, signature }`
-4. Backend verifica firma, crea/encuentra usuario, retorna JWT (24h)
-5. Frontend usa JWT en header `Authorization: Bearer <token>` para endpoints protegidos
-
-### Flujo de transacciones blockchain
-
-1. Frontend construye la transaccion Soroban (ej: contribute)
-2. Usuario firma con su wallet
-3. Frontend envia XDR firmado al backend (ej: `POST /api/trips/:id/contribute`)
-4. Backend envia a Soroban RPC, espera confirmacion (polling 30s)
-5. Backend registra resultado en tabla `transactions` y actualiza cache off-chain
-
-## Consideraciones tecnicas
-
-### Por que backend + datos off-chain
-
-- **Indexacion de eventos/operaciones**: La blockchain tiene retencion limitada
-- **Cache de estado on-chain**: Queries rapidas sin depender del RPC
-- **Notificaciones**: Logica que no pertenece on-chain
-- **Colas y reintentos**: Manejo de fallos y consistencia eventual
-- **Estado de producto**: Perfiles, analytics, contenido que no requiere verificacion publica
-
-### Para produccion
-
-- Cambiar `JWT_SECRET` a un secreto seguro
-- Implementar rate limiting y reintentos con idempotencia
-- Reemplazar challenge store in-memory por Redis
-- Agregar observabilidad (logs estructurados, trazas)
-- Validacion estricta de inputs
-- Considerar indexador dedicado para eventos Soroban
+Ver [ARCHITECTURE.md](ARCHITECTURE.md) para estructura de capas, flujos de datos y decisiones tecnicas.

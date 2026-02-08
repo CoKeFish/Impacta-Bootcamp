@@ -1,3 +1,6 @@
+// Ensure NODE_ENV is set before any modules load
+process.env.NODE_ENV = 'test';
+
 // Set environment variables BEFORE any modules are loaded.
 // Preserve existing env vars (e.g. from Docker) — only set fallbacks for local dev.
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL || 'postgresql://impacta:impacta123@localhost:5432/impacta_db';

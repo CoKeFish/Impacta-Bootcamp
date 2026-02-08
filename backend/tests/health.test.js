@@ -10,7 +10,7 @@ describe('Health Checks', () => {
         const res = await request(app).get('/');
         expect(res.status).toBe(200);
         expect(res.body.message).toContain('CoTravel API running');
-        expect(res.body.version).toBe('1.0.0');
+        expect(res.body.version).toBe('2.0.0');
     });
 
     test('GET /health returns DB connected', async () => {

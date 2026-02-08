@@ -49,17 +49,59 @@ async function loginWithNewWallet(app) {
 }
 
 /**
- * Create a trip draft authenticated with the given token.
- * Returns the trip object from the response body.
+ * Create a business registered by the given user.
+ * Returns the business object from the response body.
  */
-async function createTestTrip(app, token) {
+async function createTestBusiness(app, token) {
     const res = await request(app)
-        .post('/api/trips')
+        .post('/api/businesses')
         .set('Authorization', `Bearer ${token}`)
         .send({
-            name: 'Test Trip ' + Date.now(),
-            description: 'Integration test trip',
-            target_amount: 1000,
+            name: 'Test Business ' + Date.now(),
+            category: 'hotel',
+            description: 'Test business for integration tests',
+            wallet_address: Keypair.random().publicKey(),
+            contact_email: 'test@example.com',
+        });
+
+    return res.body;
+}
+
+/**
+ * Create a service for a given business.
+ * Returns the service object from the response body.
+ */
+async function createTestService(app, token, businessId) {
+    const res = await request(app)
+        .post('/api/services')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+            business_id: businessId,
+            name: 'Test Service ' + Date.now(),
+            description: 'Test service',
+            price: 500,
+        });
+
+    return res.body;
+}
+
+/**
+ * Create an invoice with items.
+ * Returns the invoice object from the response body.
+ */
+async function createTestInvoice(app, token, items) {
+    const defaultItems = items || [
+        {description: 'Item 1', amount: 500, recipient_wallet: Keypair.random().publicKey()},
+        {description: 'Item 2', amount: 500, recipient_wallet: Keypair.random().publicKey()},
+    ];
+
+    const res = await request(app)
+        .post('/api/invoices')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+            name: 'Test Invoice ' + Date.now(),
+            description: 'Integration test invoice',
+            items: defaultItems,
             min_participants: 2,
             penalty_percent: 10,
             deadline: new Date(Date.now() + 86400000).toISOString(),
@@ -68,4 +110,7 @@ async function createTestTrip(app, token) {
     return res.body;
 }
 
-module.exports = {loginWithNewWallet, createTestTrip, signChallenge};
+module.exports = {
+    loginWithNewWallet, signChallenge,
+    createTestBusiness, createTestService, createTestInvoice,
+};

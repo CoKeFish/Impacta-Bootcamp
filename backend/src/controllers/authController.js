@@ -2,6 +2,7 @@ const {Keypair} = require('@stellar/stellar-sdk');
 const crypto = require('crypto');
 const userModel = require('../models/userModel');
 const {generateToken} = require('../middleware/auth');
+const logger = require('../config/logger');
 
 // In-memory challenge store (simple for bootcamp, use Redis in production)
 const challenges = new Map();
@@ -24,7 +25,6 @@ function verifySignedMessage(publicKey, message, signatureBase64) {
 
 module.exports = {
     // GET /api/auth/challenge?wallet=GABCD...
-    // Returns a random challenge string for the wallet to sign via signMessage
     async getChallenge(req, res, next) {
         try {
             const {wallet} = req.query;
@@ -47,6 +47,7 @@ module.exports = {
                 }
             }
 
+            logger.debug({wallet: wallet.slice(0, 8) + '...'}, 'Challenge issued');
             res.json({challenge: message});
         } catch (err) {
             next(err);
@@ -54,11 +55,6 @@ module.exports = {
     },
 
     // POST /api/auth/login
-    // Verifies a message signature (SEP-0053) and returns a JWT
-    //
-    // For wallet auth: { wallet, signature }
-    // Future Google:   { provider: "google", token: "..." }
-    // Future Facebook: { provider: "facebook", token: "..." }
     async login(req, res, next) {
         try {
             const {wallet, signature, provider} = req.body;
@@ -69,47 +65,42 @@ module.exports = {
                     return res.status(400).json({error: 'wallet and signature required'});
                 }
 
-                // Verify challenge exists
                 const stored = challenges.get(wallet);
                 if (!stored) {
                     return res.status(400).json({error: 'No challenge found. Request one first.'});
                 }
 
-                // Check expiry
                 if (Date.now() - stored.createdAt > CHALLENGE_EXPIRY_MS) {
                     challenges.delete(wallet);
                     return res.status(400).json({error: 'Challenge expired. Request a new one.'});
                 }
 
-                // Verify signature (SEP-0053: prefix + SHA-256 + Ed25519)
                 try {
                     const valid = verifySignedMessage(wallet, stored.message, signature);
-
                     if (!valid) {
+                        logger.warn({wallet: wallet.slice(0, 8) + '...'}, 'Login failed: invalid signature');
                         return res.status(401).json({error: 'Invalid signature'});
                     }
                 } catch (e) {
+                    logger.warn({
+                        wallet: wallet.slice(0, 8) + '...',
+                        err: e.message
+                    }, 'Login failed: verification error');
                     return res.status(401).json({error: 'Signature verification failed: ' + e.message});
                 }
 
-                // Consume challenge
                 challenges.delete(wallet);
 
-                // Find or create user
                 let user = await userModel.findByWallet(wallet);
+                const isNew = !user;
                 if (!user) {
                     user = await userModel.create(wallet, null);
                 }
 
                 const token = generateToken(user, 'wallet');
+                logger.info({userId: user.id, isNew, role: user.role}, 'User logged in');
                 return res.json({token, user});
             }
-
-            // --- Future: Google OAuth ---
-            // if (provider === 'google') { ... }
-
-            // --- Future: Facebook OAuth ---
-            // if (provider === 'facebook') { ... }
 
             return res.status(400).json({error: `Unsupported provider: ${provider}`});
         } catch (err) {
@@ -117,7 +108,7 @@ module.exports = {
         }
     },
 
-    // GET /api/auth/me - Get current authenticated user
+    // GET /api/auth/me
     async me(req, res, next) {
         try {
             const user = await userModel.findById(req.user.id);

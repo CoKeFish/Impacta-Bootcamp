@@ -1,4 +1,3 @@
-const imageModel = require('../models/imageModel');
 const {minioClient, BUCKETS} = require('../config/minio');
 
 module.exports = {
@@ -16,15 +15,11 @@ module.exports = {
                 {'Content-Type': req.file.mimetype}
             );
 
-            const image = await imageModel.create(
-                fileName, req.file.mimetype, req.file.size,
-                req.body.trip_id || null,
-                req.body.uploaded_by || null
-            );
-
             res.status(201).json({
                 message: 'Image uploaded',
-                image,
+                filename: fileName,
+                mimetype: req.file.mimetype,
+                size: req.file.size,
                 url: `/images/${fileName}`,
             });
         } catch (err) {
@@ -43,7 +38,18 @@ module.exports = {
 
     async list(req, res, next) {
         try {
-            const images = await imageModel.findAll();
+            const images = [];
+            const stream = minioClient.listObjects(BUCKETS.IMAGES, '', true);
+            await new Promise((resolve, reject) => {
+                stream.on('data', (obj) => images.push({
+                    filename: obj.name,
+                    size: obj.size,
+                    lastModified: obj.lastModified,
+                    url: `/images/${obj.name}`,
+                }));
+                stream.on('end', resolve);
+                stream.on('error', reject);
+            });
             res.json(images);
         } catch (err) {
             next(err);
