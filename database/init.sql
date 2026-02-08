@@ -116,6 +116,9 @@ CREATE TABLE invoices
     deadline            TIMESTAMP,
     auto_release        BOOLEAN        DEFAULT false,   -- Config.auto_release
 
+    -- Invitation
+    invite_code VARCHAR(12) UNIQUE,                     -- Shareable invite code
+
     -- State del contrato
     status              VARCHAR(50)    DEFAULT 'draft', -- Status enum
     total_collected     DECIMAL(20, 7) DEFAULT 0,
@@ -265,6 +268,7 @@ CREATE INDEX idx_services_active ON services (active) WHERE active = true;
 CREATE INDEX idx_invoices_organizer ON invoices (organizer_id);
 CREATE INDEX idx_invoices_status ON invoices (status);
 CREATE INDEX idx_invoices_contract ON invoices (contract_invoice_id);
+CREATE INDEX idx_invoices_invite_code ON invoices (invite_code);
 
 -- Invoice Items
 CREATE INDEX idx_invoice_items_invoice ON invoice_items (invoice_id);

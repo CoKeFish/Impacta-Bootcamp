@@ -12,6 +12,9 @@ const {
 // My invoices (dashboard)
 router.get('/my', requireAuth, invoicesCtrl.getMyInvoices);
 
+// Join by invite code (auth required, no access check — this IS the entry point)
+router.get('/join/:code', requireAuth, invoicesCtrl.getByInviteCode);
+
 // Detail (auth required, scoped to organizer/participant/admin)
 router.get('/:id', validateId, requireAuth, loadInvoice, requireInvoiceAccess, invoicesCtrl.getById);
 router.get('/:id/participants', validateId, requireAuth, loadInvoice, requireInvoiceAccess, invoiceParticipantsCtrl.list);

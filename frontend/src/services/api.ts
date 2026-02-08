@@ -175,6 +175,14 @@ export const getMyInvoices = (page = 1, limit = 20) =>
         `/api/invoices/my?page=${page}&limit=${limit}`,
     );
 
+export const getInvoiceByCode = (code: string) =>
+    request<Invoice & {
+        items: InvoiceItem[];
+        participants: Array<{ wallet_address: string; username: string | null; status: string }>
+    }>(
+        `/api/invoices/join/${encodeURIComponent(code)}`,
+    );
+
 export const getInvoice = (id: number) =>
     request<Invoice & { items: InvoiceItem[] }>(`/api/invoices/${id}`);
 

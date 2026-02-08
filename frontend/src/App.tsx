@@ -17,6 +17,7 @@ import {AdminDashboard} from '@/pages/admin/AdminDashboard';
 import {AdminUsers} from '@/pages/admin/AdminUsers';
 import {AdminBusinesses} from '@/pages/admin/AdminBusinesses';
 import {AdminInvoices} from '@/pages/admin/AdminInvoices';
+import {JoinByInvite} from '@/pages/JoinByInvite';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -37,6 +38,9 @@ export default function App() {
                         <Route path="/" element={<Landing/>}/>
                         <Route path="/services" element={<ServiceCatalog/>}/>
                         <Route path="/businesses/:id" element={<BusinessProfile/>}/>
+
+                        {/* Join by invite */}
+                        <Route path="/join/:code" element={<JoinByInvite/>}/>
 
                         {/* Invoices (auth required) */}
                         <Route path="/invoices" element={<InvoiceDashboard/>}/>

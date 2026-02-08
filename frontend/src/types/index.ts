@@ -85,6 +85,7 @@ export interface Invoice {
     participant_count: number;
     version: number;
     confirmation_count: number;
+    invite_code: string | null;
     created_at: string;
     updated_at: string;
     items?: InvoiceItem[];

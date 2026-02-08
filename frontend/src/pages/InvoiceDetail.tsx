@@ -11,6 +11,7 @@ import {
     LogIn,
     Receipt,
     Send,
+    Share2,
     Target,
     Undo2,
     Users,
@@ -576,6 +577,8 @@ export function InvoiceDetail() {
         refetchInterval: 15_000,
     });
 
+    const [copied, setCopied] = useState(false);
+
     if (!isAuthenticated) {
         return (
             <div className="container py-20 text-center">
@@ -608,6 +611,16 @@ export function InvoiceDetail() {
     const target = parseFloat(invoice.total_amount);
     const myParticipation = participants.find((p) => p.user_id === user?.id);
     const deadlinePassed = isDeadlinePassed(invoice.deadline);
+    const isOrganizer = user?.id === invoice.organizer_id;
+
+    function handleCopyInviteLink() {
+        if (!invoice?.invite_code) return;
+        const link = `${window.location.origin}/join/${invoice.invite_code}`;
+        navigator.clipboard.writeText(link).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        });
+    }
 
     return (
         <div className="container py-8 space-y-6 max-w-4xl">
@@ -639,14 +652,29 @@ export function InvoiceDetail() {
                 {invoice.description && (
                     <p className="text-muted-foreground">{invoice.description}</p>
                 )}
-                <p className="text-sm text-muted-foreground">
-                    Organized by {invoice.organizer_name ?? truncateAddress(invoice.organizer_wallet)}
-                    {invoice.contract_invoice_id != null && (
-                        <span className="ml-2 text-xs font-mono opacity-60">
-                            (pool #{invoice.contract_invoice_id})
-                        </span>
+                <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                        Organized by {invoice.organizer_name ?? truncateAddress(invoice.organizer_wallet)}
+                        {invoice.contract_invoice_id != null && (
+                            <span className="ml-2 text-xs font-mono opacity-60">
+                                (pool #{invoice.contract_invoice_id})
+                            </span>
+                        )}
+                    </p>
+                    {isOrganizer && invoice.invite_code && (
+                        <Button variant="outline" size="sm" onClick={handleCopyInviteLink}>
+                            {copied ? (
+                                <>
+                                    <Check className="h-4 w-4 mr-1"/> Copied!
+                                </>
+                            ) : (
+                                <>
+                                    <Share2 className="h-4 w-4 mr-1"/> Copy invite link
+                                </>
+                            )}
+                        </Button>
                     )}
-                </p>
+                </div>
             </div>
 
             {/* Modification banner */}

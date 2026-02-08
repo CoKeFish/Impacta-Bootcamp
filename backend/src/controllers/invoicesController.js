@@ -97,6 +97,50 @@ module.exports = {
         }
     },
 
+    // GET /api/invoices/join/:code
+    async getByInviteCode(req, res, next) {
+        try {
+            const {code} = req.params;
+            if (!code || code.length > 12) {
+                return res.status(400).json({error: 'Invalid invite code'});
+            }
+
+            const invoice = await invoiceModel.findByInviteCode(code);
+            if (!invoice) {
+                return res.status(404).json({error: 'Invoice not found'});
+            }
+
+            const items = await invoiceItemModel.findByInvoice(invoice.id);
+            const participantModel = require('../models/invoiceParticipantModel');
+            const participants = await participantModel.findByInvoice(invoice.id);
+
+            res.json({
+                id: invoice.id,
+                name: invoice.name,
+                description: invoice.description,
+                icon: invoice.icon,
+                status: invoice.status,
+                total_amount: invoice.total_amount,
+                total_collected: invoice.total_collected,
+                min_participants: invoice.min_participants,
+                participant_count: invoice.participant_count,
+                penalty_percent: invoice.penalty_percent,
+                deadline: invoice.deadline,
+                auto_release: invoice.auto_release,
+                organizer_wallet: invoice.organizer_wallet,
+                organizer_name: invoice.organizer_name,
+                items,
+                participants: participants.map(p => ({
+                    wallet_address: p.wallet_address,
+                    username: p.username,
+                    status: p.status,
+                })),
+            });
+        } catch (err) {
+            next(err);
+        }
+    },
+
     // GET /api/invoices/:id
     async getById(req, res, next) {
         try {

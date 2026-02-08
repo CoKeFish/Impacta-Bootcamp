@@ -1,15 +1,21 @@
+const crypto = require('crypto');
 const pool = require('../config/db');
+
+function generateInviteCode() {
+    return crypto.randomBytes(6).toString('base64url').slice(0, 8);
+}
 
 module.exports = {
     async create(organizerId, name, description, totalAmount, minParticipants, penaltyPercent, deadline, opts = {}) {
+        const inviteCode = generateInviteCode();
         const {rows} = await pool.query(
             `INSERT INTO invoices (organizer_id, name, description, total_amount, min_participants,
-                                   penalty_percent, deadline, icon, token_address, auto_release, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'draft')
+                                   penalty_percent, deadline, icon, token_address, auto_release, invite_code, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'draft')
              RETURNING *`,
             [
                 organizerId, name, description, totalAmount, minParticipants, penaltyPercent, deadline,
-                opts.icon || null, opts.token_address || null, opts.auto_release || false,
+                opts.icon || null, opts.token_address || null, opts.auto_release || false, inviteCode,
             ]
         );
         return rows[0];
@@ -37,6 +43,17 @@ module.exports = {
              JOIN users u ON i.organizer_id = u.id
              WHERE i.id = $1`,
             [id]
+        );
+        return rows[0] || null;
+    },
+
+    async findByInviteCode(code) {
+        const {rows} = await pool.query(
+            `SELECT i.*, u.wallet_address as organizer_wallet, u.username as organizer_name
+             FROM invoices i
+                      JOIN users u ON i.organizer_id = u.id
+             WHERE i.invite_code = $1`,
+            [code]
         );
         return rows[0] || null;
     },

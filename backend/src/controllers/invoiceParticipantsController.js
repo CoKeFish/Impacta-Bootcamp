@@ -4,6 +4,12 @@ const transactionModel = require('../models/transactionModel');
 const sorobanService = require('../services/sorobanService');
 const logger = require('../config/logger');
 
+const STROOPS_PER_XLM = 10_000_000;
+
+function stroopsToXlm(stroops) {
+    return Number(stroops) / STROOPS_PER_XLM;
+}
+
 module.exports = {
     // POST /api/invoices/:id/join
     async join(req, res, next) {
@@ -56,7 +62,7 @@ module.exports = {
                 if (state) {
                     const status = state.status?.toLowerCase() || invoice.status;
                     await invoiceModel.updateFinancials(
-                        invoice.id, state.total_collected || 0,
+                        invoice.id, stroopsToXlm(state.total_collected || 0),
                         state.participant_count || 0, status
                     );
                 }
@@ -108,7 +114,7 @@ module.exports = {
                     if (state) {
                         const status = state.status?.toLowerCase() || invoice.status;
                         await invoiceModel.updateFinancials(
-                            invoice.id, state.total_collected || 0,
+                            invoice.id, stroopsToXlm(state.total_collected || 0),
                             state.participant_count || 0, status
                         );
                     }
@@ -118,7 +124,7 @@ module.exports = {
                     );
                     if (penalty !== null) {
                         await invoiceParticipantModel.updatePenaltyAmount(
-                            invoice.id, req.user.id, penalty
+                            invoice.id, req.user.id, stroopsToXlm(penalty)
                         );
                     }
                 }
