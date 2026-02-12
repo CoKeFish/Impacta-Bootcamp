@@ -57,7 +57,7 @@ export function Header() {
             <div className="container flex h-16 items-center justify-between">
                 <div className="flex items-center gap-8">
                     <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-                        <FileText className="h-6 w-6 text-primary"/>
+                        <img src="/logo.png" alt="CoTravel" className="h-8 w-8"/>
                         <span className="font-serif">CoTravel</span>
                     </Link>
 
