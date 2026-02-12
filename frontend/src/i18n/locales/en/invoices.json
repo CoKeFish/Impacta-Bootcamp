@@ -1,6 +1,6 @@
 {
   "dashboard": {
-    "title": "My Invoices",
+    "title": "My invoices",
     "subtitle": "Invoices you organize or participate in",
     "newInvoice": "New invoice",
     "noInvoices": "No invoices yet. Create your first one!",
@@ -50,7 +50,9 @@
     "releaseOrganizer": "Release funds (organizer override)",
     "fundsReleased": "Funds have been released to the recipients.",
     "invoiceCancelled": "This invoice has been cancelled. All funds were refunded.",
-    "operationFailed": "Operation failed"
+    "operationFailed": "Operation failed",
+    "fairShare": "Share ({{amount}})",
+    "max": "Max ({{amount}})"
   },
   "create": {
     "title": "Create a new invoice",
@@ -92,9 +94,9 @@
     "alreadyRole": "You are {{role}} of this invoice.",
     "organizer": "the organizer",
     "participant": "a participant",
-    "viewInvoice": "View Invoice",
+    "viewInvoice": "View invoice",
     "home": "Home",
-    "currentParticipants": "Current Participants",
+    "currentParticipants": "Current participants",
     "closedMessage": "This invoice is {{status}} and no longer accepting participants.",
     "joinButton": "Join this invoice",
     "collected": "{{amount}} XLM collected",

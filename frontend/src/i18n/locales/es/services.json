@@ -1,6 +1,6 @@
 {
   "catalog": {
-    "title": "Catálogo de Servicios",
+    "title": "Catálogo de servicios",
     "subtitle": "Explora servicios ofrecidos por negocios",
     "searchPlaceholder": "Buscar servicios o negocios...",
     "noResults": "No se encontraron servicios"
@@ -10,7 +10,7 @@
     "noResults": "No se encontraron servicios"
   },
   "add": {
-    "title": "Agregar Servicio",
+    "title": "Agregar servicio",
     "subtitle": "Agregar un nuevo servicio a <strong>{{name}}</strong>",
     "nameLabel": "Nombre del servicio *",
     "namePlaceholder": "ej. Transfer al aeropuerto",
@@ -22,7 +22,7 @@
     "createButton": "Crear servicio"
   },
   "edit": {
-    "title": "Editar Servicio",
+    "title": "Editar servicio",
     "subtitle": "Actualizar detalles del servicio."
   }
 }

@@ -1,6 +1,6 @@
 {
   "myBusinesses": {
-    "title": "My Businesses",
+    "title": "My businesses",
     "subtitle": "Manage your businesses and their services",
     "register": "Register business",
     "noBusiness": "You haven't registered any businesses yet.",
@@ -37,7 +37,7 @@
     "owner": "Owner: {{name}}"
   },
   "edit": {
-    "title": "Edit Business",
+    "title": "Edit business",
     "subtitle": "Update your business information.",
     "paymentWalletLabel": "Payment wallet (Stellar)",
     "walletPlaceholder": "G...",

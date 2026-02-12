@@ -1,6 +1,6 @@
 {
   "myBusinesses": {
-    "title": "Mis Negocios",
+    "title": "Mis negocios",
     "subtitle": "Administra tus negocios y sus servicios",
     "register": "Registrar negocio",
     "noBusiness": "Aún no has registrado ningún negocio.",
@@ -10,7 +10,7 @@
     "title": "Registra tu negocio",
     "subtitle": "Lista tu negocio en CoTravel para que los organizadores puedan incluir tus servicios en facturas grupales.",
     "nameLabel": "Nombre del negocio *",
-    "namePlaceholder": "Mi Hotel Increíble",
+    "namePlaceholder": "Mi hotel increíble",
     "categoryLabel": "Categoría",
     "categoryPlaceholder": "Selecciona una categoría",
     "categoryHotel": "Hotel",
@@ -37,7 +37,7 @@
     "owner": "Dueño: {{name}}"
   },
   "edit": {
-    "title": "Editar Negocio",
+    "title": "Editar negocio",
     "subtitle": "Actualiza la información de tu negocio.",
     "paymentWalletLabel": "Wallet de pago (Stellar)",
     "walletPlaceholder": "G...",

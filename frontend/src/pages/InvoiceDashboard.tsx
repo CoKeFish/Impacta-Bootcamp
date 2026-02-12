@@ -1,15 +1,19 @@
 import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
-import {Loader2, Plus} from 'lucide-react';
+import {FileText, Plus, Search} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
+import {motion} from 'framer-motion';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
+import {GridSkeleton} from '@/components/ui/skeleton';
+import {EmptyState} from '@/components/ui/empty-state';
 import {getMyInvoices} from '@/services/api';
 import {ProgressBar} from '@/components/invoice/ProgressBar';
 import {useAuth} from '@/hooks/useAuth';
 import {formatDateShort} from '@/lib/utils';
+import {fadeInUp, staggerContainer} from '@/lib/motion';
 import type {Invoice} from '@/types';
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destructive' | 'warning'> = {
@@ -20,6 +24,7 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destr
     cancelled: 'destructive',
 };
 
+
 const statusFilters = ['all', 'draft', 'funding', 'completed', 'released', 'cancelled'] as const;
 
 function InvoiceCard({invoice}: { invoice: Invoice }) {
@@ -29,8 +34,10 @@ function InvoiceCard({invoice}: { invoice: Invoice }) {
     const target = parseFloat(invoice.total_amount);
 
     return (
-        <Link to={`/invoices/${invoice.id}`} className="block">
-            <Card className="h-full transition-shadow hover:shadow-md">
+        <Link to={`/invoices/${invoice.id}`} className="block group">
+            <Card
+                className="h-full card-gradient transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+            >
                 <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
@@ -85,7 +92,12 @@ export function InvoiceDashboard() {
 
     return (
         <div className="container py-8 space-y-6">
-            <div className="flex items-center justify-between">
+            <motion.div
+                className="flex items-center justify-between"
+                initial={{opacity: 0, y: -10}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.4}}
+            >
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
                     <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
@@ -95,7 +107,7 @@ export function InvoiceDashboard() {
                         <Plus className="h-4 w-4 mr-1"/> {t('dashboard.newInvoice')}
                     </Link>
                 </Button>
-            </div>
+            </motion.div>
 
             {/* Status filters */}
             <div className="flex gap-2 flex-wrap">
@@ -103,10 +115,10 @@ export function InvoiceDashboard() {
                     <button
                         key={s}
                         onClick={() => setFilter(s)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
                             filter === s
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'bg-background text-muted-foreground border-border hover:bg-muted'
+                                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                                : 'bg-background text-muted-foreground border-border hover:bg-muted hover:border-muted-foreground/20'
                         }`}
                     >
                         {s === 'all' ? tc('filters.all') : tc(`status.${s}`)}
@@ -119,11 +131,7 @@ export function InvoiceDashboard() {
                 ))}
             </div>
 
-            {isLoading && (
-                <div className="flex justify-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
-                </div>
-            )}
+            {isLoading && <GridSkeleton count={6}/>}
 
             {error && (
                 <div
@@ -133,19 +141,28 @@ export function InvoiceDashboard() {
             )}
 
             {!isLoading && filtered.length === 0 && (
-                <div className="text-center py-20 text-muted-foreground">
-                    {filter === 'all'
-                        ? t('dashboard.noInvoices')
-                        : t('dashboard.noInvoicesFiltered', {filter: tc(`status.${filter}`)})}
-                </div>
+                <EmptyState
+                    icon={filter === 'all' ? FileText : Search}
+                    title={filter === 'all' ? t('dashboard.noInvoices') : t('dashboard.noInvoicesFiltered', {filter: tc(`status.${filter}`)})}
+                    description={filter === 'all' ? t('dashboard.noInvoicesDescription', {defaultValue: 'Create your first invoice to start collecting group payments.'}) : t('dashboard.noInvoicesFilteredDescription', {defaultValue: 'Try selecting a different status filter.'})}
+                    actionLabel={filter === 'all' ? t('dashboard.newInvoice') : undefined}
+                    actionHref={filter === 'all' ? '/invoices/new' : undefined}
+                />
             )}
 
             {filtered.length > 0 && (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <motion.div
+                    className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                >
                     {filtered.map((invoice) => (
-                        <InvoiceCard key={invoice.id} invoice={invoice}/>
+                        <motion.div key={invoice.id} variants={fadeInUp}>
+                            <InvoiceCard invoice={invoice}/>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             )}
         </div>
     );

@@ -26,9 +26,11 @@ export function ConnectButton() {
     if (isAuthenticated && address) {
         return (
             <div className="flex items-center gap-2">
-        <span className="hidden sm:inline text-sm text-muted-foreground font-mono">
-          {truncateAddress(address, 6)}
-        </span>
+                <span
+                    className="hidden sm:inline-flex items-center gap-1.5 text-sm font-mono bg-muted/60 px-2.5 py-1 rounded-full">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"/>
+                    {truncateAddress(address, 6)}
+                </span>
                 <Button variant="outline" size="sm" onClick={disconnectWallet}>
                     <LogOut className="h-4 w-4"/>
                     <span className="hidden sm:inline">{t('wallet.disconnect')}</span>

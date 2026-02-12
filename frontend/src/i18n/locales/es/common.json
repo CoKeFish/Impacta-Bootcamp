@@ -1,8 +1,8 @@
 {
   "nav": {
     "services": "Servicios",
-    "invoices": "Facturas",
-    "myBusinesses": "Mis Negocios",
+    "invoices": "Mis facturas",
+    "myBusinesses": "Mis negocios",
     "profile": "Perfil"
   },
   "footer": {
@@ -10,7 +10,7 @@
     "testnet": "Testnet · Impacta Bootcamp 2026"
   },
   "wallet": {
-    "connect": "Conectar Wallet",
+    "connect": "Conectar wallet",
     "connecting": "Conectando...",
     "disconnect": "Desconectar",
     "connectionFailed": "Error de conexión"
@@ -18,7 +18,7 @@
   "auth": {
     "connectWallet": "Conecta tu wallet",
     "loginRequired": "Necesitas iniciar sesión para {{action}}.",
-    "accessDenied": "Acceso Denegado",
+    "accessDenied": "Acceso denegado",
     "adminRequired": "Esta página requiere privilegios de administrador."
   },
   "status": {
@@ -27,8 +27,8 @@
     "completed": "completada",
     "released": "liberada",
     "cancelled": "cancelada",
-    "active": "Activo",
-    "inactive": "Inactivo"
+    "active": "activo",
+    "inactive": "inactivo"
   },
   "buttons": {
     "cancel": "Cancelar",

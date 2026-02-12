@@ -1,8 +1,8 @@
 {
   "nav": {
     "services": "Services",
-    "invoices": "Invoices",
-    "myBusinesses": "My Businesses",
+    "invoices": "My invoices",
+    "myBusinesses": "My businesses",
     "profile": "Profile"
   },
   "footer": {
@@ -10,7 +10,7 @@
     "testnet": "Testnet · Impacta Bootcamp 2026"
   },
   "wallet": {
-    "connect": "Connect Wallet",
+    "connect": "Connect wallet",
     "connecting": "Connecting...",
     "disconnect": "Disconnect",
     "connectionFailed": "Connection failed"
@@ -18,7 +18,7 @@
   "auth": {
     "connectWallet": "Connect your wallet",
     "loginRequired": "You need to be logged in to {{action}}.",
-    "accessDenied": "Access Denied",
+    "accessDenied": "Access denied",
     "adminRequired": "This page requires admin privileges."
   },
   "status": {
@@ -27,8 +27,8 @@
     "completed": "completed",
     "released": "released",
     "cancelled": "cancelled",
-    "active": "Active",
-    "inactive": "Inactive"
+    "active": "active",
+    "inactive": "inactive"
   },
   "buttons": {
     "cancel": "Cancel",

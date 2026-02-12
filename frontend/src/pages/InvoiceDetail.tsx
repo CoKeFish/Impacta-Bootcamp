@@ -3,13 +3,13 @@ import {Link, useNavigate, useParams} from 'react-router-dom';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {toast} from 'sonner';
 import {useTranslation} from 'react-i18next';
+import {motion} from 'framer-motion';
 import {
     AlertTriangle,
     ArrowLeft,
     Calendar,
     Check,
     Clock,
-    Loader2,
     LogIn,
     Receipt,
     Send,
@@ -22,6 +22,8 @@ import {
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
+import {DetailSkeleton} from '@/components/ui/skeleton';
+import {TransactionProgress} from '@/components/ui/transaction-progress';
 import {
     cancelInvoice,
     claimDeadline,
@@ -50,6 +52,7 @@ import {ProgressBar} from '@/components/invoice/ProgressBar';
 import {InvoiceItemsList} from '@/components/invoice/InvoiceItemsList';
 import {ModificationBanner} from '@/components/invoice/ModificationBanner';
 import {useAuth} from '@/hooks/useAuth';
+import {fadeInUp, staggerContainer} from '@/lib/motion';
 import type {Invoice, InvoiceParticipant} from '@/types';
 
 // ─── Status helpers ─────────────────────────────────────────────────────────
@@ -79,6 +82,7 @@ interface ActionPanelProps {
 function ActionPanel({invoice, participants, userWallet, userId, onActionComplete}: ActionPanelProps) {
     const [contributeAmount, setContributeAmount] = useState('');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [txStep, setTxStep] = useState<'signing' | 'confirming' | 'done' | null>(null);
     const [error, setError] = useState<string | null>(null);
     const queryClient = useQueryClient();
     const {t} = useTranslation('invoices');
@@ -95,9 +99,11 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
 
     async function handleAction(actionName: string, fn: () => Promise<void>) {
         setActionLoading(actionName);
+        setTxStep('signing');
         setError(null);
         try {
             await fn();
+            setTxStep('done');
             queryClient.invalidateQueries({queryKey: ['invoice', invoice.id]});
             queryClient.invalidateQueries({queryKey: ['invoiceParticipants', invoice.id]});
             queryClient.invalidateQueries({queryKey: ['myInvoices']});
@@ -105,7 +111,10 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
         } catch (err) {
             setError(err instanceof Error ? err.message : t('actions.operationFailed'));
         } finally {
-            setActionLoading(null);
+            setTimeout(() => {
+                setActionLoading(null);
+                setTxStep(null);
+            }, 1500);
         }
     }
 
@@ -131,6 +140,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                     amount: xlmToStroops(item.amount),
                 }));
 
+            setTxStep('confirming');
             const signedXdr = await buildAndSign(
                 () =>
                     buildCreateInvoiceTx({
@@ -152,6 +162,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
 
     const handleJoin = () =>
         handleAction('join', async () => {
+            setTxStep('confirming');
             await joinInvoice(invoice.id);
         });
 
@@ -165,6 +176,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
             const contractId = invoice.contract_invoice_id;
             if (contractId == null) throw new Error('Invoice not linked to contract');
 
+            setTxStep('confirming');
             const signedXdr = await buildAndSign(
                 () =>
                     buildContributeTx({
@@ -185,6 +197,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
             const contractId = invoice.contract_invoice_id;
             if (contractId == null) throw new Error('Invoice not linked to contract');
 
+            setTxStep('confirming');
             const signedXdr = await buildAndSign(
                 () =>
                     buildWithdrawTx({
@@ -205,6 +218,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
             const contractId = invoice.contract_invoice_id;
             if (contractId == null) throw new Error('Invoice not linked to contract');
 
+            setTxStep('confirming');
             const signedXdr = await buildAndSign(
                 () =>
                     buildConfirmReleaseTx({
@@ -225,6 +239,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
             const contractId = invoice.contract_invoice_id;
             if (contractId == null) throw new Error('Invoice not linked to contract');
 
+            setTxStep('confirming');
             const signedXdr = await buildAndSign(
                 () =>
                     buildReleaseTx({
@@ -243,12 +258,14 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
             const contractId = invoice.contract_invoice_id;
 
             if (invoice.status === 'draft') {
+                setTxStep('confirming');
                 await cancelInvoice(invoice.id);
                 return;
             }
 
             if (contractId == null) throw new Error('Invoice not linked to contract');
 
+            setTxStep('confirming');
             const signedXdr = await buildAndSign(
                 () =>
                     buildCancelTx({
@@ -267,6 +284,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
             const contractId = invoice.contract_invoice_id;
             if (contractId == null) throw new Error('Invoice not linked to contract');
 
+            setTxStep('confirming');
             const signedXdr = await buildAndSign(
                 () =>
                     buildClaimDeadlineTx({
@@ -291,8 +309,22 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
         );
     }
 
-    const isLoading = (name: string) => actionLoading === name;
     const inputClass = 'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+
+    const txProgressSteps = actionLoading && txStep ? [
+        {
+            label: t('actions.txSigning', {defaultValue: 'Signing transaction...'}),
+            status: (txStep === 'signing' ? 'active' : 'done') as 'active' | 'done'
+        },
+        {
+            label: t('actions.txConfirming', {defaultValue: 'Confirming on Stellar...'}),
+            status: (txStep === 'confirming' ? 'active' : txStep === 'done' ? 'done' : 'pending') as 'active' | 'done' | 'pending'
+        },
+        {
+            label: t('actions.txDone', {defaultValue: 'Transaction confirmed'}),
+            status: (txStep === 'done' ? 'done' : 'pending') as 'done' | 'pending'
+        },
+    ] : null;
 
     return (
         <Card>
@@ -300,8 +332,13 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                 <CardTitle className="text-lg">{t('detail.actions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+                {/* Transaction progress indicator */}
+                {txProgressSteps && (
+                    <TransactionProgress steps={txProgressSteps}/>
+                )}
+
                 {/* ── DRAFT ────────────────────────────────────────────── */}
-                {invoice.status === 'draft' && isOrganizer && (
+                {invoice.status === 'draft' && isOrganizer && !actionLoading && (
                     <>
                         <div className="p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
                             {t('actions.draftInfo')}
@@ -311,11 +348,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                             onClick={handleLinkContract}
                             disabled={!!actionLoading}
                         >
-                            {isLoading('link') ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                            ) : (
-                                <Send className="h-4 w-4 mr-1"/>
-                            )}
+                            <Send className="h-4 w-4 mr-1"/>
                             {t('actions.linkToBlockchain')}
                         </Button>
                         <Button
@@ -324,27 +357,22 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                             onClick={handleCancel}
                             disabled={!!actionLoading}
                         >
-                            {isLoading('cancel') && <Loader2 className="h-4 w-4 animate-spin mr-1"/>}
                             <X className="h-4 w-4 mr-1"/> {t('actions.cancelInvoice')}
                         </Button>
                     </>
                 )}
 
                 {/* ── FUNDING ──────────────────────────────────────────── */}
-                {invoice.status === 'funding' && (
+                {invoice.status === 'funding' && !actionLoading && (
                     <>
                         {/* Join */}
-                        {!isParticipant && !isOrganizer && (
+                        {!isParticipant && (
                             <Button
                                 className="w-full"
                                 onClick={handleJoin}
                                 disabled={!!actionLoading}
                             >
-                                {isLoading('join') ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                                ) : (
-                                    <LogIn className="h-4 w-4 mr-1"/>
-                                )}
+                                <LogIn className="h-4 w-4 mr-1"/>
                                 {t('actions.joinInvoice')}
                             </Button>
                         )}
@@ -375,11 +403,30 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                         onClick={handleContribute}
                                         disabled={!!actionLoading || !contributeAmount}
                                     >
-                                        {isLoading('contribute') ? (
-                                            <Loader2 className="h-4 w-4 animate-spin"/>
-                                        ) : (
-                                            <Send className="h-4 w-4"/>
-                                        )}
+                                        <Send className="h-4 w-4"/>
+                                    </Button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => {
+                                            const share = Math.min(target / invoice.min_participants, remaining);
+                                            setContributeAmount(share.toFixed(2));
+                                        }}
+                                    >
+                                        {t('actions.fairShare', {amount: formatXLM(target / invoice.min_participants)})}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => setContributeAmount(remaining.toFixed(2))}
+                                    >
+                                        {t('actions.max', {amount: formatXLM(remaining)})}
                                     </Button>
                                 </div>
                             </div>
@@ -393,11 +440,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 onClick={handleWithdraw}
                                 disabled={!!actionLoading}
                             >
-                                {isLoading('withdraw') ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                                ) : (
-                                    <Undo2 className="h-4 w-4 mr-1"/>
-                                )}
+                                <Undo2 className="h-4 w-4 mr-1"/>
                                 {t('actions.withdraw')}
                                 {invoice.version > (myParticipation?.contributed_at_version ?? 0)
                                     ? t('actions.withdrawNoPenalty')
@@ -414,11 +457,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 onClick={handleRelease}
                                 disabled={!!actionLoading}
                             >
-                                {isLoading('release') ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                                ) : (
-                                    <Check className="h-4 w-4 mr-1"/>
-                                )}
+                                <Check className="h-4 w-4 mr-1"/>
                                 {t('actions.releaseFunds')}
                             </Button>
                         )}
@@ -431,7 +470,6 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 onClick={handleCancel}
                                 disabled={!!actionLoading}
                             >
-                                {isLoading('cancel') && <Loader2 className="h-4 w-4 animate-spin mr-1"/>}
                                 <X className="h-4 w-4 mr-1"/> {t('actions.cancelRefund')}
                             </Button>
                         )}
@@ -444,11 +482,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 onClick={handleClaimDeadline}
                                 disabled={!!actionLoading}
                             >
-                                {isLoading('deadline') ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                                ) : (
-                                    <Clock className="h-4 w-4 mr-1"/>
-                                )}
+                                <Clock className="h-4 w-4 mr-1"/>
                                 {t('actions.claimDeadline')}
                             </Button>
                         )}
@@ -456,7 +490,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                 )}
 
                 {/* ── COMPLETED (waiting for confirmations) ────────────── */}
-                {invoice.status === 'completed' && (
+                {invoice.status === 'completed' && !actionLoading && (
                     <>
                         <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/20 text-sm">
                             <div className="flex items-center gap-2 text-green-800 dark:text-green-200 font-medium">
@@ -479,11 +513,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 onClick={handleConfirmRelease}
                                 disabled={!!actionLoading}
                             >
-                                {isLoading('confirm') ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                                ) : (
-                                    <Check className="h-4 w-4 mr-1"/>
-                                )}
+                                <Check className="h-4 w-4 mr-1"/>
                                 {t('actions.confirmRelease')}
                             </Button>
                         )}
@@ -502,11 +532,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 onClick={handleWithdraw}
                                 disabled={!!actionLoading}
                             >
-                                {isLoading('withdraw') ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                                ) : (
-                                    <Undo2 className="h-4 w-4 mr-1"/>
-                                )}
+                                <Undo2 className="h-4 w-4 mr-1"/>
                                 {t('actions.withdrawPenaltyShort', {percent: invoice.penalty_percent})}
                             </Button>
                         )}
@@ -518,11 +544,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                                 onClick={handleRelease}
                                 disabled={!!actionLoading}
                             >
-                                {isLoading('release') ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                                ) : (
-                                    <Send className="h-4 w-4 mr-1"/>
-                                )}
+                                <Send className="h-4 w-4 mr-1"/>
                                 {t('actions.releaseOrganizer')}
                             </Button>
                         )}
@@ -605,8 +627,8 @@ export function InvoiceDetail() {
 
     if (isLoading || !invoice) {
         return (
-            <div className="container py-20 flex justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
+            <div className="container py-8 max-w-4xl">
+                <DetailSkeleton/>
             </div>
         );
     }
@@ -627,7 +649,12 @@ export function InvoiceDetail() {
     }
 
     return (
-        <div className="container py-8 space-y-6 max-w-4xl">
+        <motion.div
+            className="container py-8 space-y-6 max-w-4xl"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+        >
             <Button asChild variant="ghost" size="sm">
                 <Link to="/invoices">
                     <ArrowLeft className="h-4 w-4 mr-1"/> {tc('buttons.back')}
@@ -635,7 +662,7 @@ export function InvoiceDetail() {
             </Button>
 
             {/* Header */}
-            <div className="space-y-2">
+            <motion.div className="space-y-2" variants={fadeInUp}>
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-2">
                         {invoice.icon && <span className="text-2xl">{invoice.icon}</span>}
@@ -679,7 +706,7 @@ export function InvoiceDetail() {
                         </Button>
                     )}
                 </div>
-            </div>
+            </motion.div>
 
             {/* Modification banner */}
             {myParticipation &&
@@ -696,7 +723,7 @@ export function InvoiceDetail() {
                 )}
 
             {/* Stats */}
-            <div className="grid gap-4 sm:grid-cols-3">
+            <motion.div className="grid gap-4 sm:grid-cols-3" variants={fadeInUp}>
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -704,7 +731,7 @@ export function InvoiceDetail() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatXLM(collected)} XLM</div>
+                        <div className="text-2xl font-bold tabular-nums">{formatXLM(collected)} XLM</div>
                         <p className="text-xs text-muted-foreground">{t('detail.ofTarget', {amount: formatXLM(target)})}</p>
                         <ProgressBar collected={collected} target={target} className="mt-2"/>
                     </CardContent>
@@ -717,7 +744,7 @@ export function InvoiceDetail() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{invoice.participant_count}</div>
+                        <div className="text-2xl font-bold tabular-nums">{invoice.participant_count}</div>
                         <p className="text-xs text-muted-foreground">{t('detail.minRequired', {count: invoice.min_participants})}</p>
                         {invoice.status === 'completed' && !invoice.auto_release && (
                             <p className="text-xs text-primary mt-1">
@@ -745,81 +772,87 @@ export function InvoiceDetail() {
                         </p>
                     </CardContent>
                 </Card>
-            </div>
+            </motion.div>
 
             {/* Actions */}
-            <ActionPanel
-                invoice={invoice}
-                participants={participants}
-                userWallet={userWallet}
-                userId={user?.id}
-                onActionComplete={() => refetch()}
-            />
+            <motion.div variants={fadeInUp}>
+                <ActionPanel
+                    invoice={invoice}
+                    participants={participants}
+                    userWallet={userWallet}
+                    userId={user?.id}
+                    onActionComplete={() => refetch()}
+                />
+            </motion.div>
 
             {/* Items */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <Receipt className="h-5 w-5"/> {t('detail.items', {count: invoice.items?.length ?? 0})}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {invoice.items ? (
-                        <InvoiceItemsList items={invoice.items}/>
-                    ) : (
-                        <p className="text-sm text-muted-foreground">{tc('noItems')}</p>
-                    )}
-                </CardContent>
-            </Card>
+            <motion.div variants={fadeInUp}>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <Receipt className="h-5 w-5"/> {t('detail.items', {count: invoice.items?.length ?? 0})}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {invoice.items ? (
+                            <InvoiceItemsList items={invoice.items}/>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">{tc('noItems')}</p>
+                        )}
+                    </CardContent>
+                </Card>
+            </motion.div>
 
             {/* Participants */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <Users className="h-5 w-5"/> {t('detail.participantsList', {count: participants.length})}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {participants.length > 0 ? (
-                        <div className="space-y-3">
-                            {participants.map((p) => (
-                                <div
-                                    key={p.id}
-                                    className="flex items-center justify-between py-2 border-b last:border-0"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-medium text-sm">
-                                            {p.username ?? truncateAddress(p.wallet_address)}
-                                        </span>
-                                        {p.status !== 'active' && (
-                                            <Badge variant="secondary">{p.status}</Badge>
-                                        )}
-                                        {p.confirmed_release && (
-                                            <Badge variant="success" className="text-xs">
-                                                <Check
-                                                    className="h-3 w-3 mr-0.5"/> {t('actions.confirmRelease').toLowerCase()}
-                                            </Badge>
-                                        )}
-                                        {p.wallet_address === userWallet && (
-                                            <Badge variant="outline" className="text-xs">{t('detail.you')}</Badge>
-                                        )}
+            <motion.div variants={fadeInUp}>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <Users className="h-5 w-5"/> {t('detail.participantsList', {count: participants.length})}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {participants.length > 0 ? (
+                            <div className="space-y-3">
+                                {participants.map((p) => (
+                                    <div
+                                        key={p.id}
+                                        className="flex items-center justify-between py-2 border-b last:border-0"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium text-sm">
+                                                {p.username ?? truncateAddress(p.wallet_address)}
+                                            </span>
+                                            {p.status !== 'active' && (
+                                                <Badge variant="secondary">{p.status}</Badge>
+                                            )}
+                                            {p.confirmed_release && (
+                                                <Badge variant="success" className="text-xs">
+                                                    <Check
+                                                        className="h-3 w-3 mr-0.5"/> {t('actions.confirmRelease').toLowerCase()}
+                                                </Badge>
+                                            )}
+                                            {p.wallet_address === userWallet && (
+                                                <Badge variant="outline" className="text-xs">{t('detail.you')}</Badge>
+                                            )}
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-sm font-mono tabular-nums">
+                                                {formatXLM(p.contributed_amount)} XLM
+                                            </span>
+                                            {p.contributed_at_version < invoice.version && p.status === 'active' && (
+                                                <p className="text-xs text-amber-600">v{p.contributed_at_version}</p>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-sm font-mono">
-                                            {formatXLM(p.contributed_amount)} XLM
-                                        </span>
-                                        {p.contributed_at_version < invoice.version && p.status === 'active' && (
-                                            <p className="text-xs text-amber-600">v{p.contributed_at_version}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-sm text-muted-foreground">{t('detail.noParticipants')}</p>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">{t('detail.noParticipants')}</p>
+                        )}
+                    </CardContent>
+                </Card>
+            </motion.div>
+        </motion.div>
     );
 }

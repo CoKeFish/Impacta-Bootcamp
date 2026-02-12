@@ -58,7 +58,7 @@ export function Header() {
                 <div className="flex items-center gap-8">
                     <Link to="/" className="flex items-center gap-2 font-bold text-xl">
                         <FileText className="h-6 w-6 text-primary"/>
-                        <span>CoTravel</span>
+                        <span className="font-serif">CoTravel</span>
                     </Link>
 
                     <nav className="hidden md:flex items-center gap-6">

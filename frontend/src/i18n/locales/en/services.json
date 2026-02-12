@@ -1,6 +1,6 @@
 {
   "catalog": {
-    "title": "Service Catalog",
+    "title": "Service catalog",
     "subtitle": "Browse services offered by businesses",
     "searchPlaceholder": "Search services or businesses...",
     "noResults": "No services found"
@@ -10,7 +10,7 @@
     "noResults": "No services found"
   },
   "add": {
-    "title": "Add Service",
+    "title": "Add service",
     "subtitle": "Add a new service to <strong>{{name}}</strong>",
     "nameLabel": "Service name *",
     "namePlaceholder": "e.g. Airport Transfer",
@@ -22,7 +22,7 @@
     "createButton": "Create service"
   },
   "edit": {
-    "title": "Edit Service",
+    "title": "Edit service",
     "subtitle": "Update service details."
   }
 }

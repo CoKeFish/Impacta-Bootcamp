@@ -1,6 +1,6 @@
 {
   "dashboard": {
-    "title": "Mis Facturas",
+    "title": "Mis facturas",
     "subtitle": "Facturas que organizas o en las que participas",
     "newInvoice": "Nueva factura",
     "noInvoices": "Aún no tienes facturas. ¡Crea la primera!",
@@ -50,7 +50,9 @@
     "releaseOrganizer": "Liberar fondos (override del organizador)",
     "fundsReleased": "Los fondos han sido liberados a los destinatarios.",
     "invoiceCancelled": "Esta factura ha sido cancelada. Todos los fondos fueron reembolsados.",
-    "operationFailed": "Operación fallida"
+    "operationFailed": "Operación fallida",
+    "fairShare": "Parte ({{amount}})",
+    "max": "Máx ({{amount}})"
   },
   "create": {
     "title": "Crear nueva factura",
@@ -92,9 +94,9 @@
     "alreadyRole": "Eres {{role}} de esta factura.",
     "organizer": "el organizador",
     "participant": "un participante",
-    "viewInvoice": "Ver Factura",
+    "viewInvoice": "Ver factura",
     "home": "Inicio",
-    "currentParticipants": "Participantes Actuales",
+    "currentParticipants": "Participantes actuales",
     "closedMessage": "Esta factura está {{status}} y ya no acepta participantes.",
     "joinButton": "Unirse a esta factura",
     "collected": "{{amount}} XLM recaudado",

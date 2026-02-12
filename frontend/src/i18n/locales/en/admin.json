@@ -1,6 +1,6 @@
 {
   "dashboard": {
-    "title": "Admin Dashboard",
+    "title": "Admin dashboard",
     "subtitle": "System overview and management",
     "users": "Users",
     "registeredUsers": "Registered users",
@@ -10,19 +10,19 @@
     "totalInvoices": "Total invoices"
   },
   "users": {
-    "title": "User Management",
+    "title": "User management",
     "totalUsers": "{{count}} total users",
     "usersCard": "Users",
     "revokeAdmin": "Revoke admin",
     "makeAdmin": "Make admin"
   },
   "businesses": {
-    "title": "All Businesses",
+    "title": "All businesses",
     "totalBusinesses": "{{count}} total businesses",
     "businessesCard": "Businesses"
   },
   "invoices": {
-    "title": "All Invoices",
+    "title": "All invoices",
     "totalInvoices": "{{count}} total invoices",
     "invoicesCard": "Invoices",
     "organizer": "Organizer: {{name}}"

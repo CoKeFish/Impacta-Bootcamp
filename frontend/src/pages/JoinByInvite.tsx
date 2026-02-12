@@ -1,16 +1,19 @@
 import {useState} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import {useQuery} from '@tanstack/react-query';
-import {ArrowLeft, Calendar, Loader2, LogIn, Receipt, Target, Users,} from 'lucide-react';
+import {ArrowLeft, Calendar, LogIn, Receipt, Target, Users,} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
+import {motion} from 'framer-motion';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
+import {DetailSkeleton} from '@/components/ui/skeleton';
 import {getInvoiceByCode, joinInvoice} from '@/services/api';
 import {formatDateShort, formatXLM, truncateAddress} from '@/lib/utils';
 import {ProgressBar} from '@/components/invoice/ProgressBar';
 import {InvoiceItemsList} from '@/components/invoice/InvoiceItemsList';
 import {useAuth} from '@/hooks/useAuth';
+import {fadeInUp, staggerContainer} from '@/lib/motion';
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destructive' | 'warning'> = {
     draft: 'secondary',
@@ -66,8 +69,8 @@ export function JoinByInvite() {
 
     if (isLoading) {
         return (
-            <div className="container py-20 flex justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
+            <div className="container py-8 max-w-2xl">
+                <DetailSkeleton/>
             </div>
         );
     }
@@ -103,14 +106,19 @@ export function JoinByInvite() {
     const isClosed = ['cancelled', 'released'].includes(invoice.status);
 
     return (
-        <div className="container py-8 space-y-6 max-w-2xl">
+        <motion.div
+            className="container py-8 space-y-6 max-w-2xl"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+        >
             <Button asChild variant="ghost" size="sm">
                 <Link to="/">
                     <ArrowLeft className="h-4 w-4 mr-1"/> {t('join.home')}
                 </Link>
             </Button>
 
-            <div className="text-center space-y-2">
+            <motion.div className="text-center space-y-2" variants={fadeInUp}>
                 <p className="text-sm text-muted-foreground uppercase tracking-wide">{t('join.invitedToJoin')}</p>
                 <div className="flex items-center justify-center gap-2">
                     {invoice.icon && <span className="text-3xl">{invoice.icon}</span>}
@@ -119,7 +127,7 @@ export function JoinByInvite() {
                 <Badge variant={statusVariant[invoice.status] ?? 'secondary'}>
                     {tc(`status.${invoice.status}`)}
                 </Badge>
-            </div>
+            </motion.div>
 
             {invoice.description && (
                 <p className="text-center text-muted-foreground">{invoice.description}</p>
@@ -130,7 +138,7 @@ export function JoinByInvite() {
             </p>
 
             {/* Stats */}
-            <div className="grid gap-4 sm:grid-cols-3">
+            <motion.div className="grid gap-4 sm:grid-cols-3" variants={fadeInUp}>
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -138,7 +146,7 @@ export function JoinByInvite() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatXLM(target)} XLM</div>
+                        <div className="text-2xl font-bold tabular-nums">{formatXLM(target)} XLM</div>
                         <p className="text-xs text-muted-foreground">{t('join.collected', {amount: formatXLM(collected)})}</p>
                         <ProgressBar collected={collected} target={target} className="mt-2"/>
                     </CardContent>
@@ -151,7 +159,7 @@ export function JoinByInvite() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{invoice.participant_count}</div>
+                        <div className="text-2xl font-bold tabular-nums">{invoice.participant_count}</div>
                         <p className="text-xs text-muted-foreground">{t('detail.minRequired', {count: invoice.min_participants})}</p>
                     </CardContent>
                 </Card>
@@ -171,69 +179,76 @@ export function JoinByInvite() {
                         </p>
                     </CardContent>
                 </Card>
-            </div>
+            </motion.div>
 
             {/* Items */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <Receipt className="h-5 w-5"/> {t('detail.items', {count: invoice.items?.length ?? 0})}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {invoice.items ? (
-                        <InvoiceItemsList items={invoice.items}/>
-                    ) : (
-                        <p className="text-sm text-muted-foreground">{tc('noItems')}</p>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Current participants */}
-            {invoice.participants && invoice.participants.length > 0 && (
+            <motion.div variants={fadeInUp}>
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
-                            <Users className="h-5 w-5"/> {t('join.currentParticipants')}
+                            <Receipt className="h-5 w-5"/> {t('detail.items', {count: invoice.items?.length ?? 0})}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-2">
-                            {invoice.participants.map((p) => (
-                                <div key={p.wallet_address}
-                                     className="flex items-center gap-2 py-1 border-b last:border-0">
-                                    <span className="text-sm font-medium">
-                                        {p.username ?? truncateAddress(p.wallet_address)}
-                                    </span>
-                                    {p.status !== 'active' && (
-                                        <Badge variant="secondary">{tc(`status.${p.status}`)}</Badge>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                        {invoice.items ? (
+                            <InvoiceItemsList items={invoice.items}/>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">{tc('noItems')}</p>
+                        )}
                     </CardContent>
                 </Card>
+            </motion.div>
+
+            {/* Current participants */}
+            {invoice.participants && invoice.participants.length > 0 && (
+                <motion.div variants={fadeInUp}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Users className="h-5 w-5"/> {t('join.currentParticipants')}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                {invoice.participants.map((p) => (
+                                    <div key={p.wallet_address}
+                                         className="flex items-center gap-2 py-1 border-b last:border-0">
+                                        <span className="text-sm font-medium">
+                                            {p.username ?? truncateAddress(p.wallet_address)}
+                                        </span>
+                                        {p.status !== 'active' && (
+                                            <Badge variant="secondary">{tc(`status.${p.status}`)}</Badge>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
             )}
 
             {/* Join button */}
-            {isClosed ? (
-                <div className="text-center p-4 rounded-lg bg-muted text-muted-foreground">
-                    {t('join.closedMessage', {status: tc(`status.${invoice.status}`)})}
-                </div>
-            ) : (
-                <Button
-                    className="w-full h-12 text-lg"
-                    onClick={handleJoin}
-                    disabled={joining}
-                >
-                    {joining ? (
-                        <Loader2 className="h-5 w-5 animate-spin mr-2"/>
-                    ) : (
-                        <LogIn className="h-5 w-5 mr-2"/>
-                    )}
-                    {t('join.joinButton')}
-                </Button>
-            )}
+            <motion.div variants={fadeInUp}>
+                {isClosed ? (
+                    <div className="text-center p-4 rounded-lg bg-muted text-muted-foreground">
+                        {t('join.closedMessage', {status: tc(`status.${invoice.status}`)})}
+                    </div>
+                ) : (
+                    <Button
+                        className="w-full h-12 text-lg"
+                        onClick={handleJoin}
+                        disabled={joining}
+                    >
+                        {joining ? (
+                            <span
+                                className="h-5 w-5 animate-spin mr-2 border-2 border-current border-t-transparent rounded-full inline-block"/>
+                        ) : (
+                            <LogIn className="h-5 w-5 mr-2"/>
+                        )}
+                        {t('join.joinButton')}
+                    </Button>
+                )}
+            </motion.div>
 
             {error && (
                 <div
@@ -241,6 +256,6 @@ export function JoinByInvite() {
                     {error}
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 }

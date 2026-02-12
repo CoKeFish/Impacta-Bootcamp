@@ -1,12 +1,16 @@
 import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
-import {Loader2, Plus, Store} from 'lucide-react';
+import {Plus, Store} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
+import {motion} from 'framer-motion';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
+import {GridSkeleton} from '@/components/ui/skeleton';
+import {EmptyState} from '@/components/ui/empty-state';
 import {getMyBusinesses} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
+import {fadeInUp, staggerContainer} from '@/lib/motion';
 
 export function MyBusinesses() {
     const {t} = useTranslation('businesses');
@@ -30,7 +34,12 @@ export function MyBusinesses() {
 
     return (
         <div className="container py-8 space-y-6">
-            <div className="flex items-center justify-between">
+            <motion.div
+                className="flex items-center justify-between"
+                initial={{opacity: 0, y: -10}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.4}}
+            >
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{t('myBusinesses.title')}</h1>
                     <p className="text-muted-foreground">{t('myBusinesses.subtitle')}</p>
@@ -40,13 +49,9 @@ export function MyBusinesses() {
                         <Plus className="h-4 w-4 mr-1"/> {t('myBusinesses.register')}
                     </Link>
                 </Button>
-            </div>
+            </motion.div>
 
-            {isLoading && (
-                <div className="flex justify-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
-                </div>
-            )}
+            {isLoading && <GridSkeleton count={3}/>}
 
             {error && (
                 <div
@@ -59,42 +64,48 @@ export function MyBusinesses() {
             )}
 
             {!isLoading && businesses && businesses.length === 0 && (
-                <div className="text-center py-20 space-y-4">
-                    <Store className="h-12 w-12 mx-auto text-muted-foreground"/>
-                    <div>
-                        <p className="text-muted-foreground">{t('myBusinesses.noBusiness')}</p>
-                        <Button asChild className="mt-4">
-                            <Link to="/businesses/new">{t('myBusinesses.registerFirst')}</Link>
-                        </Button>
-                    </div>
-                </div>
+                <EmptyState
+                    icon={Store}
+                    title={t('myBusinesses.noBusiness')}
+                    description={t('myBusinesses.noBusinessDescription', {defaultValue: 'Register your first business to start offering services.'})}
+                    actionLabel={t('myBusinesses.registerFirst')}
+                    actionHref="/businesses/new"
+                />
             )}
 
             {businesses && businesses.length > 0 && (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <motion.div
+                    className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                >
                     {businesses.map((biz) => (
-                        <Link key={biz.id} to={`/businesses/${biz.id}`} className="block">
-                            <Card className="h-full transition-shadow hover:shadow-md">
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <CardTitle className="text-lg line-clamp-1">{biz.name}</CardTitle>
-                                        <Badge variant={biz.active ? 'success' : 'secondary'}>
-                                            {biz.active ? tc('status.active') : tc('status.inactive')}
-                                        </Badge>
-                                    </div>
-                                    {biz.category && (
-                                        <p className="text-xs text-muted-foreground">{biz.category}</p>
-                                    )}
-                                </CardHeader>
-                                <CardContent>
-                                    {biz.description && (
-                                        <p className="text-sm text-muted-foreground line-clamp-2">{biz.description}</p>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </Link>
+                        <motion.div key={biz.id} variants={fadeInUp}>
+                            <Link to={`/businesses/${biz.id}`} className="block group">
+                                <Card
+                                    className="h-full card-gradient transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+                                    <CardHeader className="pb-3">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <CardTitle className="text-lg line-clamp-1">{biz.name}</CardTitle>
+                                            <Badge variant={biz.active ? 'success' : 'secondary'}>
+                                                {biz.active ? tc('status.active') : tc('status.inactive')}
+                                            </Badge>
+                                        </div>
+                                        {biz.category && (
+                                            <p className="text-xs text-muted-foreground">{biz.category}</p>
+                                        )}
+                                    </CardHeader>
+                                    <CardContent>
+                                        {biz.description && (
+                                            <p className="text-sm text-muted-foreground line-clamp-2">{biz.description}</p>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             )}
         </div>
     );
