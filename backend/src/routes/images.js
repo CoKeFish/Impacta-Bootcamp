@@ -1,7 +1,17 @@
 const router = require('express').Router();
 const multer = require('multer');
+const rateLimit = require('express-rate-limit');
 const ctrl = require('../controllers/imagesController');
 const {requireAuth} = require('../middleware/auth');
+
+const uploadLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: () => process.env.NODE_ENV === 'test',
+    message: {error: 'Too many uploads, please try again later'},
+});
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -17,7 +27,7 @@ const upload = multer({
 });
 
 // Upload requires auth
-router.post('/upload', requireAuth, upload.single('image'), ctrl.upload);
+router.post('/upload', uploadLimiter, requireAuth, upload.single('image'), ctrl.upload);
 
 // Retrieval is public (images are referenced by URL)
 router.get('/:filename', ctrl.get);

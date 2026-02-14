@@ -5,6 +5,7 @@ import {Loader2, Wallet} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {ImagePicker} from '@/components/ui/image-picker';
 import {createBusiness} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
 import {useWalletStore} from '@/stores/walletStore';
@@ -17,6 +18,7 @@ export function RegisterBusiness() {
     const walletAddress = useWalletStore((s) => s.address);
     const [form, setForm] = useState({
         name: '',
+        logo_url: '',
         category: '',
         description: '',
         wallet_address: '',
@@ -27,6 +29,7 @@ export function RegisterBusiness() {
         mutationFn: () =>
             createBusiness({
                 name: form.name,
+                logo_url: form.logo_url || undefined,
                 category: form.category || undefined,
                 description: form.description || undefined,
                 wallet_address: form.wallet_address || undefined,
@@ -74,6 +77,12 @@ export function RegisterBusiness() {
                                    onChange={handleChange} className={inputClass}
                                    placeholder={t('register.namePlaceholder')}/>
                         </div>
+
+                        <ImagePicker
+                            label={tc('image.logoLabel')}
+                            value={form.logo_url || null}
+                            onChange={(url) => setForm((prev) => ({...prev, logo_url: url ?? ''}))}
+                        />
 
                         <div className="space-y-2">
                             <label htmlFor="category"

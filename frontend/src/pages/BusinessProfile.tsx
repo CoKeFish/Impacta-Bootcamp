@@ -122,6 +122,13 @@ export function BusinessProfile() {
                             {services.map((service) => (
                                 <div key={service.id}
                                      className="flex items-center justify-between py-3 border-b last:border-0">
+                                    {service.image_url && (
+                                        <img
+                                            src={service.image_url}
+                                            alt={service.name}
+                                            className="h-10 w-10 rounded object-cover border mr-3 flex-shrink-0"
+                                        />
+                                    )}
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
                                             <p className="font-medium text-sm">{service.name}</p>

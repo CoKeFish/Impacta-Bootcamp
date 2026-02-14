@@ -5,6 +5,7 @@ import {Loader2} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {ImagePicker} from '@/components/ui/image-picker';
 import {createService, getBusiness} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
 
@@ -27,6 +28,7 @@ export function AddService() {
         name: '',
         description: '',
         price: '',
+        image_url: '',
     });
 
     const mutation = useMutation({
@@ -36,6 +38,7 @@ export function AddService() {
                 name: form.name,
                 description: form.description || undefined,
                 price: parseFloat(form.price),
+                image_url: form.image_url || undefined,
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['businessServices', businessId]});
@@ -92,6 +95,12 @@ export function AddService() {
                                    value={form.price} onChange={handleChange} className={inputClass}
                                    placeholder={t('add.pricePlaceholder')}/>
                         </div>
+
+                        <ImagePicker
+                            label={tc('image.serviceImageLabel')}
+                            value={form.image_url || null}
+                            onChange={(url) => setForm((prev) => ({...prev, image_url: url ?? ''}))}
+                        />
 
                         {mutation.error && (
                             <div

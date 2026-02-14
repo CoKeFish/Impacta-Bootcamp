@@ -68,7 +68,7 @@ const globalLimiter = rateLimit({
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
-    skip: skipInTest,
+    skip: (req) => skipInTest() || (req.method === 'GET' && req.path.startsWith('/images')),
     message: {error: 'Too many requests, please try again later'},
 });
 app.use(globalLimiter);
@@ -82,15 +82,6 @@ const authLimiter = rateLimit({
     message: {error: 'Too many auth attempts, please try again later'},
 });
 
-const uploadLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: skipInTest,
-    message: {error: 'Too many uploads, please try again later'},
-});
-
 // ─── Routes ─────────────────────────────────────────────────────────────────
 app.use('/health', require('./routes/health'));
 app.use('/api/auth', authLimiter, require('./routes/auth'));
@@ -99,7 +90,7 @@ app.use('/api/businesses', require('./routes/businesses'));
 app.use('/api/services', require('./routes/services'));
 app.use('/api/invoices', require('./routes/invoices'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/images', uploadLimiter, require('./routes/images'));
+app.use('/images', require('./routes/images'));
 
 // Root
 app.get('/', (req, res) => {

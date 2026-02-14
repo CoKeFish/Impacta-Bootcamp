@@ -29,6 +29,21 @@ module.exports = {
 
     async get(req, res, next) {
         try {
+            const stat = await minioClient.statObject(BUCKETS.IMAGES, req.params.filename);
+            if (stat.metaData && stat.metaData['content-type']) {
+                res.setHeader('Content-Type', stat.metaData['content-type']);
+            } else {
+                const ext = req.params.filename.split('.').pop().toLowerCase();
+                const mimeTypes = {
+                    jpg: 'image/jpeg',
+                    jpeg: 'image/jpeg',
+                    png: 'image/png',
+                    gif: 'image/gif',
+                    webp: 'image/webp',
+                    svg: 'image/svg+xml'
+                };
+                res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+            }
             const stream = await minioClient.getObject(BUCKETS.IMAGES, req.params.filename);
             stream.pipe(res);
         } catch (err) {

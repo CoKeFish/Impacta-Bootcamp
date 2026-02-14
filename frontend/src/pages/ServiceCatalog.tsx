@@ -73,7 +73,16 @@ export function ServiceCatalog() {
                     {services.map((service) => (
                         <motion.div key={service.id} variants={fadeInUp}>
                             <Card
-                                className="card-gradient transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+                                className="card-gradient transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 overflow-hidden">
+                                {service.image_url && (
+                                    <div className="h-36 w-full overflow-hidden">
+                                        <img
+                                            src={service.image_url}
+                                            alt={service.name}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                )}
                                 <CardHeader className="pb-3">
                                     <div className="flex items-start justify-between gap-2">
                                         <CardTitle className="text-lg line-clamp-1">{service.name}</CardTitle>

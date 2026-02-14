@@ -47,6 +47,19 @@
     "en": "EN",
     "es": "ES"
   },
+  "image": {
+    "label": "Imagen",
+    "logoLabel": "Logo del negocio",
+    "serviceImageLabel": "Imagen del servicio",
+    "uploadTab": "Subir archivo",
+    "urlTab": "Usar URL",
+    "urlPlaceholder": "https://ejemplo.com/imagen.jpg",
+    "uploading": "Subiendo...",
+    "remove": "Quitar imagen",
+    "dragOrClick": "Arrastra una imagen o haz clic para seleccionar",
+    "maxSize": "Máx. 5MB · JPG, PNG, WebP, GIF",
+    "uploadError": "Error al subir imagen"
+  },
   "participants": "participantes",
   "collected": "Recaudado",
   "noItems": "Sin ítems"

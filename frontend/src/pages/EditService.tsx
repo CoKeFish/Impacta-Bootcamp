@@ -5,6 +5,7 @@ import {Loader2} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {ImagePicker} from '@/components/ui/image-picker';
 import {getService, updateService} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
 
@@ -27,6 +28,7 @@ export function EditService() {
         name: '',
         description: '',
         price: '',
+        image_url: '',
     });
 
     useEffect(() => {
@@ -35,6 +37,7 @@ export function EditService() {
                 name: service.name,
                 description: service.description ?? '',
                 price: service.price,
+                image_url: service.image_url ?? '',
             });
         }
     }, [service]);
@@ -44,6 +47,7 @@ export function EditService() {
             name: form.name,
             description: form.description || undefined,
             price: parseFloat(form.price),
+            image_url: form.image_url || undefined,
         }),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['service', serviceId]});
@@ -105,6 +109,12 @@ export function EditService() {
                             <input id="price" name="price" type="number" min="0" step="0.0000001" required
                                    value={form.price} onChange={handleChange} className={inputClass}/>
                         </div>
+
+                        <ImagePicker
+                            label={tc('image.serviceImageLabel')}
+                            value={form.image_url || null}
+                            onChange={(url) => setForm((prev) => ({...prev, image_url: url ?? ''}))}
+                        />
 
                         {mutation.error && (
                             <div
