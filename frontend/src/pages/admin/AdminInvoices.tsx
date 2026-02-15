@@ -72,42 +72,43 @@ export function AdminInvoices() {
                 <div className="rounded-lg border overflow-hidden">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b bg-muted/50">
-                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.invoicesCard')}</th>
-                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.organizerHeader', {defaultValue: 'Organizer'})}</th>
-                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.amountHeader', {defaultValue: 'Amount'})}</th>
-                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.statusHeader', {defaultValue: 'Status'})}</th>
-                                <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t('invoices.dateHeader', {defaultValue: 'Created'})}</th>
-                            </tr>
+                        <tr className="border-b bg-muted/50">
+                            <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.invoicesCard')}</th>
+                            <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.organizerHeader', {defaultValue: 'Organizer'})}</th>
+                            <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.amountHeader', {defaultValue: 'Amount'})}</th>
+                            <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.statusHeader', {defaultValue: 'Status'})}</th>
+                            <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t('invoices.dateHeader', {defaultValue: 'Created'})}</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {data.data.map((inv, i) => (
-                                <tr
+                        {data.data.map((inv, i) => (
+                            <tr
                                     key={inv.id}
                                     className={`border-b last:border-0 hover:bg-muted/50 cursor-pointer ${i % 2 === 1 ? 'bg-muted/20' : ''}`}
                                     onClick={() => window.location.href = `/invoices/${inv.id}`}
                                 >
-                                    <td className="px-4 py-3 font-medium">
-                                        <Link to={`/invoices/${inv.id}`} className="hover:underline flex items-center gap-2">
+                                <td className="px-4 py-3 font-medium">
+                                    <Link to={`/invoices/${inv.id}`}
+                                          className="hover:underline flex items-center gap-2">
                                             {inv.icon && <span>{inv.icon}</span>}
-                                            {inv.name}
-                                        </Link>
-                                    </td>
-                                    <td className="px-4 py-3 text-muted-foreground">
-                                        {inv.organizer_name ?? truncateAddress(inv.organizer_wallet)}
-                                    </td>
-                                    <td className="px-4 py-3 font-mono tabular-nums">
-                                        {formatXLM(inv.total_collected)} / {formatXLM(inv.total_amount)} XLM
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <Badge variant={statusVariant[inv.status] ?? 'secondary'}>
-                                            {tc(`status.${inv.status}`)}
-                                        </Badge>
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-xs text-muted-foreground">
+                                        {inv.name}
+                                    </Link>
+                                </td>
+                                <td className="px-4 py-3 text-muted-foreground">
+                                    {inv.organizer_name ?? truncateAddress(inv.organizer_wallet)}
+                                </td>
+                                <td className="px-4 py-3 font-mono tabular-nums">
+                                    {formatXLM(inv.total_collected)} / {formatXLM(inv.total_amount)} XLM
+                                </td>
+                                <td className="px-4 py-3">
+                                    <Badge variant={statusVariant[inv.status] ?? 'secondary'}>
+                                        {tc(`status.${inv.status}`)}
+                                    </Badge>
+                                </td>
+                                <td className="px-4 py-3 text-right text-xs text-muted-foreground">
                                         {formatDateFull(inv.created_at)}
-                                    </td>
-                                </tr>
+                                </td>
+                            </tr>
                             ))}
                         </tbody>
                     </table>

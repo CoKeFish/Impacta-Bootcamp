@@ -73,48 +73,48 @@ export function AdminUsers() {
                 <div className="rounded-lg border overflow-hidden">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b bg-muted/50">
-                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('users.usersCard')}</th>
-                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('users.walletHeader', {defaultValue: 'Wallet'})}</th>
-                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('users.roleHeader', {defaultValue: 'Role'})}</th>
-                                <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t('users.actionsHeader', {defaultValue: 'Actions'})}</th>
-                            </tr>
+                        <tr className="border-b bg-muted/50">
+                            <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('users.usersCard')}</th>
+                            <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('users.walletHeader', {defaultValue: 'Wallet'})}</th>
+                            <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('users.roleHeader', {defaultValue: 'Role'})}</th>
+                            <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t('users.actionsHeader', {defaultValue: 'Actions'})}</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {data.data.map((u, i) => (
-                                <tr key={u.id} className={`border-b last:border-0 ${i % 2 === 1 ? 'bg-muted/20' : ''}`}>
-                                    <td className="px-4 py-3 font-medium">
-                                        {u.username ?? truncateAddress(u.wallet_address)}
-                                    </td>
-                                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                                        {truncateAddress(u.wallet_address)}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
-                                            {u.role}
-                                        </Badge>
-                                    </td>
-                                    <td className="px-4 py-3 text-right">
-                                        {u.id !== currentUser.id && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                disabled={roleMutation.isPending}
-                                                onClick={() => roleMutation.mutate({
-                                                    userId: u.id,
-                                                    role: u.role === 'admin' ? 'user' : 'admin',
-                                                })}
-                                            >
-                                                {u.role === 'admin' ? (
-                                                    <><ShieldOff className="h-4 w-4 mr-1"/> {t('users.revokeAdmin')}</>
-                                                ) : (
-                                                    <><Shield className="h-4 w-4 mr-1"/> {t('users.makeAdmin')}</>
-                                                )}
-                                            </Button>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
+                        {data.data.map((u, i) => (
+                            <tr key={u.id} className={`border-b last:border-0 ${i % 2 === 1 ? 'bg-muted/20' : ''}`}>
+                                <td className="px-4 py-3 font-medium">
+                                    {u.username ?? truncateAddress(u.wallet_address)}
+                                </td>
+                                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                                    {truncateAddress(u.wallet_address)}
+                                </td>
+                                <td className="px-4 py-3">
+                                    <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
+                                        {u.role}
+                                    </Badge>
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                    {u.id !== currentUser.id && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            disabled={roleMutation.isPending}
+                                            onClick={() => roleMutation.mutate({
+                                                userId: u.id,
+                                                role: u.role === 'admin' ? 'user' : 'admin',
+                                            })}
+                                        >
+                                            {u.role === 'admin' ? (
+                                                <><ShieldOff className="h-4 w-4 mr-1"/> {t('users.revokeAdmin')}</>
+                                            ) : (
+                                                <><Shield className="h-4 w-4 mr-1"/> {t('users.makeAdmin')}</>
+                                            )}
+                                        </Button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>

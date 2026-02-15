@@ -47,7 +47,10 @@ export function ServiceCatalog() {
                 {error && (
                     <div
                         className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center text-sm text-destructive">
-                        {tc('errors.failedToLoad', {resource: t('catalog.title').toLowerCase(), message: error.message})}
+                        {tc('errors.failedToLoad', {
+                            resource: t('catalog.title').toLowerCase(),
+                            message: error.message
+                        })}
                     </div>
                 )}
 
@@ -85,7 +88,8 @@ export function ServiceCatalog() {
                                     <CardHeader className="pb-3">
                                         <div className="flex items-start justify-between gap-2">
                                             <CardTitle className="text-lg line-clamp-1">{service.name}</CardTitle>
-                                            <Badge variant="outline" className="font-mono tabular-nums whitespace-nowrap">
+                                            <Badge variant="outline"
+                                                   className="font-mono tabular-nums whitespace-nowrap">
                                                 {formatXLM(service.price)} XLM
                                             </Badge>
                                         </div>
@@ -98,8 +102,10 @@ export function ServiceCatalog() {
                                             to={`/businesses/${service.business_id}`}
                                             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                                         >
-                                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/90">
-                                                <Store className="h-3.5 w-3.5 text-primary" style={{filter: 'drop-shadow(0 0 0.4px hsl(0 0% 0% / 0.25))'}}/>
+                                            <span
+                                                className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/90">
+                                                <Store className="h-3.5 w-3.5 text-primary"
+                                                       style={{filter: 'drop-shadow(0 0 0.4px hsl(0 0% 0% / 0.25))'}}/>
                                             </span>
                                             {service.business_name}
                                         </Link>

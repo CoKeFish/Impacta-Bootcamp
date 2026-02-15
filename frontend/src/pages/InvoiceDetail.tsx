@@ -817,7 +817,8 @@ export function InvoiceDetail() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-lg flex items-center gap-2">
-                                <Users className="h-5 w-5"/> {t('detail.participantsList', {count: participants.length})}
+                                <Users
+                                    className="h-5 w-5"/> {t('detail.participantsList', {count: participants.length})}
                             </CardTitle>
                             {participants.length > 0 && (
                                 <AvatarCluster participants={participants} max={5} size="md"/>

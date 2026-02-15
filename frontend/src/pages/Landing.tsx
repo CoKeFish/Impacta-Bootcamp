@@ -29,7 +29,8 @@ export function Landing() {
     return (
         <div className="flex flex-col">
             {/* Hero */}
-            <section className="relative overflow-hidden" style={{background: 'radial-gradient(ellipse 80% 60% at 50% 30%, hsl(var(--primary) / 0.08), transparent)'}}>
+            <section className="relative overflow-hidden"
+                     style={{background: 'radial-gradient(ellipse 80% 60% at 50% 30%, hsl(var(--primary) / 0.08), transparent)'}}>
                 <div className="container relative flex flex-col items-center gap-8 pb-16 pt-20 text-center md:pt-32">
                     {/* Badge */}
                     <motion.div
@@ -101,7 +102,8 @@ export function Landing() {
                             >
                                 <div
                                     className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-bright/10 ring-2 ring-primary/90">
-                                    <f.icon className="h-7 w-7 text-primary" style={{filter: 'drop-shadow(0 0 0.6px hsl(0 0% 0% / 0.4))'}}/>
+                                    <f.icon className="h-7 w-7 text-primary"
+                                            style={{filter: 'drop-shadow(0 0 0.6px hsl(0 0% 0% / 0.4))'}}/>
                                 </div>
                                 <h3 className="text-lg font-semibold">{f.title}</h3>
                                 <p className="text-sm text-muted-foreground max-w-xs">{f.description}</p>
