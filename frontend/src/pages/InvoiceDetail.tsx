@@ -6,7 +6,6 @@ import {useTranslation} from 'react-i18next';
 import {motion} from 'framer-motion';
 import {
     AlertTriangle,
-    ArrowLeft,
     Calendar,
     Check,
     Clock,
@@ -48,7 +47,8 @@ import {
     buildWithdrawTx,
     xlmToStroops,
 } from '@/lib/soroban';
-import {ProgressBar} from '@/components/invoice/ProgressBar';
+import {ProgressRing} from '@/components/ui/progress-ring';
+import {AvatarCluster} from '@/components/ui/avatar-cluster';
 import {InvoiceItemsList} from '@/components/invoice/InvoiceItemsList';
 import {ModificationBanner} from '@/components/invoice/ModificationBanner';
 import {useAuth} from '@/hooks/useAuth';
@@ -655,11 +655,15 @@ export function InvoiceDetail() {
             initial="hidden"
             animate="visible"
         >
-            <Button asChild variant="ghost" size="sm">
-                <Link to="/invoices">
-                    <ArrowLeft className="h-4 w-4 mr-1"/> {tc('buttons.back')}
+            <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Link to="/invoices" className="hover:text-foreground transition-colors">
+                    {t('dashboard.title')}
                 </Link>
-            </Button>
+                <span>/</span>
+                <span className="text-foreground font-medium truncate max-w-[200px]">
+                    {invoice?.name ?? '...'}
+                </span>
+            </nav>
 
             {/* Header */}
             <motion.div className="space-y-2" variants={fadeInUp}>
@@ -731,9 +735,13 @@ export function InvoiceDetail() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold tabular-nums">{formatXLM(collected)} XLM</div>
-                        <p className="text-xs text-muted-foreground">{t('detail.ofTarget', {amount: formatXLM(target)})}</p>
-                        <ProgressBar collected={collected} target={target} className="mt-2"/>
+                        <div className="flex items-center gap-4">
+                            <ProgressRing collected={collected} target={target} size="lg"/>
+                            <div>
+                                <div className="text-2xl font-bold tabular-nums">{formatXLM(collected)} XLM</div>
+                                <p className="text-xs text-muted-foreground">{t('detail.ofTarget', {amount: formatXLM(target)})}</p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -807,9 +815,14 @@ export function InvoiceDetail() {
             <motion.div variants={fadeInUp}>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <Users className="h-5 w-5"/> {t('detail.participantsList', {count: participants.length})}
-                        </CardTitle>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Users className="h-5 w-5"/> {t('detail.participantsList', {count: participants.length})}
+                            </CardTitle>
+                            {participants.length > 0 && (
+                                <AvatarCluster participants={participants} max={5} size="md"/>
+                            )}
+                        </div>
                     </CardHeader>
                     <CardContent>
                         {participants.length > 0 ? (

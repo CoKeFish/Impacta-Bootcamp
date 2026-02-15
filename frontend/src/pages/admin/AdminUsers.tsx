@@ -4,7 +4,8 @@ import {Link} from 'react-router-dom';
 import {ArrowLeft, Loader2, Shield, ShieldOff} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+
+
 import {Badge} from '@/components/ui/badge';
 import {getAdminUsers, updateUserRole} from '@/services/api';
 import {truncateAddress} from '@/lib/utils';
@@ -69,50 +70,54 @@ export function AdminUsers() {
             )}
 
             {data && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">{t('users.usersCard')}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {data.data.map((u) => (
-                                <div key={u.id}
-                                     className="flex items-center justify-between py-3 border-b last:border-0">
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium text-sm">
-                                                {u.username ?? truncateAddress(u.wallet_address)}
-                                            </span>
-                                            <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
-                                                {u.role}
-                                            </Badge>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground font-mono mt-0.5">
-                                            {u.wallet_address}
-                                        </p>
-                                    </div>
-                                    {u.id !== currentUser.id && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            disabled={roleMutation.isPending}
-                                            onClick={() => roleMutation.mutate({
-                                                userId: u.id,
-                                                role: u.role === 'admin' ? 'user' : 'admin',
-                                            })}
-                                        >
-                                            {u.role === 'admin' ? (
-                                                <><ShieldOff className="h-4 w-4 mr-1"/> {t('users.revokeAdmin')}</>
-                                            ) : (
-                                                <><Shield className="h-4 w-4 mr-1"/> {t('users.makeAdmin')}</>
-                                            )}
-                                        </Button>
-                                    )}
-                                </div>
+                <div className="rounded-lg border overflow-hidden">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b bg-muted/50">
+                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('users.usersCard')}</th>
+                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('users.walletHeader', {defaultValue: 'Wallet'})}</th>
+                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('users.roleHeader', {defaultValue: 'Role'})}</th>
+                                <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t('users.actionsHeader', {defaultValue: 'Actions'})}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.data.map((u, i) => (
+                                <tr key={u.id} className={`border-b last:border-0 ${i % 2 === 1 ? 'bg-muted/20' : ''}`}>
+                                    <td className="px-4 py-3 font-medium">
+                                        {u.username ?? truncateAddress(u.wallet_address)}
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                                        {truncateAddress(u.wallet_address)}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
+                                            {u.role}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-4 py-3 text-right">
+                                        {u.id !== currentUser.id && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                disabled={roleMutation.isPending}
+                                                onClick={() => roleMutation.mutate({
+                                                    userId: u.id,
+                                                    role: u.role === 'admin' ? 'user' : 'admin',
+                                                })}
+                                            >
+                                                {u.role === 'admin' ? (
+                                                    <><ShieldOff className="h-4 w-4 mr-1"/> {t('users.revokeAdmin')}</>
+                                                ) : (
+                                                    <><Shield className="h-4 w-4 mr-1"/> {t('users.makeAdmin')}</>
+                                                )}
+                                            </Button>
+                                        )}
+                                    </td>
+                                </tr>
                             ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );

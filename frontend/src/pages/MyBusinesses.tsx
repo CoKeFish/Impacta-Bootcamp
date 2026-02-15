@@ -8,6 +8,7 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {GridSkeleton} from '@/components/ui/skeleton';
 import {EmptyState} from '@/components/ui/empty-state';
+import {PageHeader} from '@/components/ui/page-header';
 import {getMyBusinesses} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
 import {fadeInUp, staggerContainer} from '@/lib/motion';
@@ -33,24 +34,20 @@ export function MyBusinesses() {
     }
 
     return (
-        <div className="container py-8 space-y-6">
-            <motion.div
-                className="flex items-center justify-between"
-                initial={{opacity: 0, y: -10}}
-                animate={{opacity: 1, y: 0}}
-                transition={{duration: 0.4}}
-            >
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{t('myBusinesses.title')}</h1>
-                    <p className="text-muted-foreground">{t('myBusinesses.subtitle')}</p>
-                </div>
-                <Button asChild>
-                    <Link to="/businesses/new">
-                        <Plus className="h-4 w-4 mr-1"/> {t('myBusinesses.register')}
-                    </Link>
-                </Button>
-            </motion.div>
+        <div className="flex flex-col">
+            <PageHeader
+                title={t('myBusinesses.title')}
+                subtitle={t('myBusinesses.subtitle')}
+                action={
+                    <Button asChild>
+                        <Link to="/businesses/new">
+                            <Plus className="h-4 w-4 mr-1"/> {t('myBusinesses.register')}
+                        </Link>
+                    </Button>
+                }
+            />
 
+            <div className="container py-8 space-y-6">
             {isLoading && <GridSkeleton count={3}/>}
 
             {error && (
@@ -84,7 +81,7 @@ export function MyBusinesses() {
                         <motion.div key={biz.id} variants={fadeInUp}>
                             <Link to={`/businesses/${biz.id}`} className="block group">
                                 <Card
-                                    className="h-full card-gradient transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+                                    className="h-full transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
                                     <CardHeader className="pb-3">
                                         <div className="flex items-start justify-between gap-2">
                                             <CardTitle className="text-lg line-clamp-1">{biz.name}</CardTitle>
@@ -107,6 +104,7 @@ export function MyBusinesses() {
                     ))}
                 </motion.div>
             )}
+            </div>
         </div>
     );
 }

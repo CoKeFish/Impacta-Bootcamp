@@ -9,10 +9,11 @@ import {Card, CardContent, CardFooter, CardHeader, CardTitle} from '@/components
 import {Badge} from '@/components/ui/badge';
 import {GridSkeleton} from '@/components/ui/skeleton';
 import {EmptyState} from '@/components/ui/empty-state';
+import {PageHeader} from '@/components/ui/page-header';
 import {getMyInvoices} from '@/services/api';
-import {ProgressBar} from '@/components/invoice/ProgressBar';
+import {ProgressRing} from '@/components/ui/progress-ring';
 import {useAuth} from '@/hooks/useAuth';
-import {formatDateShort} from '@/lib/utils';
+import {formatDateShort, formatXLM} from '@/lib/utils';
 import {fadeInUp, staggerContainer} from '@/lib/motion';
 import type {Invoice} from '@/types';
 
@@ -24,6 +25,13 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'destr
     cancelled: 'destructive',
 };
 
+const statusBorder: Record<string, string> = {
+    draft: 'border-l-muted-foreground/40',
+    funding: 'border-l-primary',
+    completed: 'border-l-emerald-500',
+    released: 'border-l-emerald-500',
+    cancelled: 'border-l-destructive',
+};
 
 const statusFilters = ['all', 'draft', 'funding', 'completed', 'released', 'cancelled'] as const;
 
@@ -36,11 +44,11 @@ function InvoiceCard({invoice}: { invoice: Invoice }) {
     return (
         <Link to={`/invoices/${invoice.id}`} className="block group">
             <Card
-                className="h-full card-gradient transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                className={`h-full border-l-4 ${statusBorder[invoice.status] ?? ''} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
             >
                 <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
                             {invoice.icon && <span className="text-lg">{invoice.icon}</span>}
                             <CardTitle className="text-lg line-clamp-1">{invoice.name}</CardTitle>
                         </div>
@@ -53,10 +61,19 @@ function InvoiceCard({invoice}: { invoice: Invoice }) {
                     )}
                 </CardHeader>
                 <CardContent className="pb-3">
-                    <ProgressBar collected={collected} target={target}/>
+                    <div className="flex items-center gap-4">
+                        <ProgressRing collected={collected} target={target} size="sm"/>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium tabular-nums">
+                                {formatXLM(collected)} / {formatXLM(target)} XLM
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {t('dashboard.participants', {count: invoice.participant_count})}
+                            </p>
+                        </div>
+                    </div>
                 </CardContent>
-                <CardFooter className="text-xs text-muted-foreground justify-between">
-                    <span>{t('dashboard.participants', {count: invoice.participant_count})}</span>
+                <CardFooter className="text-xs text-muted-foreground justify-end">
                     <span>{formatDateShort(invoice.deadline)}</span>
                 </CardFooter>
             </Card>
@@ -91,46 +108,42 @@ export function InvoiceDashboard() {
     }
 
     return (
-        <div className="container py-8 space-y-6">
-            <motion.div
-                className="flex items-center justify-between"
-                initial={{opacity: 0, y: -10}}
-                animate={{opacity: 1, y: 0}}
-                transition={{duration: 0.4}}
+        <div className="flex flex-col">
+            <PageHeader
+                title={t('dashboard.title')}
+                subtitle={t('dashboard.subtitle')}
+                action={
+                    <Button asChild>
+                        <Link to="/invoices/new">
+                            <Plus className="h-4 w-4 mr-1"/> {t('dashboard.newInvoice')}
+                        </Link>
+                    </Button>
+                }
             >
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
-                    <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
+                {/* Status filters */}
+                <div className="flex gap-2 flex-wrap">
+                    {statusFilters.map((s) => (
+                        <button
+                            key={s}
+                            onClick={() => setFilter(s)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
+                                filter === s
+                                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                                    : 'bg-background text-muted-foreground border-border hover:bg-muted hover:border-muted-foreground/20'
+                            }`}
+                        >
+                            {s === 'all' ? tc('filters.all') : tc(`status.${s}`)}
+                            {s !== 'all' && (
+                                <span className="ml-1 opacity-70">
+                                    ({invoices.filter((inv) => inv.status === s).length})
+                                </span>
+                            )}
+                        </button>
+                    ))}
                 </div>
-                <Button asChild>
-                    <Link to="/invoices/new">
-                        <Plus className="h-4 w-4 mr-1"/> {t('dashboard.newInvoice')}
-                    </Link>
-                </Button>
-            </motion.div>
+            </PageHeader>
 
-            {/* Status filters */}
-            <div className="flex gap-2 flex-wrap">
-                {statusFilters.map((s) => (
-                    <button
-                        key={s}
-                        onClick={() => setFilter(s)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
-                            filter === s
-                                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                                : 'bg-background text-muted-foreground border-border hover:bg-muted hover:border-muted-foreground/20'
-                        }`}
-                    >
-                        {s === 'all' ? tc('filters.all') : tc(`status.${s}`)}
-                        {s !== 'all' && (
-                            <span className="ml-1 opacity-70">
-                                ({invoices.filter((inv) => inv.status === s).length})
-                            </span>
-                        )}
-                    </button>
-                ))}
-            </div>
-
+            <div className="container py-8 space-y-6">
             {isLoading && <GridSkeleton count={6}/>}
 
             {error && (
@@ -164,6 +177,7 @@ export function InvoiceDashboard() {
                     ))}
                 </motion.div>
             )}
+            </div>
         </div>
     );
 }

@@ -29,14 +29,7 @@ export function Landing() {
     return (
         <div className="flex flex-col">
             {/* Hero */}
-            <section className="relative overflow-hidden">
-                {/* Ambient gradient orbs */}
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary-bright/20 rounded-full blur-3xl"/>
-                    <div className="absolute top-20 right-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl"/>
-                    <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-secondary/15 rounded-full blur-3xl"/>
-                </div>
-
+            <section className="relative overflow-hidden" style={{background: 'radial-gradient(ellipse 80% 60% at 50% 30%, hsl(var(--primary) / 0.08), transparent)'}}>
                 <div className="container relative flex flex-col items-center gap-8 pb-16 pt-20 text-center md:pt-32">
                     {/* Badge */}
                     <motion.div
@@ -45,7 +38,7 @@ export function Landing() {
                         transition={{duration: 0.5}}
                     >
                         <span
-                            className="inline-flex items-center gap-2 rounded-full bg-primary-bright/10 border border-primary-bright/20 px-4 py-1.5 text-sm font-medium text-primary">
+                            className="inline-flex items-center gap-2 rounded-full bg-primary-bright/10 border border-primary-bright/30 px-4 py-1.5 text-sm font-medium text-foreground">
                             <span className="h-2 w-2 rounded-full bg-primary-bright animate-pulse"/>
                             Powered by Stellar
                         </span>
@@ -107,8 +100,8 @@ export function Landing() {
                                 className="flex flex-col items-center gap-4 text-center"
                             >
                                 <div
-                                    className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-bright/10 ring-1 ring-primary-bright/20">
-                                    <f.icon className="h-7 w-7 text-primary"/>
+                                    className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-bright/10 ring-2 ring-primary/90">
+                                    <f.icon className="h-7 w-7 text-primary" style={{filter: 'drop-shadow(0 0 0.6px hsl(0 0% 0% / 0.4))'}}/>
                                 </div>
                                 <h3 className="text-lg font-semibold">{f.title}</h3>
                                 <p className="text-sm text-muted-foreground max-w-xs">{f.description}</p>

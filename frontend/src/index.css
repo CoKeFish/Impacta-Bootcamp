@@ -5,14 +5,14 @@
 @layer base {
     :root {
         --background: 210 17% 97%;
-        --foreground: 0 0% 6%;
+        --foreground: 220 10% 34%;
         --card: 0 0% 100%;
-        --card-foreground: 0 0% 6%;
+        --card-foreground: 220 10% 34%;
         --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 6%;
+        --popover-foreground: 220 10% 34%;
         --primary: 49 98% 57%;
-        --primary-foreground: 0 0% 6%;
-        --secondary: 249 56% 79%;
+        --primary-foreground: 220 10% 34%;
+        --secondary: 35 25% 78%;
         --secondary-foreground: 0 0% 6%;
         --muted: 47 14% 82%;
         --muted-foreground: 0 0% 35%;
@@ -35,8 +35,8 @@
         --popover: 211 100% 14%;
         --popover-foreground: 210 17% 97%;
         --primary: 49 98% 57%;
-        --primary-foreground: 0 0% 6%;
-        --secondary: 249 40% 30%;
+        --primary-foreground: 220 10% 34%;
+        --secondary: 35 15% 25%;
         --secondary-foreground: 210 17% 97%;
         --muted: 211 60% 18%;
         --muted-foreground: 210 20% 65%;
@@ -72,7 +72,7 @@
     }
 
     .card-gradient {
-        border: 1.5px solid transparent !important;
+        border: 1.5px solid transparent;
         background: linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
         linear-gradient(135deg, hsl(var(--gold-bright)), hsl(var(--accent)), hsl(var(--secondary))) border-box;
     }

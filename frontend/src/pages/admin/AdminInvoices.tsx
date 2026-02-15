@@ -4,7 +4,8 @@ import {Link} from 'react-router-dom';
 import {ArrowLeft, Loader2} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+
+
 import {Badge} from '@/components/ui/badge';
 import {getAdminInvoices} from '@/services/api';
 import {formatDateFull, formatXLM, truncateAddress} from '@/lib/utils';
@@ -68,40 +69,49 @@ export function AdminInvoices() {
             )}
 
             {data && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">{t('invoices.invoicesCard')}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {data.data.map((inv) => (
-                                <Link
+                <div className="rounded-lg border overflow-hidden">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b bg-muted/50">
+                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.invoicesCard')}</th>
+                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.organizerHeader', {defaultValue: 'Organizer'})}</th>
+                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.amountHeader', {defaultValue: 'Amount'})}</th>
+                                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('invoices.statusHeader', {defaultValue: 'Status'})}</th>
+                                <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t('invoices.dateHeader', {defaultValue: 'Created'})}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.data.map((inv, i) => (
+                                <tr
                                     key={inv.id}
-                                    to={`/invoices/${inv.id}`}
-                                    className="flex items-center justify-between py-3 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded"
+                                    className={`border-b last:border-0 hover:bg-muted/50 cursor-pointer ${i % 2 === 1 ? 'bg-muted/20' : ''}`}
+                                    onClick={() => window.location.href = `/invoices/${inv.id}`}
                                 >
-                                    <div>
-                                        <div className="flex items-center gap-2">
+                                    <td className="px-4 py-3 font-medium">
+                                        <Link to={`/invoices/${inv.id}`} className="hover:underline flex items-center gap-2">
                                             {inv.icon && <span>{inv.icon}</span>}
-                                            <span className="font-medium text-sm">{inv.name}</span>
-                                            <Badge variant={statusVariant[inv.status] ?? 'secondary'}>
-                                                {tc(`status.${inv.status}`)}
-                                            </Badge>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground mt-0.5">
-                                            {t('invoices.organizer', {name: inv.organizer_name ?? truncateAddress(inv.organizer_wallet)})}
-                                            {' '}&middot;{' '}
-                                            {formatXLM(inv.total_collected)} / {formatXLM(inv.total_amount)} XLM
-                                        </p>
-                                    </div>
-                                    <span className="text-xs text-muted-foreground">
+                                            {inv.name}
+                                        </Link>
+                                    </td>
+                                    <td className="px-4 py-3 text-muted-foreground">
+                                        {inv.organizer_name ?? truncateAddress(inv.organizer_wallet)}
+                                    </td>
+                                    <td className="px-4 py-3 font-mono tabular-nums">
+                                        {formatXLM(inv.total_collected)} / {formatXLM(inv.total_amount)} XLM
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <Badge variant={statusVariant[inv.status] ?? 'secondary'}>
+                                            {tc(`status.${inv.status}`)}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-xs text-muted-foreground">
                                         {formatDateFull(inv.created_at)}
-                                    </span>
-                                </Link>
+                                    </td>
+                                </tr>
                             ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );
