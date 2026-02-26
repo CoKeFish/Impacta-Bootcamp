@@ -11,7 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5432:5432"
+      - "5434:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U impacta -d impacta_db" ]
       interval: 5s
@@ -29,8 +29,8 @@ services:
     volumes:
       - minio_data:/data
     ports:
-      - "9000:9000"   # API S3
-      - "9001:9001"   # Consola web
+      - "9004:9000"   # API S3
+      - "9005:9001"   # Consola web
     healthcheck:
       test: [ "CMD", "mc", "ready", "local" ]
       interval: 5s
