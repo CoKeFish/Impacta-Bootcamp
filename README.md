@@ -1,8 +1,10 @@
 <p align="center">
-  <img src="assets/logo-placeholder.svg" alt="CoTravel Logo" width="400" />
+  <img src="frontend/public/logo.png" alt="CoTravel Logo" width="120" />
 </p>
 
-<h3 align="center">The simplest way to organize group trips and manage shared budgets with blockchain escrow</h3>
+<h1 align="center">CoTravel</h1>
+
+<h3 align="center">Viajes grupales con pagos compartidos en blockchain</h3>
 
 <p align="center">
   <a href="https://stellar.org"><img src="https://img.shields.io/badge/Built%20on-Stellar-blue?style=flat-square" alt="Built on Stellar" /></a>
@@ -10,168 +12,150 @@
   <img src="https://img.shields.io/badge/Status-Prototype-orange?style=flat-square" alt="Status: Prototype" />
 </p>
 
----
-
-> **Stellar Give x Stellar Impacta Bootcamp** -- This project is developed as part of the **Stellar Give** initiative
-> within the **Stellar Impacta Bootcamp**, a program by the Stellar Community Fund focused on building real-world
-> blockchain solutions on the Stellar network.
+<p align="center">
+  <a href="https://cotravel.up.railway.app">Ver demo en vivo</a>
+</p>
 
 ---
 
-## Problem
+> **Stellar Give x Stellar Impacta Bootcamp** — Proyecto desarrollado como parte de la iniciativa **Stellar Give**
+> dentro del **Stellar Impacta Bootcamp**, un programa del Stellar Community Fund enfocado en construir
+> soluciones blockchain con impacto real sobre la red Stellar.
 
-When we plan trips with friends, coordinating budgets, collecting money, and enforcing payment deadlines is messy and
-stressful. We end up using chats and spreadsheets, which creates trust issues, late payments, disputes, and complicated
-cancellations/refunds -- when someone drops out it often causes the whole trip to fail and everyone loses time, money,
-and good booking deals.
+---
 
-## Solution
+## El problema
 
-CoTravel is a group trip planning platform that uses a **Soroban smart contract** to collect everyone's contributions
-toward a shared budget, enforce fair rules if someone drops out, and pay invoices automatically when the group is
-ready. Once the group reaches the target amount and minimum participants, funds are released directly to the wallets
-defined in the invoice (hotels, transport, services) — or held until all participants confirm.
+Organizar viajes en grupo es complicado. Recolectar dinero, coordinar presupuestos y manejar cancelaciones termina en chats interminables, hojas de cálculo y problemas de confianza. Cuando alguien se retira, el viaje entero se complica y todos pierden tiempo y dinero.
 
-## Unique Value Proposition
+## La solución
 
-We make group trips easy and trustworthy by automating shared payments with a smart contract: everyone sees progress in
-real time, rules are enforced fairly if someone drops out, and the group unlocks partner travel discounts once the
-budget is reached.
+CoTravel es una plataforma donde los grupos financian viajes de forma colectiva usando un contrato inteligente en Stellar. Cada participante contribuye a un fondo compartido con reglas claras: monto objetivo, fecha límite, penalidades por retiro y distribución automática de pagos a los proveedores (hoteles, tours, restaurantes).
 
-## Audience
+**Sin intermediarios. Sin confianza ciega. Todo transparente en blockchain.**
 
-| Segment                         | Description                                                                                 |
-|---------------------------------|---------------------------------------------------------------------------------------------|
-| Friend groups (18-35)           | Planning trips together, need a drama-free way to collect and manage contributions          |
-| Trip organizers / group leaders | Coordinate budgets, deadlines, and rules -- want full transparency                          |
-| Repeat group travelers          | Graduation trips, festivals, weekend getaways -- multiple trips per year                    |
-| Partner businesses              | Hotels, restaurants, transport, tours -- pay for exposure and commissions to attract groups |
+---
 
-## Architecture
+## Cómo funciona
+
+### 1. Explora servicios de viaje
+
+Busca hoteles, tours, restaurantes y experiencias registradas en la plataforma. Filtra por categoría, precio o ubicación.
+
+<p align="center">
+  <img src="assets/screenshots/catalog.png" alt="Catálogo de servicios" width="800" />
+</p>
+
+### 2. Crea una factura grupal
+
+Selecciona servicios del catálogo o agrega ítems personalizados. Define el número mínimo de participantes, fecha límite y reglas de penalidad.
+
+<p align="center">
+  <img src="assets/screenshots/create-invoice.png" alt="Crear factura" width="800" />
+</p>
+
+### 3. El grupo contribuye
+
+Comparte el enlace de invitación. Cada participante se une y aporta su parte. El progreso se muestra en tiempo real con el porcentaje financiado.
+
+<p align="center">
+  <img src="assets/screenshots/invoice-funding.png" alt="Factura en financiamiento" width="800" />
+</p>
+
+### 4. Fondos liberados automáticamente
+
+Cuando se alcanza la meta y todos confirman, el contrato inteligente distribuye los fondos directamente a las wallets de los proveedores. Sin intermediarios.
+
+<p align="center">
+  <img src="assets/screenshots/invoice-released.png" alt="Factura liberada" width="800" />
+</p>
+
+---
+
+## Características principales
+
+| Característica | Descripción |
+|---|---|
+| **Pagos en grupo** | Los participantes contribuyen al fondo compartido desde sus wallets |
+| **Reglas automáticas** | Penalidades por retiro, fechas límite y montos mínimos gestionados por el contrato |
+| **Pago directo a proveedores** | Los fondos van directamente a las wallets de hoteles, tours y restaurantes |
+| **Confirmación colectiva** | Todos los participantes deben aprobar la liberación de fondos (o el organizador puede forzarla) |
+| **Reembolso automático** | Si el grupo no alcanza la meta antes de la fecha límite, todos reciben su dinero de vuelta |
+| **Marketplace de servicios** | Negocios registran sus servicios con precios, horarios, ubicación e información de contacto |
+| **Bilingüe** | Interfaz completa en español e inglés |
+| **Login flexible** | Conecta con wallet Freighter o inicia sesión con Google |
+
+---
+
+## Gestión de negocios
+
+Los proveedores de servicios de viaje pueden registrar su negocio, agregar servicios con precios en XLM, horarios de atención e información de contacto.
+
+<p align="center">
+  <img src="assets/screenshots/my-businesses.png" alt="Mis negocios" width="800" />
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/business-profile.png" alt="Perfil de negocio" width="800" />
+</p>
+
+## Panel de facturas
+
+Visualiza todas tus facturas organizadas por estado: borrador, financiando, completada, liberada o cancelada.
+
+<p align="center">
+  <img src="assets/screenshots/invoices-list.png" alt="Lista de facturas" width="800" />
+</p>
+
+---
+
+## Flujo de una factura
 
 ```
-CoTravel/
-├── contracts/cotravel-escrow/  # Soroban smart contract (Rust) - Multi-escrow
-├── backend/              # Node.js + Express API
-├── frontend/             # React + Vite + TailwindCSS
-├── database/             # PostgreSQL schema
-└── docker-compose.yml    # Full local environment
+Borrador → Financiando → Completada → Liberada
+              ↓                          ↑
+         Cancelada         Confirmar liberación
 ```
 
-| Component      | Technology              | Purpose                                       |
-|----------------|-------------------------|-----------------------------------------------|
-| Backend        | Node.js + Express       | REST API, business logic, partner integration |
-| Database       | PostgreSQL              | Users, businesses, invoices, services         |
-| Storage        | MinIO (S3 compatible)   | Profile images, trip photos                   |
-| Smart Contract | Soroban (Rust)          | Escrow, invoice payment, automated refunds    |
-| Blockchain     | Stellar Network         | Transactions, group wallets                   |
-| Frontend       | React + Vite + Tailwind | User interface, wallet integration            |
-| Auth           | Freighter (SEP-0053)    | Challenge-response wallet authentication      |
+1. **Borrador**: Se crea la factura con los servicios deseados
+2. **Financiando**: Se vincula a blockchain y acepta contribuciones
+3. **Completada**: Se alcanzó la meta de financiamiento
+4. **Liberada**: Los fondos fueron distribuidos a los proveedores
+5. **Cancelada**: El organizador canceló y todos recibieron reembolso
 
-### Authentication Flow
+---
 
-Challenge-response with Stellar wallet signature (SEP-0053) + JWT:
+## Audiencia
 
-1. Frontend requests challenge from backend
-2. User signs message with Freighter wallet (`signMessage`)
-3. Backend verifies signature using SEP-0053 (prefix + SHA-256 + Ed25519)
-4. Backend returns JWT (24h) + user data
+| Segmento | Descripción |
+|---|---|
+| **Grupos de amigos (18-35)** | Planean viajes juntos y necesitan una forma fácil de recolectar y administrar dinero |
+| **Organizadores de viaje** | Coordinan presupuestos y reglas con total transparencia |
+| **Viajeros frecuentes** | Viajes de graduación, festivales, escapadas — múltiples viajes por año |
+| **Negocios asociados** | Hoteles, restaurantes, tours — reciben pagos directos y atraen grupos |
 
-### Smart Contract - Invoice Pool Escrow
+## Modelo de negocio
 
-A single deployed contract manages N independent pools via `trip_id`. Each pool has an invoice (wallets + amounts) that
-gets paid when complete:
+1. **Comisiones por transacción** en viajes de alto presupuesto
+2. **Comisiones de socios** (B2B2C) por reservas a través de la plataforma
+3. **Posicionamiento premium** para negocios que quieran destacar sus ofertas
 
-| Function            | Who              | Description                                                                        |
-|---------------------|------------------|------------------------------------------------------------------------------------|
-| `create_invoice`    | Organizer        | Open pool with invoice: target, recipient wallets, deadline, penalty, auto-release |
-| `contribute`        | Participant      | Add funds (rejects if exceeds target); auto-pays if configured                     |
-| `withdraw`          | Participant      | Leave pool (penalty stays in pool; free opt-out if invoice changed)                |
-| `confirm_release`   | Participant      | Consent to pay. When all confirm, contract pays automatically                      |
-| `release`           | Organizer        | Escape hatch: force payment (organizer-only, for edge cases)                       |
-| `update_recipients` | Organizer        | Modify invoice; participants can opt out penalty-free                              |
-| `cancel`            | Organizer        | Cancel and refund all + return accumulated penalties                               |
-| `claim_deadline`    | Anyone (no auth) | After deadline, trigger full refund to all participants                            |
+---
 
-See [contracts/README.md](contracts/README.md) for full API (9 write + 10 read functions, 8 events).
-
-**Deployed on Testnet:**
-
-- Contract: `CBZJNP3KVSWCTRQJNF6Y5P55WDIGZ5JSABKDZ4RBGLFUMFZQK5BKFBIC`
-- Token (XLM SAC): `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
-
-## Getting Started
-
-### Prerequisites
-
-- Docker & Docker Compose
-- Node.js 18+
-- Freighter wallet extension (for frontend)
-
-### Run Locally
-
-```bash
-# Start all services
-docker compose up -d
-
-# Run backend tests (88 tests, 8 suites)
-docker compose exec backend npm test
-```
-
-| Service     | Port        | Description                                     |
-|-------------|-------------|-------------------------------------------------|
-| Backend     | 3000        | REST API                                        |
-| Frontend    | 5173        | Vite dev server                                 |
-| PostgreSQL  | 5432        | Relational database                             |
-| MinIO       | 9000 / 9001 | Object storage                                  |
-| Soroban     | 8000 / 8080 | Stellar node (Horizon + Soroban RPC)            |
-| Soroban Dev | —           | Contract build environment (Rust + Stellar CLI) |
-
-## Business Model
-
-1. **Transaction fees** (large trips only): small fee on trips with high total budget or many participants
-2. **Partner commissions** (B2B2C): earn commission when groups book hotels, transport, restaurants through the platform
-3. **Premium partner placement** (optional): businesses pay for featured offers inside trip recommendations
-
-## Market & Timing
-
-Group travel is a massive, recurring market driven by friends and family planning trips together. Wallets and smart
-contracts have matured enough to automate group commitments, milestones, refunds, and penalties without needing everyone
-to "trust the organizer." Travel businesses are actively looking for new distribution channels and are willing to offer
-discounts to platforms that bring verified group demand.
-
-## Key Metrics
-
-- Active groups created per week and % that reach minimum group size
-- Total value locked (TVL) in group trip wallets
-- Contribution completion rate
-- Trip completion rate (groups that book after hitting the goal)
-- Partner traction: active partners, offers live, conversion rate
-- Retention: users who start a second trip within 60-90 days
-
-## Quick Profile
+## Perfil
 
 |              |                                      |
 |--------------|--------------------------------------|
-| **Location** | Bogota, Colombia                     |
-| **Network**  | Stellar                              |
-| **Stage**    | Prototype / Idea                     |
-| **Sector**   | Web3                                 |
-| **Type**     | SaaS                                 |
+| **Ubicación** | Bogotá, Colombia                    |
+| **Red**      | Stellar (Testnet)                    |
+| **Etapa**    | Prototipo                            |
+| **Sector**   | Web3 / Travel                        |
 | **LinkedIn** | https://www.linkedin.com/in/cotravel |
 | **X**        | https://x.com/CoTraveel              |
-
-## Documentation
-
-- [Technical Architecture](ARCHITECTURE.md) - Detailed system design, flows, and data model
-- [Development Guide](DEVELOPMENT.md) - Local setup, Docker commands, testing
-- [Backend API](backend/README.md) - API endpoints, setup, and testing
-- [Smart Contract](contracts/README.md) - Soroban contract documentation
-- [Database Schema](database/README.md) - PostgreSQL tables, indexes, and queries
 
 ---
 
 <p align="center">
-  Built with Stellar &bull; Soroban &bull; Freighter<br/>
-  <strong>Stellar Give x Stellar Impacta Bootcamp</strong>
+  Construido con Stellar &bull; Soroban &bull; Freighter<br/>
+  <strong>Stellar Give x Stellar Impacta Bootcamp 2026</strong>
 </p>
