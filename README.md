@@ -26,11 +26,15 @@
 
 ## El problema
 
-Organizar viajes en grupo es complicado. Recolectar dinero, coordinar presupuestos y manejar cancelaciones termina en chats interminables, hojas de cálculo y problemas de confianza. Cuando alguien se retira, el viaje entero se complica y todos pierden tiempo y dinero.
+Organizar viajes en grupo es complicado. Recolectar dinero, coordinar presupuestos y manejar cancelaciones termina en
+chats interminables, hojas de cálculo y problemas de confianza. Cuando alguien se retira, el viaje entero se complica y
+todos pierden tiempo y dinero.
 
 ## La solución
 
-CoTravel es una plataforma donde los grupos financian viajes de forma colectiva usando un contrato inteligente en Stellar. Cada participante contribuye a un fondo compartido con reglas claras: monto objetivo, fecha límite, penalidades por retiro y distribución automática de pagos a los proveedores (hoteles, tours, restaurantes).
+CoTravel es una plataforma donde los grupos financian viajes de forma colectiva usando un contrato inteligente en
+Stellar. Cada participante contribuye a un fondo compartido con reglas claras: monto objetivo, fecha límite, penalidades
+por retiro y distribución automática de pagos a los proveedores (hoteles, tours, restaurantes).
 
 **Sin intermediarios. Sin confianza ciega. Todo transparente en blockchain.**
 
@@ -40,7 +44,8 @@ CoTravel es una plataforma donde los grupos financian viajes de forma colectiva 
 
 ### 1. Explora servicios de viaje
 
-Busca hoteles, tours, restaurantes y experiencias registradas en la plataforma. Filtra por categoría, precio o ubicación.
+Busca hoteles, tours, restaurantes y experiencias registradas en la plataforma. Filtra por categoría, precio o
+ubicación.
 
 <p align="center">
   <img src="assets/screenshots/catalog.png" alt="Catálogo de servicios" width="800" />
@@ -48,7 +53,8 @@ Busca hoteles, tours, restaurantes y experiencias registradas en la plataforma. 
 
 ### 2. Crea una factura grupal
 
-Selecciona servicios del catálogo o agrega ítems personalizados. Define el número mínimo de participantes, fecha límite y reglas de penalidad.
+Selecciona servicios del catálogo o agrega ítems personalizados. Define el número mínimo de participantes, fecha límite
+y reglas de penalidad.
 
 <p align="center">
   <img src="assets/screenshots/create-invoice.png" alt="Crear factura" width="800" />
@@ -56,7 +62,8 @@ Selecciona servicios del catálogo o agrega ítems personalizados. Define el nú
 
 ### 3. El grupo contribuye
 
-Comparte el enlace de invitación. Cada participante se une y aporta su parte. El progreso se muestra en tiempo real con el porcentaje financiado.
+Comparte el enlace de invitación. Cada participante se une y aporta su parte. El progreso se muestra en tiempo real con
+el porcentaje financiado.
 
 <p align="center">
   <img src="assets/screenshots/invoice-funding.png" alt="Factura en financiamiento" width="800" />
@@ -64,7 +71,8 @@ Comparte el enlace de invitación. Cada participante se une y aporta su parte. E
 
 ### 4. Fondos liberados automáticamente
 
-Cuando se alcanza la meta y todos confirman, el contrato inteligente distribuye los fondos directamente a las wallets de los proveedores. Sin intermediarios.
+Cuando se alcanza la meta y todos confirman, el contrato inteligente distribuye los fondos directamente a las wallets de
+los proveedores. Sin intermediarios.
 
 <p align="center">
   <img src="assets/screenshots/invoice-released.png" alt="Factura liberada" width="800" />
@@ -74,22 +82,23 @@ Cuando se alcanza la meta y todos confirman, el contrato inteligente distribuye 
 
 ## Características principales
 
-| Característica | Descripción |
-|---|---|
-| **Pagos en grupo** | Los participantes contribuyen al fondo compartido desde sus wallets |
-| **Reglas automáticas** | Penalidades por retiro, fechas límite y montos mínimos gestionados por el contrato |
-| **Pago directo a proveedores** | Los fondos van directamente a las wallets de hoteles, tours y restaurantes |
-| **Confirmación colectiva** | Todos los participantes deben aprobar la liberación de fondos (o el organizador puede forzarla) |
-| **Reembolso automático** | Si el grupo no alcanza la meta antes de la fecha límite, todos reciben su dinero de vuelta |
-| **Marketplace de servicios** | Negocios registran sus servicios con precios, horarios, ubicación e información de contacto |
-| **Bilingüe** | Interfaz completa en español e inglés |
-| **Login flexible** | Conecta con wallet Freighter o inicia sesión con Google |
+| Característica                 | Descripción                                                                                     |
+|--------------------------------|-------------------------------------------------------------------------------------------------|
+| **Pagos en grupo**             | Los participantes contribuyen al fondo compartido desde sus wallets                             |
+| **Reglas automáticas**         | Penalidades por retiro, fechas límite y montos mínimos gestionados por el contrato              |
+| **Pago directo a proveedores** | Los fondos van directamente a las wallets de hoteles, tours y restaurantes                      |
+| **Confirmación colectiva**     | Todos los participantes deben aprobar la liberación de fondos (o el organizador puede forzarla) |
+| **Reembolso automático**       | Si el grupo no alcanza la meta antes de la fecha límite, todos reciben su dinero de vuelta      |
+| **Marketplace de servicios**   | Negocios registran sus servicios con precios, horarios, ubicación e información de contacto     |
+| **Bilingüe**                   | Interfaz completa en español e inglés                                                           |
+| **Login flexible**             | Conecta con wallet Freighter o inicia sesión con Google                                         |
 
 ---
 
 ## Gestión de negocios
 
-Los proveedores de servicios de viaje pueden registrar su negocio, agregar servicios con precios en XLM, horarios de atención e información de contacto.
+Los proveedores de servicios de viaje pueden registrar su negocio, agregar servicios con precios en XLM, horarios de
+atención e información de contacto.
 
 <p align="center">
   <img src="assets/screenshots/my-businesses.png" alt="Mis negocios" width="800" />
@@ -127,12 +136,12 @@ Borrador → Financiando → Completada → Liberada
 
 ## Audiencia
 
-| Segmento | Descripción |
-|---|---|
+| Segmento                     | Descripción                                                                          |
+|------------------------------|--------------------------------------------------------------------------------------|
 | **Grupos de amigos (18-35)** | Planean viajes juntos y necesitan una forma fácil de recolectar y administrar dinero |
-| **Organizadores de viaje** | Coordinan presupuestos y reglas con total transparencia |
-| **Viajeros frecuentes** | Viajes de graduación, festivales, escapadas — múltiples viajes por año |
-| **Negocios asociados** | Hoteles, restaurantes, tours — reciben pagos directos y atraen grupos |
+| **Organizadores de viaje**   | Coordinan presupuestos y reglas con total transparencia                              |
+| **Viajeros frecuentes**      | Viajes de graduación, festivales, escapadas — múltiples viajes por año               |
+| **Negocios asociados**       | Hoteles, restaurantes, tours — reciben pagos directos y atraen grupos                |
 
 ## Modelo de negocio
 
@@ -144,14 +153,14 @@ Borrador → Financiando → Completada → Liberada
 
 ## Perfil
 
-|              |                                      |
-|--------------|--------------------------------------|
-| **Ubicación** | Bogotá, Colombia                    |
-| **Red**      | Stellar (Testnet)                    |
-| **Etapa**    | Prototipo                            |
-| **Sector**   | Web3 / Travel                        |
-| **LinkedIn** | https://www.linkedin.com/in/cotravel |
-| **X**        | https://x.com/CoTraveel              |
+|               |                                      |
+|---------------|--------------------------------------|
+| **Ubicación** | Bogotá, Colombia                     |
+| **Red**       | Stellar (Testnet)                    |
+| **Etapa**     | Prototipo                            |
+| **Sector**    | Web3 / Travel                        |
+| **LinkedIn**  | https://www.linkedin.com/in/cotravel |
+| **X**         | https://x.com/CoTraveel              |
 
 ---
 
