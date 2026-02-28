@@ -1,20 +1,24 @@
 import {Link, useParams} from 'react-router-dom';
 import {useQuery} from '@tanstack/react-query';
-import {ArrowLeft, Edit, Loader2, Mail, Plus, Store, Wallet} from 'lucide-react';
+import {ArrowLeft, Edit, Loader2, MapPin, Plus, ShoppingCart, Store, Wallet} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
+import {ScheduleDisplay} from '@/components/ui/schedule-display';
+import {ContactInfoDisplay} from '@/components/ui/contact-info-display';
 import {getBusiness, getBusinessServices} from '@/services/api';
 import {formatXLM, truncateAddress} from '@/lib/utils';
 import {useAuth} from '@/hooks/useAuth';
+import {useCart} from '@/hooks/useCart';
 
 export function BusinessProfile() {
     const {t} = useTranslation('businesses');
     const {t: tc} = useTranslation();
     const {id} = useParams<{ id: string }>();
     const businessId = Number(id);
-    const {user} = useAuth();
+    const {user, isAuthenticated} = useAuth();
+    const {addItem} = useCart();
 
     const {data: business, isLoading, error} = useQuery({
         queryKey: ['business', businessId],
@@ -80,20 +84,39 @@ export function BusinessProfile() {
                     {business.description && (
                         <p className="text-muted-foreground mt-1">{business.description}</p>
                     )}
-                    <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
+                        {(business.location_data || business.location) && (
+                            <span className="flex items-center gap-1">
+                                <MapPin className="h-3.5 w-3.5"/>
+                                {business.location_data
+                                    ? [business.location_data.address, business.location_data.city, business.location_data.country].filter(Boolean).join(', ')
+                                    : business.location}
+                            </span>
+                        )}
                         {business.wallet_address && (
                             <span className="flex items-center gap-1">
                                 <Wallet className="h-3.5 w-3.5"/>
                                 {truncateAddress(business.wallet_address)}
                             </span>
                         )}
-                        {business.contact_email && (
-                            <span className="flex items-center gap-1">
-                                <Mail className="h-3.5 w-3.5"/>
-                                {business.contact_email}
-                            </span>
-                        )}
+                        <ScheduleDisplay schedule={business.schedule} compact/>
+                        <ContactInfoDisplay contactInfo={business.contact_info} compact/>
                     </div>
+                    {/* Full schedule + contact below header */}
+                    {(business.schedule || business.contact_info) && (
+                        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:gap-8">
+                            {business.schedule && !business.schedule.not_applicable && (
+                                <div>
+                                    <ScheduleDisplay schedule={business.schedule}/>
+                                </div>
+                            )}
+                            {business.contact_info && !business.contact_info.not_applicable && (
+                                <div>
+                                    <ContactInfoDisplay contactInfo={business.contact_info}/>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
                 {isOwner && (
                     <Button asChild variant="outline" size="sm">
@@ -145,11 +168,20 @@ export function BusinessProfile() {
                                         <span className="text-sm font-mono font-medium">
                                             {formatXLM(service.price)} XLM
                                         </span>
-                                        {isOwner && (
+                                        {isOwner ? (
                                             <Button asChild variant="ghost" size="sm">
                                                 <Link to={`/services/${service.id}/edit`}>
                                                     <Edit className="h-3.5 w-3.5"/>
                                                 </Link>
+                                            </Button>
+                                        ) : isAuthenticated && service.active && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => addItem.mutate({serviceId: service.id})}
+                                                disabled={addItem.isPending}
+                                            >
+                                                <ShoppingCart className="h-3.5 w-3.5"/>
                                             </Button>
                                         )}
                                     </div>

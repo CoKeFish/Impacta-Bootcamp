@@ -1,8 +1,9 @@
 import {useState} from 'react';
 import {Link, useLocation} from 'react-router-dom';
-import {FileText, Globe, Menu, Store, X} from 'lucide-react';
+import {FileText, Globe, Menu, ShoppingCart, Store, X} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {ConnectButton} from '@/components/wallet/ConnectButton';
+import {CartIcon} from '@/components/cart/CartIcon';
 import {cn} from '@/lib/utils';
 import {useAuth} from '@/hooks/useAuth';
 import {type SupportedLanguage, supportedLanguages} from '@/i18n';
@@ -83,6 +84,7 @@ export function Header() {
                     <div className="hidden md:block">
                         <LanguageToggle/>
                     </div>
+                    <CartIcon/>
                     <ConnectButton/>
                     <button
                         className="md:hidden p-2 rounded-md hover:bg-muted"
@@ -114,18 +116,33 @@ export function Header() {
                             </Link>
                         ))}
                         {isAuthenticated && (
-                            <Link
-                                to="/profile"
-                                onClick={() => setMobileOpen(false)}
-                                className={cn(
-                                    'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-muted',
-                                    location.pathname === '/profile'
-                                        ? 'text-foreground bg-muted'
-                                        : 'text-muted-foreground',
-                                )}
-                            >
-                                {t('nav.profile')}
-                            </Link>
+                            <>
+                                <Link
+                                    to="/checkout"
+                                    onClick={() => setMobileOpen(false)}
+                                    className={cn(
+                                        'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-muted',
+                                        location.pathname === '/checkout'
+                                            ? 'text-foreground bg-muted'
+                                            : 'text-muted-foreground',
+                                    )}
+                                >
+                                    <ShoppingCart className="h-4 w-4"/>
+                                    {t('nav.cart')}
+                                </Link>
+                                <Link
+                                    to="/profile"
+                                    onClick={() => setMobileOpen(false)}
+                                    className={cn(
+                                        'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-muted',
+                                        location.pathname === '/profile'
+                                            ? 'text-foreground bg-muted'
+                                            : 'text-muted-foreground',
+                                    )}
+                                >
+                                    {t('nav.profile')}
+                                </Link>
+                            </>
                         )}
                         <div className="border-t mt-2 pt-2">
                             <LanguageToggle/>

@@ -6,8 +6,12 @@ import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {ImagePicker} from '@/components/ui/image-picker';
+import {SchedulePicker} from '@/components/ui/schedule-picker';
+import {ContactInfoEditor} from '@/components/ui/contact-info-editor';
+import {LocationEditor} from '@/components/ui/location-editor';
 import {getService, updateService} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
+import type {ContactInfo, LocationData, Schedule} from '@/types';
 
 export function EditService() {
     const {t} = useTranslation('services');
@@ -30,6 +34,9 @@ export function EditService() {
         price: '',
         image_url: '',
     });
+    const [locationData, setLocationData] = useState<LocationData | null>(null);
+    const [schedule, setSchedule] = useState<Schedule | null>(null);
+    const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
 
     useEffect(() => {
         if (service) {
@@ -39,6 +46,9 @@ export function EditService() {
                 price: service.price,
                 image_url: service.image_url ?? '',
             });
+            setLocationData(service.location_data ?? null);
+            setSchedule(service.schedule ?? null);
+            setContactInfo(service.contact_info ?? null);
         }
     }, [service]);
 
@@ -48,6 +58,9 @@ export function EditService() {
             description: form.description || undefined,
             price: parseFloat(form.price),
             image_url: form.image_url || undefined,
+            location_data: locationData,
+            schedule: schedule,
+            contact_info: contactInfo,
         }),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['service', serviceId]});
@@ -114,6 +127,27 @@ export function EditService() {
                             label={tc('image.serviceImageLabel')}
                             value={form.image_url || null}
                             onChange={(url) => setForm((prev) => ({...prev, image_url: url ?? ''}))}
+                        />
+
+                        <LocationEditor
+                            label={t('add.locationLabel')}
+                            value={locationData}
+                            onChange={setLocationData}
+                            inheritedLocation={service?.business_location_data}
+                        />
+
+                        <SchedulePicker
+                            label={t('add.scheduleLabel')}
+                            value={schedule}
+                            onChange={setSchedule}
+                            inheritedSchedule={service?.business_schedule}
+                        />
+
+                        <ContactInfoEditor
+                            label={t('add.contactLabel')}
+                            value={contactInfo}
+                            onChange={setContactInfo}
+                            inheritedContactInfo={service?.business_contact_info}
                         />
 
                         {mutation.error && (

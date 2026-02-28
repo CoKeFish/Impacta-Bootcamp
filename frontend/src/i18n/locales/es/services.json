@@ -3,7 +3,13 @@
     "title": "Catálogo de servicios",
     "subtitle": "Explora servicios ofrecidos por negocios",
     "searchPlaceholder": "Buscar servicios o negocios...",
-    "noResults": "No se encontraron servicios"
+    "noResults": "No se encontraron servicios",
+    "category": "Categoría",
+    "minPrice": "Precio mín.",
+    "maxPrice": "Precio máx.",
+    "business": "Negocio",
+    "location": "Ubicación",
+    "addToCart": "Agregar al carrito"
   },
   "picker": {
     "searchPlaceholder": "Buscar servicios...",
@@ -18,6 +24,11 @@
     "descriptionPlaceholder": "¿Qué incluye este servicio?",
     "priceLabel": "Precio (XLM) *",
     "pricePlaceholder": "0.00",
+    "locationLabel": "Ubicación",
+    "locationPlaceholder": "ej. El Calafate, Argentina",
+    "locationHint": "Dejar vacío para usar la ubicación del negocio",
+    "scheduleLabel": "Horario",
+    "contactLabel": "Info de contacto",
     "creating": "Creando...",
     "createButton": "Crear servicio"
   },

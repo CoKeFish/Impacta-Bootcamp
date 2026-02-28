@@ -3,6 +3,10 @@ import type {
     AuthChallenge,
     AuthLogin,
     Business,
+    Cart,
+    CartItem,
+    ContactInfo,
+    LocationData,
     HealthStatus,
     ImageInfo,
     ImageUploadResponse,
@@ -10,6 +14,7 @@ import type {
     InvoiceItem,
     InvoiceParticipant,
     PaginatedResponse,
+    Schedule,
     Service,
     User,
 } from '@/types';
@@ -67,6 +72,12 @@ export const devLogin = (wallet_address: string) =>
         body: JSON.stringify({wallet_address}),
     });
 
+export const loginWithAccesly = (email: string, wallet: string) =>
+    request<AuthLogin>('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({provider: 'accesly', email, wallet}),
+    });
+
 export const getMe = () => request<User>('/api/auth/me');
 
 // ─── Users ──────────────────────────────────────────────────────────────────
@@ -111,6 +122,10 @@ export const createBusiness = (data: {
     logo_url?: string;
     wallet_address?: string;
     contact_email?: string;
+    location?: string;
+    location_data?: LocationData | null;
+    schedule?: Schedule | null;
+    contact_info?: ContactInfo | null;
 }) =>
     request<Business>('/api/businesses', {
         method: 'POST',
@@ -124,6 +139,10 @@ export const updateBusiness = (id: number, data: Partial<{
     logo_url: string;
     wallet_address: string;
     contact_email: string;
+    location: string;
+    location_data: LocationData | null;
+    schedule: Schedule | null;
+    contact_info: ContactInfo | null;
     active: boolean;
 }>) =>
     request<Business>(`/api/businesses/${id}`, {
@@ -136,10 +155,16 @@ export const getBusinessServices = (businessId: number) =>
 
 // ─── Services ───────────────────────────────────────────────────────────────
 
-export const getServices = (query?: string) =>
-    request<Service[]>(
-        `/api/services${query ? `?q=${encodeURIComponent(query)}` : ''}`,
-    );
+export const getServices = (params?: { q?: string; category?: string; min_price?: string; max_price?: string; business_id?: string; location?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+        for (const [key, value] of Object.entries(params)) {
+            if (value) searchParams.set(key, value);
+        }
+    }
+    const qs = searchParams.toString();
+    return request<Service[]>(`/api/services${qs ? `?${qs}` : ''}`);
+};
 
 export const getService = (id: number) =>
     request<Service>(`/api/services/${id}`);
@@ -150,6 +175,10 @@ export const createService = (data: {
     description?: string;
     price: number;
     image_url?: string;
+    location?: string;
+    location_data?: LocationData | null;
+    schedule?: Schedule | null;
+    contact_info?: ContactInfo | null;
 }) =>
     request<Service>('/api/services', {
         method: 'POST',
@@ -161,10 +190,62 @@ export const updateService = (id: number, data: Partial<{
     description: string;
     price: number;
     image_url: string;
+    location: string;
+    location_data: LocationData | null;
+    schedule: Schedule | null;
+    contact_info: ContactInfo | null;
     active: boolean;
 }>) =>
     request<Service>(`/api/services/${id}`, {
         method: 'PUT',
+        body: JSON.stringify(data),
+    });
+
+// ─── Business Categories ────────────────────────────────────────────────────
+
+export const getBusinessCategories = () =>
+    request<string[]>('/api/businesses/categories');
+
+export const getBusinessLocations = () =>
+    request<string[]>('/api/businesses/locations');
+
+// ─── Cart ───────────────────────────────────────────────────────────────────
+
+export const getCart = () => request<Cart>('/api/cart');
+
+export const addToCart = (service_id: number, quantity = 1) =>
+    request<CartItem>('/api/cart/items', {
+        method: 'POST',
+        body: JSON.stringify({service_id, quantity}),
+    });
+
+export const updateCartItem = (id: number, quantity: number) =>
+    request<CartItem>(`/api/cart/items/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({quantity}),
+    });
+
+export const removeCartItem = (id: number) =>
+    request<{ message: string }>(`/api/cart/items/${id}`, {
+        method: 'DELETE',
+    });
+
+export const clearCart = () =>
+    request<{ message: string }>('/api/cart', {
+        method: 'DELETE',
+    });
+
+export const checkoutCart = (data: {
+    name: string;
+    description?: string;
+    icon?: string;
+    deadline: string;
+    min_participants?: number;
+    penalty_percent?: number;
+    auto_release?: boolean;
+}) =>
+    request<Invoice>('/api/cart/checkout', {
+        method: 'POST',
         body: JSON.stringify(data),
     });
 

@@ -52,6 +52,7 @@ import {AvatarCluster} from '@/components/ui/avatar-cluster';
 import {InvoiceItemsList} from '@/components/invoice/InvoiceItemsList';
 import {ModificationBanner} from '@/components/invoice/ModificationBanner';
 import {useAuth} from '@/hooks/useAuth';
+import {useSign} from '@/hooks/useSign';
 import {fadeInUp, staggerContainer} from '@/lib/motion';
 import type {Invoice, InvoiceParticipant} from '@/types';
 
@@ -77,9 +78,10 @@ interface ActionPanelProps {
     userWallet: string | null;
     userId: number | undefined;
     onActionComplete: () => void;
+    signTransaction: (xdr: string) => Promise<string>;
 }
 
-function ActionPanel({invoice, participants, userWallet, userId, onActionComplete}: ActionPanelProps) {
+function ActionPanel({invoice, participants, userWallet, userId, onActionComplete, signTransaction}: ActionPanelProps) {
     const [contributeAmount, setContributeAmount] = useState('');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [txStep, setTxStep] = useState<'signing' | 'confirming' | 'done' | null>(null);
@@ -153,6 +155,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                         autoRelease: invoice.auto_release,
                     }),
                 userWallet,
+                signTransaction,
             );
 
             await linkInvoiceContract(invoice.id, signedXdr);
@@ -185,6 +188,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                         amount: xlmToStroops(amount),
                     }),
                 userWallet,
+                signTransaction,
             );
 
             await contributeToInvoice(invoice.id, signedXdr, amount);
@@ -205,6 +209,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                         participant: userWallet,
                     }),
                 userWallet,
+                signTransaction,
             );
 
             await withdrawFromInvoice(invoice.id, signedXdr);
@@ -226,6 +231,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                         participant: userWallet,
                     }),
                 userWallet,
+                signTransaction,
             );
 
             await confirmRelease(invoice.id, signedXdr);
@@ -247,6 +253,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                         organizer: userWallet,
                     }),
                 userWallet,
+                signTransaction,
             );
 
             await releaseInvoice(invoice.id, signedXdr);
@@ -273,6 +280,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                         organizer: userWallet,
                     }),
                 userWallet,
+                signTransaction,
             );
 
             await cancelInvoice(invoice.id, signedXdr);
@@ -292,6 +300,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
                         caller: userWallet,
                     }),
                 userWallet,
+                signTransaction,
             );
 
             await claimDeadline(invoice.id, signedXdr);
@@ -589,6 +598,7 @@ export function InvoiceDetail() {
     const invoiceId = Number(id);
     const navigate = useNavigate();
     const {address: userWallet, user, isAuthenticated} = useAuth();
+    const {signTransaction} = useSign();
     const {t} = useTranslation('invoices');
     const {t: tc} = useTranslation();
 
@@ -790,6 +800,7 @@ export function InvoiceDetail() {
                     userWallet={userWallet}
                     userId={user?.id}
                     onActionComplete={() => refetch()}
+                    signTransaction={signTransaction}
                 />
             </motion.div>
 

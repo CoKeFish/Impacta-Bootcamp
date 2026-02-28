@@ -88,6 +88,7 @@ app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/businesses', require('./routes/businesses'));
 app.use('/api/services', require('./routes/services'));
+app.use('/api/cart', require('./routes/cart'));
 app.use('/api/invoices', require('./routes/invoices'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/images', require('./routes/images'));

@@ -4,7 +4,7 @@ import {useWalletStore} from '@/stores/walletStore';
 import * as api from '@/services/api';
 
 export function useAuth() {
-    const {address, isConnected: isWalletConnected, token, user, connect, authenticate, disconnect} =
+    const {address, isConnected: isWalletConnected, token, user, provider, connect, authenticate, disconnect} =
         useWalletStore();
 
     const isAuthenticated = !!token && !!user;
@@ -39,8 +39,18 @@ export function useAuth() {
             : btoa(String.fromCharCode(...new Uint8Array(signResult.signedMessage)));
 
         const {token: jwt, user: userData} = await api.login(walletAddress, signature);
-        authenticate(jwt, userData);
+        authenticate(jwt, userData, 'wallet');
 
+        return userData;
+    }, [connect, authenticate]);
+
+    const connectWithAccesly = useCallback(async (wallet: { stellarAddress: string; email: string }) => {
+        connect(wallet.stellarAddress);
+        const {token: jwt, user: userData} = await api.loginWithAccesly(
+            wallet.email,
+            wallet.stellarAddress,
+        );
+        authenticate(jwt, userData, 'accesly');
         return userData;
     }, [connect, authenticate]);
 
@@ -54,7 +64,9 @@ export function useAuth() {
         isAuthenticated,
         token,
         user,
+        provider,
         connectWallet,
+        connectWithAccesly,
         disconnectWallet,
     };
 }

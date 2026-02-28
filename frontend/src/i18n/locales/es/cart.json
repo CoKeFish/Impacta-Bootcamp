@@ -1,0 +1,23 @@
+{
+  "title": "Checkout",
+  "subtitle": "Revisa tu carrito y crea una factura",
+  "items": "Items del carrito",
+  "empty": "Tu carrito está vacío",
+  "emptyDescription": "Explora el catálogo de servicios para agregar items a tu carrito.",
+  "browseCatalog": "Explorar catálogo",
+  "clearCart": "Vaciar carrito",
+  "total": "Total",
+  "addedToCart": "Agregado al carrito",
+  "removedFromCart": "Eliminado del carrito",
+  "invoiceConfig": "Detalles de la factura",
+  "invoiceName": "Nombre de la factura",
+  "invoiceNamePlaceholder": "ej. Viaje a la playa 2026",
+  "descriptionLabel": "Descripción",
+  "descriptionPlaceholder": "Descripción opcional para la factura grupal",
+  "icon": "Ícono",
+  "deadline": "Fecha límite",
+  "minParticipants": "Mín. participantes",
+  "penaltyPercent": "Penalidad %",
+  "autoRelease": "Liberación automática",
+  "createInvoice": "Crear factura"
+}

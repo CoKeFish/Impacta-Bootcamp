@@ -2,7 +2,9 @@
 
 export interface User {
     id: number;
-    wallet_address: string;
+    wallet_address: string | null;
+    email: string | null;
+    auth_provider: 'wallet' | 'accesly';
     username: string | null;
     avatar_url: string | null;
     role: 'user' | 'admin';
@@ -31,6 +33,38 @@ export interface PaginatedResponse<T> {
     limit: number;
 }
 
+// ─── Schedule & Contact ─────────────────────────────────────────────────────
+
+export interface TimeSlot {
+    from: string;
+    to: string;
+}
+
+export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+
+export interface Schedule {
+    not_applicable: boolean;
+    timezone: string;
+    slots: Record<DayOfWeek, TimeSlot[]>;
+}
+
+export interface ContactInfo {
+    not_applicable: boolean;
+    email: string;
+    phone: string;
+    whatsapp: string;
+    website: string;
+}
+
+export interface LocationData {
+    country: string;
+    country_code: string;
+    city: string;
+    address: string;
+    lat: number | null;
+    lng: number | null;
+}
+
 // ─── Businesses & Services ──────────────────────────────────────────────────
 
 export interface Business {
@@ -44,6 +78,10 @@ export interface Business {
     logo_url: string | null;
     wallet_address: string | null;
     contact_email: string | null;
+    location: string | null;
+    location_data: LocationData | null;
+    schedule: Schedule | null;
+    contact_info: ContactInfo | null;
     active: boolean;
     created_at: string;
     updated_at: string;
@@ -58,6 +96,17 @@ export interface Service {
     description: string | null;
     price: string;
     image_url: string | null;
+    location: string | null;
+    location_data: LocationData | null;
+    effective_location: string | null;
+    effective_location_data: LocationData | null;
+    schedule: Schedule | null;
+    contact_info: ContactInfo | null;
+    effective_schedule: Schedule | null;
+    effective_contact_info: ContactInfo | null;
+    business_schedule?: Schedule | null;
+    business_contact_info?: ContactInfo | null;
+    business_location_data?: LocationData | null;
     active: boolean;
     created_at: string;
     updated_at: string;
@@ -133,6 +182,29 @@ export interface OnchainState {
     status: string;
     total_collected: string;
     participant_count: number;
+}
+
+// ─── Cart ───────────────────────────────────────────────────────────────────
+
+export interface CartItem {
+    id: number;
+    user_id: number;
+    service_id: number;
+    quantity: number;
+    added_at: string;
+    service_name: string;
+    service_description: string | null;
+    price: string;
+    image_url: string | null;
+    service_active: boolean;
+    business_id: number;
+    business_name: string;
+    business_wallet: string | null;
+}
+
+export interface Cart {
+    items: CartItem[];
+    count: number;
 }
 
 // ─── Images ─────────────────────────────────────────────────────────────────

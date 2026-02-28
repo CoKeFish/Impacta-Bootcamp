@@ -102,6 +102,26 @@ module.exports = {
                 return res.json({token, user});
             }
 
+            // --- Accesly social login ---
+            if (provider === 'accesly') {
+                const {email, wallet: acceslyWallet} = req.body;
+                if (!email || !acceslyWallet) {
+                    return res.status(400).json({error: 'email and wallet required for accesly login'});
+                }
+
+                let user = await userModel.findByEmail(email);
+                const isNew = !user;
+                if (!user) {
+                    user = await userModel.createWithEmail(email, acceslyWallet, email.split('@')[0]);
+                } else if (!user.wallet_address) {
+                    user = await userModel.updateWallet(user.id, acceslyWallet);
+                }
+
+                const token = generateToken(user, 'accesly');
+                logger.info({userId: user.id, isNew, provider: 'accesly'}, 'User logged in via Accesly');
+                return res.json({token, user});
+            }
+
             return res.status(400).json({error: `Unsupported provider: ${provider}`});
         } catch (err) {
             next(err);

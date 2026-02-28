@@ -84,10 +84,10 @@ export function AdminUsers() {
                         {data.data.map((u, i) => (
                             <tr key={u.id} className={`border-b last:border-0 ${i % 2 === 1 ? 'bg-muted/20' : ''}`}>
                                 <td className="px-4 py-3 font-medium">
-                                    {u.username ?? truncateAddress(u.wallet_address)}
+                                    {u.username ?? (u.wallet_address ? truncateAddress(u.wallet_address) : u.email ?? `User #${u.id}`)}
                                 </td>
                                 <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                                    {truncateAddress(u.wallet_address)}
+                                    {u.wallet_address ? truncateAddress(u.wallet_address) : u.email ?? '—'}
                                 </td>
                                 <td className="px-4 py-3">
                                     <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>

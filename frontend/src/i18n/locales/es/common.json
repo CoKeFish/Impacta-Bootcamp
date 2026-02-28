@@ -3,6 +3,7 @@
     "services": "Servicios",
     "invoices": "Mis facturas",
     "myBusinesses": "Mis negocios",
+    "cart": "Carrito",
     "profile": "Perfil"
   },
   "footer": {
@@ -10,10 +11,12 @@
     "testnet": "Testnet · Impacta Bootcamp 2026"
   },
   "wallet": {
-    "connect": "Conectar wallet",
+    "connect": "Conectar Freighter",
+    "connectGoogle": "Login con Google",
     "connecting": "Conectando...",
     "disconnect": "Desconectar",
-    "connectionFailed": "Error de conexión"
+    "connectionFailed": "Error de conexión",
+    "or": "o"
   },
   "auth": {
     "connectWallet": "Conecta tu wallet",
@@ -59,6 +62,68 @@
     "dragOrClick": "Arrastra una imagen o haz clic para seleccionar",
     "maxSize": "Máx. 5MB · JPG, PNG, WebP, GIF",
     "uploadError": "Error al subir imagen"
+  },
+  "schedule": {
+    "notApplicable": "Horario no aplica",
+    "timezone": "Zona horaria",
+    "visualMode": "Visual",
+    "advancedMode": "Avanzado",
+    "closed": "Cerrado",
+    "addRange": "Agregar rango",
+    "openToday": "Abierto hoy",
+    "closedToday": "Cerrado hoy",
+    "scheduleNA": "N/A",
+    "inheritingFromBusiness": "Heredando horario del negocio",
+    "override": "Personalizar",
+    "clearOverride": "Quitar personalización (usar horario del negocio)",
+    "addSchedule": "Agregar horario",
+    "days": {
+      "monday": "Lunes",
+      "tuesday": "Martes",
+      "wednesday": "Miércoles",
+      "thursday": "Jueves",
+      "friday": "Viernes",
+      "saturday": "Sábado",
+      "sunday": "Domingo"
+    },
+    "daysShort": {
+      "monday": "Lun",
+      "tuesday": "Mar",
+      "wednesday": "Mié",
+      "thursday": "Jue",
+      "friday": "Vie",
+      "saturday": "Sáb",
+      "sunday": "Dom"
+    }
+  },
+  "contact": {
+    "notApplicable": "Info de contacto no aplica",
+    "email": "Email",
+    "phone": "Teléfono",
+    "whatsapp": "WhatsApp",
+    "website": "Sitio web",
+    "emailPlaceholder": "contacto@negocio.com",
+    "phonePlaceholder": "+54 11 1234 5678",
+    "whatsappPlaceholder": "+54 11 1234 5678",
+    "websitePlaceholder": "https://ejemplo.com",
+    "contactNA": "N/A",
+    "inheritingFromBusiness": "Heredando contacto del negocio",
+    "override": "Personalizar",
+    "clearOverride": "Quitar personalización (usar contacto del negocio)",
+    "addContact": "Agregar info de contacto"
+  },
+  "location": {
+    "country": "País",
+    "countryPlaceholder": "Selecciona un país",
+    "city": "Ciudad",
+    "cityPlaceholder": "Escribe para buscar...",
+    "address": "Dirección (opcional)",
+    "addressPlaceholder": "Dirección o punto de referencia",
+    "validated": "Ubicación verificada",
+    "addLocation": "Agregar ubicación",
+    "inheritingFromBusiness": "Heredando ubicación del negocio",
+    "override": "Personalizar",
+    "clearOverride": "Quitar personalización (usar ubicación del negocio)"
   },
   "participants": "participantes",
   "collected": "Recaudado",

@@ -1,12 +1,15 @@
 const pool = require('../config/db');
 
 module.exports = {
-    async create(ownerId, name, category, description, logoUrl, walletAddress, contactEmail) {
+    async create(ownerId, name, category, description, logoUrl, walletAddress, contactEmail, location, schedule, contactInfo, locationData) {
         const {rows} = await pool.query(
-            `INSERT INTO businesses (owner_id, name, category, description, logo_url, wallet_address, contact_email)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+            `INSERT INTO businesses (owner_id, name, category, description, logo_url, wallet_address, contact_email, location, schedule, contact_info, location_data)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
              RETURNING *`,
-            [ownerId, name, category, description, logoUrl, walletAddress, contactEmail]
+            [ownerId, name, category, description, logoUrl, walletAddress, contactEmail, location,
+                schedule ? JSON.stringify(schedule) : null,
+                contactInfo ? JSON.stringify(contactInfo) : null,
+                locationData ? JSON.stringify(locationData) : null]
         );
         return rows[0];
     },
@@ -47,6 +50,24 @@ module.exports = {
             [ownerId]
         );
         return rows;
+    },
+
+    async findDistinctCategories() {
+        const {rows} = await pool.query(
+            `SELECT DISTINCT category FROM businesses
+             WHERE active = true AND category IS NOT NULL
+             ORDER BY category`
+        );
+        return rows.map(r => r.category);
+    },
+
+    async findDistinctLocations() {
+        const {rows} = await pool.query(
+            `SELECT DISTINCT location FROM businesses
+             WHERE active = true AND location IS NOT NULL
+             ORDER BY location`
+        );
+        return rows.map(r => r.location);
     },
 
     async update(id, fields) {

@@ -3,7 +3,13 @@
     "title": "Service catalog",
     "subtitle": "Browse services offered by businesses",
     "searchPlaceholder": "Search services or businesses...",
-    "noResults": "No services found"
+    "noResults": "No services found",
+    "category": "Category",
+    "minPrice": "Min price",
+    "maxPrice": "Max price",
+    "business": "Business",
+    "location": "Location",
+    "addToCart": "Add to cart"
   },
   "picker": {
     "searchPlaceholder": "Search services...",
@@ -18,6 +24,11 @@
     "descriptionPlaceholder": "What does this service include?",
     "priceLabel": "Price (XLM) *",
     "pricePlaceholder": "0.00",
+    "locationLabel": "Location",
+    "locationPlaceholder": "e.g. El Calafate, Argentina",
+    "locationHint": "Leave empty to use the business location",
+    "scheduleLabel": "Schedule",
+    "contactLabel": "Contact info",
     "creating": "Creating...",
     "createButton": "Create service"
   },

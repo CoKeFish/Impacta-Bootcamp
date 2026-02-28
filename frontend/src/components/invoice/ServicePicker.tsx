@@ -17,7 +17,7 @@ export function ServicePicker({onSelect}: ServicePickerProps) {
 
     const {data: services, isLoading} = useQuery({
         queryKey: ['services', search],
-        queryFn: () => getServices(search || undefined),
+        queryFn: () => getServices({q: search || undefined}),
     });
 
     return (

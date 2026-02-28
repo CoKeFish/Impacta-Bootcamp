@@ -1,0 +1,23 @@
+{
+  "title": "Checkout",
+  "subtitle": "Review your cart and create an invoice",
+  "items": "Cart items",
+  "empty": "Your cart is empty",
+  "emptyDescription": "Browse the service catalog to add items to your cart.",
+  "browseCatalog": "Browse catalog",
+  "clearCart": "Clear cart",
+  "total": "Total",
+  "addedToCart": "Added to cart",
+  "removedFromCart": "Removed from cart",
+  "invoiceConfig": "Invoice details",
+  "invoiceName": "Invoice name",
+  "invoiceNamePlaceholder": "e.g. Beach Trip 2026",
+  "descriptionLabel": "Description",
+  "descriptionPlaceholder": "Optional description for the group invoice",
+  "icon": "Icon",
+  "deadline": "Deadline",
+  "minParticipants": "Min. participants",
+  "penaltyPercent": "Penalty %",
+  "autoRelease": "Auto-release",
+  "createInvoice": "Create invoice"
+}

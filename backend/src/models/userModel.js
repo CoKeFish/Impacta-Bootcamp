@@ -46,4 +46,28 @@ module.exports = {
         );
         return rows[0] || null;
     },
+
+    async findByEmail(email) {
+        const {rows} = await pool.query(
+            'SELECT * FROM users WHERE email = $1',
+            [email]
+        );
+        return rows[0] || null;
+    },
+
+    async createWithEmail(email, walletAddress, username) {
+        const {rows} = await pool.query(
+            'INSERT INTO users (email, wallet_address, username, auth_provider) VALUES ($1, $2, $3, $4) RETURNING *',
+            [email, walletAddress, username, 'accesly']
+        );
+        return rows[0];
+    },
+
+    async updateWallet(id, walletAddress) {
+        const {rows} = await pool.query(
+            'UPDATE users SET wallet_address = $2 WHERE id = $1 RETURNING *',
+            [id, walletAddress]
+        );
+        return rows[0] || null;
+    },
 };

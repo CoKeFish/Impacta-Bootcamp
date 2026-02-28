@@ -6,8 +6,12 @@ import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {ImagePicker} from '@/components/ui/image-picker';
+import {SchedulePicker} from '@/components/ui/schedule-picker';
+import {ContactInfoEditor} from '@/components/ui/contact-info-editor';
+import {LocationEditor} from '@/components/ui/location-editor';
 import {getBusiness, updateBusiness} from '@/services/api';
 import {useAuth} from '@/hooks/useAuth';
+import type {ContactInfo, LocationData, Schedule} from '@/types';
 
 export function EditBusiness() {
     const {t} = useTranslation('businesses');
@@ -30,8 +34,10 @@ export function EditBusiness() {
         category: '',
         description: '',
         wallet_address: '',
-        contact_email: '',
     });
+    const [locationData, setLocationData] = useState<LocationData | null>(null);
+    const [schedule, setSchedule] = useState<Schedule | null>(null);
+    const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
 
     useEffect(() => {
         if (business) {
@@ -41,8 +47,12 @@ export function EditBusiness() {
                 category: business.category ?? '',
                 description: business.description ?? '',
                 wallet_address: business.wallet_address ?? '',
-                contact_email: business.contact_email ?? '',
             });
+            setLocationData(business.location_data ?? null);
+            setSchedule(business.schedule ?? null);
+            setContactInfo(business.contact_info ?? (business.contact_email
+                ? {not_applicable: false, email: business.contact_email, phone: '', whatsapp: '', website: ''}
+                : null));
         }
     }, [business]);
 
@@ -53,7 +63,9 @@ export function EditBusiness() {
             category: form.category || undefined,
             description: form.description || undefined,
             wallet_address: form.wallet_address || undefined,
-            contact_email: form.contact_email || undefined,
+            location_data: locationData,
+            schedule: schedule,
+            contact_info: contactInfo,
         }),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['business', businessId]});
@@ -114,6 +126,11 @@ export function EditBusiness() {
                             <input id="category" name="category" value={form.category} onChange={handleChange}
                                    className={inputClass} placeholder={t('edit.categoryPlaceholder')}/>
                         </div>
+                        <LocationEditor
+                            label={t('register.locationLabel')}
+                            value={locationData}
+                            onChange={setLocationData}
+                        />
                         <div className="space-y-2">
                             <label htmlFor="description"
                                    className="text-sm font-medium">{t('register.descriptionLabel')}</label>
@@ -128,12 +145,17 @@ export function EditBusiness() {
                                    onChange={handleChange} className={inputClass}
                                    placeholder={t('edit.walletPlaceholder')}/>
                         </div>
-                        <div className="space-y-2">
-                            <label htmlFor="contact_email"
-                                   className="text-sm font-medium">{t('register.emailLabel')}</label>
-                            <input id="contact_email" name="contact_email" type="email" value={form.contact_email}
-                                   onChange={handleChange} className={inputClass}/>
-                        </div>
+                        <SchedulePicker
+                            label={t('register.scheduleLabel')}
+                            value={schedule}
+                            onChange={setSchedule}
+                        />
+
+                        <ContactInfoEditor
+                            label={t('register.contactLabel')}
+                            value={contactInfo}
+                            onChange={setContactInfo}
+                        />
 
                         {mutation.error && (
                             <div

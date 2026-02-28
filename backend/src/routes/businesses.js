@@ -4,6 +4,8 @@ const servicesCtrl = require('../controllers/servicesController');
 const {requireAuth, loadBusiness, requireBusinessOwner, validateId} = require('../middleware/auth');
 
 // Public (catalog)
+router.get('/categories', businessesCtrl.getCategories);
+router.get('/locations', businessesCtrl.getLocations);
 router.get('/', businessesCtrl.getAll);
 router.get('/:id', validateId, businessesCtrl.getById);
 router.get('/:id/services', validateId, servicesCtrl.getByBusiness);

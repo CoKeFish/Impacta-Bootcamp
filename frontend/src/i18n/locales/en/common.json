@@ -3,6 +3,7 @@
     "services": "Services",
     "invoices": "My invoices",
     "myBusinesses": "My businesses",
+    "cart": "Cart",
     "profile": "Profile"
   },
   "footer": {
@@ -10,10 +11,12 @@
     "testnet": "Testnet · Impacta Bootcamp 2026"
   },
   "wallet": {
-    "connect": "Connect wallet",
+    "connect": "Connect Freighter",
+    "connectGoogle": "Login with Google",
     "connecting": "Connecting...",
     "disconnect": "Disconnect",
-    "connectionFailed": "Connection failed"
+    "connectionFailed": "Connection failed",
+    "or": "or"
   },
   "auth": {
     "connectWallet": "Connect your wallet",
@@ -59,6 +62,68 @@
     "dragOrClick": "Drag an image or click to select",
     "maxSize": "Max 5MB · JPG, PNG, WebP, GIF",
     "uploadError": "Failed to upload image"
+  },
+  "schedule": {
+    "notApplicable": "Schedule not applicable",
+    "timezone": "Timezone",
+    "visualMode": "Visual",
+    "advancedMode": "Advanced",
+    "closed": "Closed",
+    "addRange": "Add range",
+    "openToday": "Open today",
+    "closedToday": "Closed today",
+    "scheduleNA": "N/A",
+    "inheritingFromBusiness": "Inheriting schedule from business",
+    "override": "Override",
+    "clearOverride": "Remove override (use business schedule)",
+    "addSchedule": "Add schedule",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "daysShort": {
+      "monday": "Mon",
+      "tuesday": "Tue",
+      "wednesday": "Wed",
+      "thursday": "Thu",
+      "friday": "Fri",
+      "saturday": "Sat",
+      "sunday": "Sun"
+    }
+  },
+  "contact": {
+    "notApplicable": "Contact info not applicable",
+    "email": "Email",
+    "phone": "Phone",
+    "whatsapp": "WhatsApp",
+    "website": "Website",
+    "emailPlaceholder": "contact@business.com",
+    "phonePlaceholder": "+1 234 567 890",
+    "whatsappPlaceholder": "+1 234 567 890",
+    "websitePlaceholder": "https://example.com",
+    "contactNA": "N/A",
+    "inheritingFromBusiness": "Inheriting contact info from business",
+    "override": "Override",
+    "clearOverride": "Remove override (use business contact)",
+    "addContact": "Add contact info"
+  },
+  "location": {
+    "country": "Country",
+    "countryPlaceholder": "Select a country",
+    "city": "City",
+    "cityPlaceholder": "Start typing to search...",
+    "address": "Address (optional)",
+    "addressPlaceholder": "Street address or landmark",
+    "validated": "Location verified",
+    "addLocation": "Add location",
+    "inheritingFromBusiness": "Inheriting location from business",
+    "override": "Override",
+    "clearOverride": "Remove override (use business location)"
   },
   "participants": "participants",
   "collected": "Collected",

@@ -23,8 +23,12 @@
     "walletLabel": "Stellar wallet address",
     "walletPlaceholder": "G... (where you'll receive payments)",
     "useThisWallet": "Use this wallet",
+    "locationLabel": "Location",
+    "locationPlaceholder": "e.g. Buenos Aires, Argentina",
     "emailLabel": "Contact email",
     "emailPlaceholder": "contact@business.com",
+    "scheduleLabel": "Operating hours",
+    "contactLabel": "Contact information",
     "registering": "Registering...",
     "registerButton": "Register business"
   },

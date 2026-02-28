@@ -7,9 +7,10 @@ interface WalletState {
     isConnected: boolean;
     token: string | null;
     user: User | null;
+    provider: 'wallet' | 'accesly' | null;
 
     connect: (address: string) => void;
-    authenticate: (token: string, user: User) => void;
+    authenticate: (token: string, user: User, provider?: 'wallet' | 'accesly') => void;
     disconnect: () => void;
 }
 
@@ -20,17 +21,18 @@ export const useWalletStore = create<WalletState>()(
             isConnected: false,
             token: null,
             user: null,
+            provider: null,
 
             connect: (address) => set({address, isConnected: true}),
 
-            authenticate: (token, user) => {
+            authenticate: (token, user, provider = 'wallet') => {
                 localStorage.setItem('jwt', token);
-                set({token, user});
+                set({token, user, provider});
             },
 
             disconnect: () => {
                 localStorage.removeItem('jwt');
-                set({address: null, isConnected: false, token: null, user: null});
+                set({address: null, isConnected: false, token: null, user: null, provider: null});
             },
         }),
         {
@@ -40,6 +42,7 @@ export const useWalletStore = create<WalletState>()(
                 isConnected: state.isConnected,
                 token: state.token,
                 user: state.user,
+                provider: state.provider,
             }),
         },
     ),

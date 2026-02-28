@@ -274,7 +274,9 @@ export async function buildClaimDeadlineTx(params: {
 export async function buildAndSign(
     buildFn: () => Promise<string>,
     walletAddress: string,
+    signer?: (xdr: string) => Promise<string>,
 ): Promise<string> {
     const unsignedXdr = await buildFn();
+    if (signer) return signer(unsignedXdr);
     return signWithFreighter(unsignedXdr, walletAddress);
 }

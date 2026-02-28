@@ -23,8 +23,12 @@
     "walletLabel": "Dirección wallet Stellar",
     "walletPlaceholder": "G... (donde recibirás pagos)",
     "useThisWallet": "Usar este wallet",
+    "locationLabel": "Ubicación",
+    "locationPlaceholder": "ej. Buenos Aires, Argentina",
     "emailLabel": "Email de contacto",
     "emailPlaceholder": "contacto@negocio.com",
+    "scheduleLabel": "Horario de atención",
+    "contactLabel": "Información de contacto",
     "registering": "Registrando...",
     "registerButton": "Registrar negocio"
   },

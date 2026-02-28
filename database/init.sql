@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS invoice_modifications CASCADE;
 DROP TABLE IF EXISTS invoice_participants CASCADE;
 DROP TABLE IF EXISTS invoice_items CASCADE;
 DROP TABLE IF EXISTS invoices CASCADE;
+DROP TABLE IF EXISTS cart_items CASCADE;
 DROP TABLE IF EXISTS services CASCADE;
 DROP TABLE IF EXISTS businesses CASCADE;
 DROP TABLE IF EXISTS transactions CASCADE;
@@ -29,7 +30,9 @@ DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE users
 (
     id             SERIAL PRIMARY KEY,
-    wallet_address VARCHAR(56) UNIQUE NOT NULL, -- Stellar public key (G...)
+    wallet_address VARCHAR(56) UNIQUE,          -- Stellar public key (G...), nullable for social login
+    email          VARCHAR(255) UNIQUE,          -- Email for social login (Accesly)
+    auth_provider  VARCHAR(20) DEFAULT 'wallet', -- wallet / accesly
     username       VARCHAR(100),
     avatar_url     TEXT,
     role VARCHAR(20) DEFAULT 'user',            -- user / admin
@@ -40,6 +43,10 @@ COMMENT
 ON TABLE users IS 'Perfiles de usuarios de la plataforma';
 COMMENT
 ON COLUMN users.wallet_address IS 'Clave pública de Stellar - vínculo con on-chain';
+COMMENT
+ON COLUMN users.email IS 'Email para login social (Accesly/Google)';
+COMMENT
+ON COLUMN users.auth_provider IS 'Método de autenticación: wallet (Freighter) o accesly (Google)';
 
 -- ============================================================================
 -- EMPRESAS
@@ -56,6 +63,10 @@ CREATE TABLE businesses
     logo_url       TEXT,
     wallet_address VARCHAR(56),
     contact_email  VARCHAR(255),
+    location       VARCHAR(255),
+    location_data  JSONB,
+    schedule       JSONB,
+    contact_info   JSONB,
     active         BOOLEAN   DEFAULT true,
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -65,6 +76,14 @@ COMMENT
 ON TABLE businesses IS 'Empresas que ofrecen servicios y reciben pagos via Stellar';
 COMMENT
 ON COLUMN businesses.wallet_address IS 'Wallet Stellar donde recibe pagos del escrow';
+COMMENT
+ON COLUMN businesses.location IS 'Ubicación como texto (auto-generado desde location_data)';
+COMMENT
+ON COLUMN businesses.location_data IS 'Ubicación estructurada (JSONB: country, country_code, city, address, lat, lng)';
+COMMENT
+ON COLUMN businesses.schedule IS 'Horario de atención (JSONB: not_applicable, timezone, slots por día)';
+COMMENT
+ON COLUMN businesses.contact_info IS 'Info de contacto (JSONB: email, phone, whatsapp, website)';
 
 -- ============================================================================
 -- SERVICIOS
@@ -79,6 +98,10 @@ CREATE TABLE services
     description TEXT,
     price       DECIMAL(20, 7) NOT NULL,
     image_url TEXT,
+    location    VARCHAR(255),
+    location_data JSONB,
+    schedule    JSONB,
+    contact_info JSONB,
     active      BOOLEAN   DEFAULT true,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -86,6 +109,31 @@ CREATE TABLE services
 
 COMMENT
 ON TABLE services IS 'Catálogo de servicios ofrecidos por empresas';
+COMMENT
+ON COLUMN services.location IS 'Ubicación como texto (auto-generado desde location_data)';
+COMMENT
+ON COLUMN services.location_data IS 'Ubicación estructurada del servicio - sobreescribe business.location_data';
+COMMENT
+ON COLUMN services.schedule IS 'Horario del servicio - sobreescribe business.schedule si está definido';
+COMMENT
+ON COLUMN services.contact_info IS 'Contacto del servicio - sobreescribe business.contact_info si está definido';
+
+-- ============================================================================
+-- CARRITO DE COMPRAS
+-- ============================================================================
+-- Items en el carrito de un usuario antes de crear una factura.
+
+CREATE TABLE cart_items
+(
+    id         SERIAL PRIMARY KEY,
+    user_id    INTEGER REFERENCES users (id) ON DELETE CASCADE,
+    service_id INTEGER REFERENCES services (id) ON DELETE CASCADE,
+    quantity   INTEGER   DEFAULT 1 CHECK (quantity > 0),
+    added_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, service_id)
+);
+
+COMMENT ON TABLE cart_items IS 'Items en el carrito de compras del usuario';
 
 -- ============================================================================
 -- FACTURAS (invoices)
@@ -254,15 +302,21 @@ ON COLUMN transactions.type IS 'create/contribute/withdraw/release/cancel/confir
 
 -- Users
 CREATE INDEX idx_users_wallet ON users (wallet_address);
+CREATE INDEX idx_users_email ON users (email);
 
 -- Businesses
 CREATE INDEX idx_businesses_owner ON businesses (owner_id);
 CREATE INDEX idx_businesses_category ON businesses (category);
 CREATE INDEX idx_businesses_wallet ON businesses (wallet_address);
+CREATE INDEX idx_businesses_location ON businesses (location);
 
 -- Services
 CREATE INDEX idx_services_business ON services (business_id);
 CREATE INDEX idx_services_active ON services (active) WHERE active = true;
+
+-- Cart Items
+CREATE INDEX idx_cart_items_user ON cart_items (user_id);
+CREATE INDEX idx_cart_items_service ON cart_items (service_id);
 
 -- Invoices
 CREATE INDEX idx_invoices_organizer ON invoices (organizer_id);

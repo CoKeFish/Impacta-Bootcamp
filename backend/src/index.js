@@ -5,15 +5,26 @@ const logger = require('./config/logger');
 
 const PORT = process.env.PORT || 3000;
 
+async function waitFor(fn, label, retries = 10, delay = 3000) {
+    for (let i = 1; i <= retries; i++) {
+        try {
+            await fn();
+            logger.info(`Connected to ${label}`);
+            return;
+        } catch (err) {
+            logger.warn({err, attempt: i, retries}, `Waiting for ${label}...`);
+            if (i === retries) throw err;
+            await new Promise(r => setTimeout(r, delay));
+        }
+    }
+}
+
 async function init() {
     try {
-        await pool.query('SELECT 1');
-        logger.info('Connected to PostgreSQL');
-
-        await initBuckets();
-        logger.info('Connected to MinIO');
+        await waitFor(() => pool.query('SELECT 1'), 'PostgreSQL');
+        await waitFor(() => initBuckets(), 'MinIO');
     } catch (error) {
-        logger.fatal({err: error}, 'Initialization failed');
+        logger.fatal({err: error}, 'Initialization failed after retries');
         process.exit(1);
     }
 }
