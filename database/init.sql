@@ -30,7 +30,7 @@ DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE users
 (
     id             SERIAL PRIMARY KEY,
-    wallet_address VARCHAR(56) UNIQUE,          -- Stellar public key (G...), nullable for social login
+    wallet_address VARCHAR(56) UNIQUE,           -- Stellar public key (G...), nullable for social login
     email          VARCHAR(255) UNIQUE,          -- Email for social login (Accesly)
     auth_provider  VARCHAR(20) DEFAULT 'wallet', -- wallet / accesly
     username       VARCHAR(100),
@@ -63,10 +63,10 @@ CREATE TABLE businesses
     logo_url       TEXT,
     wallet_address VARCHAR(56),
     contact_email  VARCHAR(255),
-    location       VARCHAR(255),
-    location_data  JSONB,
-    schedule       JSONB,
-    contact_info   JSONB,
+    location      VARCHAR(255),
+    location_data JSONB,
+    schedule      JSONB,
+    contact_info  JSONB,
     active         BOOLEAN   DEFAULT true,
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -98,9 +98,9 @@ CREATE TABLE services
     description TEXT,
     price       DECIMAL(20, 7) NOT NULL,
     image_url TEXT,
-    location    VARCHAR(255),
+    location     VARCHAR(255),
     location_data JSONB,
-    schedule    JSONB,
+    schedule     JSONB,
     contact_info JSONB,
     active      BOOLEAN   DEFAULT true,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -133,7 +133,8 @@ CREATE TABLE cart_items
     UNIQUE (user_id, service_id)
 );
 
-COMMENT ON TABLE cart_items IS 'Items en el carrito de compras del usuario';
+COMMENT
+ON TABLE cart_items IS 'Items en el carrito de compras del usuario';
 
 -- ============================================================================
 -- FACTURAS (invoices)

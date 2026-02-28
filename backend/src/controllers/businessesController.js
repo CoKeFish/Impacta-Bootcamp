@@ -3,7 +3,18 @@ const businessModel = require('../models/businessModel');
 module.exports = {
     async create(req, res, next) {
         try {
-            const {name, category, description, logo_url, wallet_address, contact_email, location, schedule, contact_info, location_data} = req.body;
+            const {
+                name,
+                category,
+                description,
+                logo_url,
+                wallet_address,
+                contact_email,
+                location,
+                schedule,
+                contact_info,
+                location_data
+            } = req.body;
 
             if (!name) {
                 return res.status(400).json({error: 'Required: name'});

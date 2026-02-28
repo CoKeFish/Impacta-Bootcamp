@@ -132,7 +132,8 @@ export function SchedulePicker({value, onChange, label, inheritedSchedule}: Sche
                         <>
                             {/* Timezone */}
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-muted-foreground">{t('schedule.timezone')}</label>
+                                <label
+                                    className="text-xs font-medium text-muted-foreground">{t('schedule.timezone')}</label>
                                 <select
                                     value={schedule.timezone}
                                     onChange={(e) => handleTimezoneChange(e.target.value)}

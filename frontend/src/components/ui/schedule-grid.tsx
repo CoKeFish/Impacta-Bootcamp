@@ -195,7 +195,8 @@ export function ScheduleGrid({slots, onChange, disabled}: ScheduleGridProps) {
                     const timeLabel = !half ? `${String(hour).padStart(2, '0')}:00` : '';
                     return (
                         <div key={r} className="contents">
-                            <div className="h-5 flex items-center justify-end pr-2 text-[10px] text-muted-foreground tabular-nums">
+                            <div
+                                className="h-5 flex items-center justify-end pr-2 text-[10px] text-muted-foreground tabular-nums">
                                 {timeLabel}
                             </div>
                             {DAYS.map((day) => {

@@ -12,7 +12,7 @@ import {EmptyState} from '@/components/ui/empty-state';
 import {PageHeader} from '@/components/ui/page-header';
 import {ScheduleDisplay} from '@/components/ui/schedule-display';
 import {ContactInfoDisplay} from '@/components/ui/contact-info-display';
-import {getServices, getBusinessCategories, getBusinessLocations, getBusinesses} from '@/services/api';
+import {getBusinessCategories, getBusinesses, getBusinessLocations, getServices} from '@/services/api';
 import {formatXLM} from '@/lib/utils';
 import {fadeInUp, staggerContainer} from '@/lib/motion';
 import {useAuth} from '@/hooks/useAuth';
@@ -223,17 +223,17 @@ export function ServiceCatalog() {
                                             </span>
                                             {service.business_name}
                                         </Link>
-                                        {isAuthenticated && (
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => addItem.mutate({serviceId: service.id})}
-                                                disabled={addItem.isPending}
-                                            >
-                                                <ShoppingCart className="h-4 w-4 mr-1"/>
-                                                {t('catalog.addToCart')}
-                                            </Button>
-                                        )}
+                                            {isAuthenticated && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() => addItem.mutate({serviceId: service.id})}
+                                                    disabled={addItem.isPending}
+                                                >
+                                                    <ShoppingCart className="h-4 w-4 mr-1"/>
+                                                    {t('catalog.addToCart')}
+                                                </Button>
+                                            )}
                                         </div>
                                     </CardContent>
                                 </Card>

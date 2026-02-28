@@ -3,7 +3,8 @@ const pool = require('../config/db');
 module.exports = {
     async create(ownerId, name, category, description, logoUrl, walletAddress, contactEmail, location, schedule, contactInfo, locationData) {
         const {rows} = await pool.query(
-            `INSERT INTO businesses (owner_id, name, category, description, logo_url, wallet_address, contact_email, location, schedule, contact_info, location_data)
+            `INSERT INTO businesses (owner_id, name, category, description, logo_url, wallet_address, contact_email,
+                                     location, schedule, contact_info, location_data)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
              RETURNING *`,
             [ownerId, name, category, description, logoUrl, walletAddress, contactEmail, location,

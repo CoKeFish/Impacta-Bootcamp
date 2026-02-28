@@ -87,7 +87,8 @@ export function ContactInfoEditor({value, onChange, label, inheritedContactInfo}
                     {!info.not_applicable && (
                         <div className="grid gap-3 sm:grid-cols-2">
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-muted-foreground">{t('contact.email')}</label>
+                                <label
+                                    className="text-xs font-medium text-muted-foreground">{t('contact.email')}</label>
                                 <input
                                     type="email"
                                     value={info.email}
@@ -97,7 +98,8 @@ export function ContactInfoEditor({value, onChange, label, inheritedContactInfo}
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-muted-foreground">{t('contact.phone')}</label>
+                                <label
+                                    className="text-xs font-medium text-muted-foreground">{t('contact.phone')}</label>
                                 <input
                                     type="tel"
                                     value={info.phone}
@@ -107,7 +109,8 @@ export function ContactInfoEditor({value, onChange, label, inheritedContactInfo}
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-muted-foreground">{t('contact.whatsapp')}</label>
+                                <label
+                                    className="text-xs font-medium text-muted-foreground">{t('contact.whatsapp')}</label>
                                 <input
                                     type="tel"
                                     value={info.whatsapp}
@@ -117,7 +120,8 @@ export function ContactInfoEditor({value, onChange, label, inheritedContactInfo}
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-muted-foreground">{t('contact.website')}</label>
+                                <label
+                                    className="text-xs font-medium text-muted-foreground">{t('contact.website')}</label>
                                 <input
                                     type="url"
                                     value={info.website}

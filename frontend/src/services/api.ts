@@ -6,13 +6,13 @@ import type {
     Cart,
     CartItem,
     ContactInfo,
-    LocationData,
     HealthStatus,
     ImageInfo,
     ImageUploadResponse,
     Invoice,
     InvoiceItem,
     InvoiceParticipant,
+    LocationData,
     PaginatedResponse,
     Schedule,
     Service,
@@ -155,7 +155,14 @@ export const getBusinessServices = (businessId: number) =>
 
 // ─── Services ───────────────────────────────────────────────────────────────
 
-export const getServices = (params?: { q?: string; category?: string; min_price?: string; max_price?: string; business_id?: string; location?: string }) => {
+export const getServices = (params?: {
+    q?: string;
+    category?: string;
+    min_price?: string;
+    max_price?: string;
+    business_id?: string;
+    location?: string
+}) => {
     const searchParams = new URLSearchParams();
     if (params) {
         for (const [key, value] of Object.entries(params)) {
