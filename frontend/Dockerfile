@@ -6,6 +6,10 @@ COPY frontend/package*.json ./
 RUN npm ci
 
 COPY frontend/ .
+
+ARG VITE_ACCESLY_APP_ID
+ENV VITE_ACCESLY_APP_ID=$VITE_ACCESLY_APP_ID
+
 RUN npm run build
 
 FROM nginx:alpine
