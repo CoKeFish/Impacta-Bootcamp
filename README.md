@@ -89,8 +89,6 @@ los proveedores. Sin intermediarios.
 | **Pago directo a proveedores** | Los fondos van directamente a las wallets de hoteles, tours y restaurantes                      |
 | **Confirmación colectiva**     | Todos los participantes deben aprobar la liberación de fondos (o el organizador puede forzarla) |
 | **Reembolso automático**       | Si el grupo no alcanza la meta antes de la fecha límite, todos reciben su dinero de vuelta      |
-| **Marketplace de servicios**   | Negocios registran sus servicios con precios, horarios, ubicación e información de contacto     |
-| **Bilingüe**                   | Interfaz completa en español e inglés                                                           |
 | **Login flexible**             | Conecta con wallet Freighter o inicia sesión con Google                                         |
 
 ---
@@ -120,17 +118,16 @@ Visualiza todas tus facturas organizadas por estado: borrador, financiando, comp
 
 ## Flujo de una factura
 
+```mermaid
+stateDiagram-v2
+    [*] --> Borrador : Crear factura
+    Borrador --> Financiando : Vincular a blockchain
+    Financiando --> Completada : Meta alcanzada
+    Financiando --> Cancelada : Organizador cancela
+    Completada --> Liberada : Participantes confirman
+    Completada --> Liberada : Organizador libera
+    Financiando --> Cancelada : Fecha límite vencida
 ```
-Borrador → Financiando → Completada → Liberada
-              ↓                          ↑
-         Cancelada         Confirmar liberación
-```
-
-1. **Borrador**: Se crea la factura con los servicios deseados
-2. **Financiando**: Se vincula a blockchain y acepta contribuciones
-3. **Completada**: Se alcanzó la meta de financiamiento
-4. **Liberada**: Los fondos fueron distribuidos a los proveedores
-5. **Cancelada**: El organizador canceló y todos recibieron reembolso
 
 ---
 
