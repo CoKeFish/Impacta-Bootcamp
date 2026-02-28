@@ -12,7 +12,7 @@ async function waitFor(fn, label, retries = 10, delay = 3000) {
             logger.info(`Connected to ${label}`);
             return;
         } catch (err) {
-            logger.warn({err, attempt: i, retries}, `Waiting for ${label}...`);
+            console.error(`[${label}] attempt ${i}/${retries} failed:`, err.message);
             if (i === retries) throw err;
             await new Promise(r => setTimeout(r, delay));
         }
@@ -24,7 +24,7 @@ async function init() {
         await waitFor(() => pool.query('SELECT 1'), 'PostgreSQL');
         await waitFor(() => initBuckets(), 'MinIO');
     } catch (error) {
-        logger.fatal({err: error}, 'Initialization failed after retries');
+        console.error('Initialization failed after retries:', error.message);
         process.exit(1);
     }
 }
