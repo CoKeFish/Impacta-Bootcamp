@@ -33,6 +33,10 @@ build/
 target/
 *.wasm
 
+# Generated images
+imagen/
+test-imagen.png
+
 # Docker volumes (si los montas localmente)
 postgres_data/
 minio_data/
