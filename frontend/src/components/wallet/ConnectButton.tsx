@@ -98,16 +98,16 @@ export function ConnectButton() {
                     ) : (
                         <Wallet className="h-4 w-4"/>
                     )}
-                    {loading === 'wallet' ? t('wallet.connecting') : t('wallet.connect')}
+                    <span className="hidden sm:inline">{loading === 'wallet' ? t('wallet.connecting') : t('wallet.connect')}</span>
                 </Button>
-                <span className="text-xs text-muted-foreground">{t('wallet.or')}</span>
+                <span className="hidden sm:inline text-xs text-muted-foreground">{t('wallet.or')}</span>
                 <Button onClick={handleGoogleLogin} disabled={!!loading} size="sm" variant="outline">
                     {loading === 'google' ? (
                         <Loader2 className="h-4 w-4 animate-spin"/>
                     ) : (
                         <GoogleIcon className="h-4 w-4"/>
                     )}
-                    {loading === 'google' ? t('wallet.connecting') : t('wallet.connectGoogle')}
+                    <span className="hidden sm:inline">{loading === 'google' ? t('wallet.connecting') : t('wallet.connectGoogle')}</span>
                 </Button>
             </div>
             {error && (

@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
-import {MapPin, Package, Search, ShoppingCart, Store} from 'lucide-react';
+import {ChevronDown, MapPin, Package, Search, ShoppingCart, SlidersHorizontal, Store} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {motion} from 'framer-motion';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -29,6 +29,7 @@ export function ServiceCatalog() {
     const [maxPrice, setMaxPrice] = useState('');
     const [businessId, setBusinessId] = useState('');
     const [location, setLocation] = useState('');
+    const [filtersOpen, setFiltersOpen] = useState(false);
 
     const {data: categories} = useQuery({
         queryKey: ['businessCategories'],
@@ -76,8 +77,29 @@ export function ServiceCatalog() {
             </PageHeader>
 
             <div className="container py-8 space-y-6">
-                {/* Filter bar */}
-                <div className="flex flex-wrap gap-3 items-end">
+                {/* Filter bar — mobile toggle */}
+                {(() => {
+                    const activeFilterCount = [category, minPrice, maxPrice, businessId, location].filter(Boolean).length;
+                    return (
+                        <button
+                            type="button"
+                            onClick={() => setFiltersOpen((o) => !o)}
+                            className="md:hidden flex items-center gap-2 h-9 rounded-md border border-input bg-background px-3 text-sm font-medium"
+                        >
+                            <SlidersHorizontal className="h-4 w-4"/>
+                            {t('catalog.filters', {defaultValue: 'Filtros'})}
+                            {activeFilterCount > 0 && (
+                                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground px-1">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                            <ChevronDown className={`h-4 w-4 transition-transform ${filtersOpen ? 'rotate-180' : ''}`}/>
+                        </button>
+                    );
+                })()}
+
+                {/* Filter bar — desktop (unchanged) */}
+                <div className="hidden md:flex flex-wrap gap-3 items-end">
                     <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-muted-foreground">{t('catalog.category')}</label>
                         <select
@@ -146,6 +168,80 @@ export function ServiceCatalog() {
                         </select>
                     </div>
                 </div>
+
+                {/* Filter bar — mobile collapsible */}
+                {filtersOpen && (
+                    <div className="md:hidden flex flex-col gap-3">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-muted-foreground">{t('catalog.category')}</label>
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            >
+                                <option value="">{tc('filters.all')}</option>
+                                {categories?.map((cat) => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <div className="flex flex-1 flex-col gap-1">
+                                <label className="text-xs font-medium text-muted-foreground">{t('catalog.minPrice')}</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    placeholder="0"
+                                    value={minPrice}
+                                    onChange={(e) => setMinPrice(e.target.value)}
+                                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                                />
+                            </div>
+                            <div className="flex flex-1 flex-col gap-1">
+                                <label className="text-xs font-medium text-muted-foreground">{t('catalog.maxPrice')}</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    placeholder="--"
+                                    value={maxPrice}
+                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-muted-foreground">{t('catalog.business')}</label>
+                            <select
+                                value={businessId}
+                                onChange={(e) => setBusinessId(e.target.value)}
+                                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            >
+                                <option value="">{tc('filters.all')}</option>
+                                {businesses?.map((b) => (
+                                    <option key={b.id} value={String(b.id)}>{b.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-muted-foreground">{t('catalog.location')}</label>
+                            <select
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            >
+                                <option value="">{tc('filters.all')}</option>
+                                {locations?.map((loc) => (
+                                    <option key={loc} value={loc}>{loc}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                )}
 
                 {isLoading && <GridSkeleton count={6}/>}
 
