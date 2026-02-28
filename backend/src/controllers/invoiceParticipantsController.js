@@ -177,9 +177,9 @@ module.exports = {
             // Check if confirm_release triggered an auto-release on-chain
             // (happens when all participants have confirmed)
             let finalInvoice = updatedInvoice;
-            if (invoice.pool_id != null) {
+            if (invoice.contract_invoice_id != null) {
                 try {
-                    const onChainState = await sorobanService.getTripState(Number(invoice.pool_id));
+                    const onChainState = await sorobanService.getTripState(Number(invoice.contract_invoice_id));
                     if (onChainState && onChainState.status === 'released') {
                         finalInvoice = await invoiceModel.updateStatus(invoice.id, 'released');
                         logger.info({invoiceId: invoice.id}, 'Auto-release detected after confirm_release');
