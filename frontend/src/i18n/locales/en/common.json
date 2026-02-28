@@ -125,6 +125,24 @@
     "override": "Override",
     "clearOverride": "Remove override (use business location)"
   },
+  "soroban": {
+    "errorNotCompleted": "Cannot perform this action: the invoice has not reached its funding goal yet. All participants must contribute first.",
+    "errorNotFunding": "This invoice is not accepting contributions right now.",
+    "errorCannotWithdraw": "Cannot withdraw in the current invoice status.",
+    "errorAlreadyFinalized": "This invoice has already been finalized and cannot be cancelled.",
+    "errorAutoRelease": "This invoice uses auto-release. Funds will be distributed automatically when funding is complete.",
+    "errorNoBalance": "You have no balance to withdraw from this invoice.",
+    "errorNotParticipant": "Only active participants with a contribution can perform this action.",
+    "errorAlreadyConfirmed": "You have already confirmed the release for this invoice.",
+    "errorExceedsTarget": "This contribution would exceed the funding goal. Try a smaller amount.",
+    "errorDeadlinePassed": "The deadline for this invoice has passed.",
+    "errorInvalidAmount": "The amount must be greater than zero.",
+    "errorTripNotFound": "Invoice not found on the blockchain. It may not be linked yet.",
+    "errorMaxParticipants": "This invoice has reached the maximum number of participants.",
+    "errorContractPanic": "The smart contract rejected this operation. Check that all conditions are met (enough participants, correct status, etc.).",
+    "errorMissingFunction": "The smart contract does not support this operation. It may need to be updated.",
+    "errorGeneric": "The blockchain transaction failed. Please try again or check the invoice status."
+  },
   "participants": "participants",
   "collected": "Collected",
   "noItems": "No items"

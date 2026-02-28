@@ -125,6 +125,24 @@
     "override": "Personalizar",
     "clearOverride": "Quitar personalización (usar ubicación del negocio)"
   },
+  "soroban": {
+    "errorNotCompleted": "No se puede realizar esta acción: la factura aún no alcanzó su meta de financiamiento. Todos los participantes deben contribuir primero.",
+    "errorNotFunding": "Esta factura no está aceptando contribuciones en este momento.",
+    "errorCannotWithdraw": "No es posible retirarse en el estado actual de la factura.",
+    "errorAlreadyFinalized": "Esta factura ya fue finalizada y no puede cancelarse.",
+    "errorAutoRelease": "Esta factura usa liberación automática. Los fondos se distribuirán automáticamente al completarse el financiamiento.",
+    "errorNoBalance": "No tienes saldo para retirar de esta factura.",
+    "errorNotParticipant": "Solo los participantes activos con una contribución pueden realizar esta acción.",
+    "errorAlreadyConfirmed": "Ya confirmaste la liberación de esta factura.",
+    "errorExceedsTarget": "Esta contribución excedería la meta de financiamiento. Intenta con un monto menor.",
+    "errorDeadlinePassed": "La fecha límite de esta factura ya pasó.",
+    "errorInvalidAmount": "El monto debe ser mayor a cero.",
+    "errorTripNotFound": "Factura no encontrada en la blockchain. Puede que aún no esté vinculada.",
+    "errorMaxParticipants": "Esta factura alcanzó el número máximo de participantes.",
+    "errorContractPanic": "El contrato inteligente rechazó esta operación. Verifica que se cumplan todas las condiciones (suficientes participantes, estado correcto, etc.).",
+    "errorMissingFunction": "El contrato inteligente no soporta esta operación. Puede que necesite actualizarse.",
+    "errorGeneric": "La transacción en blockchain falló. Intenta de nuevo o verifica el estado de la factura."
+  },
   "participants": "participantes",
   "collected": "Recaudado",
   "noItems": "Sin ítems"

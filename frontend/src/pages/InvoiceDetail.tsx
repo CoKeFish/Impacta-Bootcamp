@@ -88,6 +88,7 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
     const [error, setError] = useState<string | null>(null);
     const queryClient = useQueryClient();
     const {t} = useTranslation('invoices');
+    const {t: tc} = useTranslation();
 
     const isOrganizer = userId === invoice.organizer_id;
     const myParticipation = participants.find((p) => p.user_id === userId);
@@ -111,7 +112,9 @@ function ActionPanel({invoice, participants, userWallet, userId, onActionComplet
             queryClient.invalidateQueries({queryKey: ['myInvoices']});
             onActionComplete();
         } catch (err) {
-            setError(err instanceof Error ? err.message : t('actions.operationFailed'));
+            const msg = err instanceof Error ? err.message : t('actions.operationFailed');
+            // Soroban errors throw i18n keys (soroban.*) — translate them
+            setError(msg.startsWith('soroban.') ? tc(msg) : msg);
         } finally {
             setTimeout(() => {
                 setActionLoading(null);

@@ -52,6 +52,54 @@ function recipientToScVal(address: string, amount: bigint): xdr.ScVal {
     ]);
 }
 
+// ─── Soroban error parser ───────────────────────────────────────────────────
+
+/**
+ * Known contract panic messages → user-friendly error keys.
+ * The contract panics with these exact strings; we match substrings.
+ */
+const CONTRACT_ERROR_MAP: Array<[RegExp, string]> = [
+    // Status checks
+    [/Cannot release: escrow not completed/i, 'soroban.errorNotCompleted'],
+    [/Escrow is not accepting contributions/i, 'soroban.errorNotFunding'],
+    [/Cannot withdraw in current status/i, 'soroban.errorCannotWithdraw'],
+    [/Cannot cancel: already finalized/i, 'soroban.errorAlreadyFinalized'],
+    [/Pool is not in Completed status/i, 'soroban.errorNotCompleted'],
+    [/Pool uses auto-release/i, 'soroban.errorAutoRelease'],
+    // Validation
+    [/No balance to withdraw/i, 'soroban.errorNoBalance'],
+    [/Only active participants can confirm/i, 'soroban.errorNotParticipant'],
+    [/Participant already confirmed/i, 'soroban.errorAlreadyConfirmed'],
+    [/Contribution would exceed target/i, 'soroban.errorExceedsTarget'],
+    [/Deadline has passed/i, 'soroban.errorDeadlinePassed'],
+    [/Amount must be positive/i, 'soroban.errorInvalidAmount'],
+    [/Target amount must be positive/i, 'soroban.errorInvalidAmount'],
+    [/Trip not found/i, 'soroban.errorTripNotFound'],
+    [/Maximum number of participants/i, 'soroban.errorMaxParticipants'],
+    // Generic Soroban VM errors (fallback patterns)
+    [/UnreachableCodeReached/i, 'soroban.errorContractPanic'],
+    [/Error\(WasmVm, InvalidAction\)/i, 'soroban.errorContractPanic'],
+    [/Error\(WasmVm, MissingValue\)/i, 'soroban.errorMissingFunction'],
+];
+
+/**
+ * Parse a raw Soroban simulation error into a user-friendly i18n key.
+ * Falls back to a generic message with the contract method name.
+ */
+function parseSimulationError(rawError: string, _method: string): string {
+    // Try to extract the data:["...", method] panic message from diagnostic events
+    const dataMatch = rawError.match(/data:\[(?:\\)?"([^"\\]+)(?:\\)?"/);
+    const panicMsg = dataMatch?.[1] || rawError;
+
+    for (const [pattern, i18nKey] of CONTRACT_ERROR_MAP) {
+        if (pattern.test(panicMsg) || pattern.test(rawError)) {
+            return i18nKey;
+        }
+    }
+
+    return 'soroban.errorGeneric';
+}
+
 // ─── Core transaction builder ───────────────────────────────────────────────
 
 /**
@@ -84,9 +132,12 @@ async function buildContractTx(
     const simulated = await server.simulateTransaction(transaction);
 
     if (SorobanRpc.Api.isSimulationError(simulated)) {
-        throw new Error(
-            `Simulation failed: ${JSON.stringify(simulated.error)}`,
-        );
+        const raw = JSON.stringify(simulated.error);
+        const i18nKey = parseSimulationError(raw, method);
+        const err = new Error(i18nKey);
+        (err as any).sorobanMethod = method;
+        (err as any).sorobanRawError = raw;
+        throw err;
     }
 
     const prepared = SorobanRpc.assembleTransaction(
