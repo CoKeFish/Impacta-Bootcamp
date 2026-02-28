@@ -174,15 +174,31 @@ module.exports = {
 
             const updatedInvoice = await invoiceModel.incrementConfirmationCount(invoice.id);
 
+            // Check if confirm_release triggered an auto-release on-chain
+            // (happens when all participants have confirmed)
+            let finalInvoice = updatedInvoice;
+            if (invoice.pool_id != null) {
+                try {
+                    const onChainState = await sorobanService.getTripState(Number(invoice.pool_id));
+                    if (onChainState && onChainState.status === 'released') {
+                        finalInvoice = await invoiceModel.updateStatus(invoice.id, 'released');
+                        logger.info({invoiceId: invoice.id}, 'Auto-release detected after confirm_release');
+                    }
+                } catch (syncErr) {
+                    logger.warn({invoiceId: invoice.id, err: syncErr}, 'Failed to sync on-chain state after confirm_release');
+                }
+            }
+
             logger.info({
                 invoiceId: invoice.id,
                 userId: req.user.id,
-                confirmationCount: updatedInvoice.confirmation_count
+                confirmationCount: finalInvoice.confirmation_count
             }, 'Release confirmed');
 
             res.json({
                 participant: updated,
-                confirmation_count: updatedInvoice.confirmation_count,
+                confirmation_count: finalInvoice.confirmation_count,
+                status: finalInvoice.status,
             });
         } catch (err) {
             next(err);
