@@ -10,6 +10,11 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+// ─── Trust proxy (Railway, Render, etc.) ─────────────────────────────────────
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+
 // ─── Security headers ───────────────────────────────────────────────────────
 app.use(helmet());
 
